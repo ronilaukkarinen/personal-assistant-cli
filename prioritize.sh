@@ -4,6 +4,8 @@ source .env
 
 TODOIST_API_KEY=${TODOIST_API_KEY}
 OPENAI_API_KEY=${OPENAI_API_KEY}
+GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
 
 # Define color codes for formatting
 BOLD=$(tput bold)
@@ -49,34 +51,109 @@ if ! command -v curl &> /dev/null; then
   fi
 fi
 
-# Function: Fetch today's tasks from Todoist
+# Check if gcalcli is installed, install it for the user if not
+if ! command -v gcalcli &> /dev/null; then
+  # If macOS
+  if [ "$(uname)" == "Darwin" ]; then
+    brew install gcalcli
+  else
+    # If Linux
+    sudo apt-get install gcalcli
+  fi
+fi
+
+# Leave empty if all tasks should be fetched
+SELECTED_PROJECT="Todo"
+
+# Function: Fetch today's tasks from Todoist, including project names and subtask count
 fetch_tasks() {
   local today
   today=$(date +%Y-%m-%d)  # Get today's date in YYYY-MM-DD format
 
-  # Fetch tasks and filter those due today using jq
-  curl -s --request GET \
+  # Fetch tasks from Todoist API
+  tasks=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/tasks" \
-    --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-    | jq -r --arg today "$today" '.[] | select(.due.date == $today) | "- " + .content'
+    --header "Authorization: Bearer ${TODOIST_API_KEY}")
+
+  # Fetch projects from Todoist API
+  projects=$(curl -s --request GET \
+    --url "https://api.todoist.com/rest/v2/projects" \
+    --header "Authorization: Bearer ${TODOIST_API_KEY}")
+
+  # Create a map of project_id -> project_name
+  project_map=$(echo "$projects" | jq -r 'map({( .id | tostring ): .name}) | add')
+
+  # Lasketaan alatehtävien määrä jokaiselle tehtävälle Bashissa
+  # Haetaan kaikki parent_id:t ja lasketaan, montako kertaa jokainen id esiintyy parent_id:nä
+  subtask_counts=$(echo "$tasks" | jq -r '[.[] | select(.parent_id != null) | .parent_id] | group_by(.) | map({(.[0]): length}) | add')
+
+  # Lisää laskettu alatehtävien määrä jokaiseen tehtävään käyttäen `jq`-liitosta
+  echo "$tasks" | jq -r --arg today "$today" --argjson project_map "$project_map" --argjson subtask_counts "$subtask_counts" --arg selected_project "$SELECTED_PROJECT" '
+    .[] | select(.due.date == $today) |
+    .project_name = ($project_map[.project_id | tostring] // "Muu projekti") |
+    # Change "Todo" project name to "Työasiat"
+    .project_name = (if .project_name == "Todo" then "Työasiat" else .project_name end) |
+    # Filter based on selected project if provided (original project name)
+    select(
+      ($selected_project == "") or
+      (.project_name == $selected_project or ($selected_project == "Todo" and .project_name == "Työasiat"))
+    ) |
+    # Assign pre-calculated subtask count
+    .subtask_count = ($subtask_counts[.id] // 0) |
+    "- " + .content + " (" + .project_name + ")" +
+    (if .labels | length > 0 then " (Labels: " + (.labels | join(", ")) + ")" else "" end) +
+    " (Tehtävän laajuus, eli alatehtävien määrä tälle: \(.subtask_count))"'
+}
+
+# Function: Fetch today's Google Calendar events from a specific calendar
+fetch_calendar_events() {
+  local today
+  today=$(date +%Y-%m-%d)
+
+  # Fetch events from the specific calendar and print raw output if debug flag is enabled
+  calendar_output=$(gcalcli --nocolor --calendar "Roni Laukkarinen (Rollen työkalenteri)" agenda "$today" "$today 23:00" 2>&1)
+
+  # If debug mode is enabled, show raw gcalcli output
+  if [ "$DEBUG" = true ]; then
+    echo -e "${BOLD}${CYAN}Raaka gcalcli-vastaus:${RESET}\n$calendar_output\n"
+  fi
+
+  # Check for API errors
+  if [[ "$calendar_output" == *"Invalid Credentials"* ]]; then
+    echo -e "${BOLD}${RED}Virhe: Google Calendar API -avaimet ovat virheelliset tai puuttuvat.${RESET}"
+    exit 1
+  elif [[ "$calendar_output" == *"No calendars found"* ]]; then
+    echo -e "${BOLD}${RED}Virhe: Google Calendar -tilillä ei ole saatavilla olevia kalentereita.${RESET}"
+    exit 1
+  elif [[ "$calendar_output" == "" ]]; then
+    echo -e "${BOLD}${RED}Virhe: Google Calendar API ei palauttanut mitään tapahtumia. Tarkista internet-yhteys tai API-avaimet.${RESET}"
+    exit 1
+  fi
+
+  # Output all calendar events (no filtering)
+  echo "$calendar_output"
 }
 
 # Function: Send task list to OpenAI and get prioritized tasks using the chat model
 get_priorities() {
   local tasks="$1"
+  local events="$2"
+
+  # Combine Todoist tasks and Google Calendar events
+  combined_tasks="$tasks\n\nPäivän kalenteritapahtumat:\n$events"
 
   # Escape the tasks string for JSON format using jq
   escaped_tasks=$(echo "$tasks" | jq -Rs .)
 
   # Create a message structure for OpenAI's chat model
-  message_content="Olen liiketoimintalähtöinen teknologiajohtaja, yrittäjä ja perustaja 15 henkilön yrityksessä. Yrityksemme on WordPress-digitoimisto ja päätuotteemme ovat WordPress-verkkosivut, WooCommerce-verkkokaupat, WordPress-ylläpito ja visuaalinen käyttöliittymäsuunnittelu. Teemme mm. kokonaisia projekteja, sivustouudistuksia, jatkokehitystä ja niin edelleen. Olen super kiireinen ja tehtävälistani on usein täynnä. Yrityksessämme on lisäkseni 1 toimitusjohtaja, 1 projektipäällikkö, 10 koodaria, 2 suunnittelijaa ja 1 harjoittelija. Mitkä ovat tärkeimmät tehtävät, joita minun tulisi tehdä tänään, top 5? Ehdota myös tehtävät lykättäväksi myöhemmäksi. Muotoile lista markdown-muodossa ja arvioi jokaiselle tehtävälle aika. Työaikani on noin 8h päivässä, mutta voin venyä. Tässä on lista tämänpäiväisistä tehtävistäni:\n$tasks"
+  message_content="Olen liiketoimintalähtöinen teknologiajohtaja, yrittäjä ja perustaja 15 henkilön yrityksessä. Yrityksemme on WordPress-digitoimisto ja päätuotteemme ovat WordPress-verkkosivut, WooCommerce-verkkokaupat, WordPress-ylläpito ja visuaalinen käyttöliittymäsuunnittelu. Teemme mm. kokonaisia projekteja, sivustouudistuksia, jatkokehitystä ja niin edelleen. Olen super kiireinen ja tehtävälistani on usein täynnä. Yrityksessämme on lisäkseni 1 toimitusjohtaja, 1 projektipäällikkö, 10 koodaria, 2 suunnittelijaa ja 1 harjoittelija. Firman rahatilanne on myös melko tiukilla tällä hetkellä. Tehtävä sinulle: Mitkä ovat tärkeimmät tehtävät, joita minun tulisi tehdä tänään, top 5? Ehdota myös tehtävät lykättäväksi myöhemmäksi. Muotoile lista markdown-muodossa, muista selkeät välit otsikoiden jälkeen ja arvioi jokaiselle tehtävälle aika. Työaikani on noin 8h päivässä, mutta voin venyä. Ota huomioon päivän palaverit (keskimäärin 1h per tapahtuma) ja tehtävän laajuus (jos alatehtäviä, tehtävä on laajempi). Huom, älä keksi päästäsi omiasi tai lisää, vaan kunnioita alkuperäistä listaa. Kerro täydellinen lista alkuperäisine tehtävineen, ainoastaan lajiteltuna ja perusteltuna. Älä unohda yhtäkään tehtävää koosteesta. Tässä on todellinen lista tämänpäiväisistä tehtävistä ja palavereistani, johon lopputuloksesi tulee pohjata:\n$combined_tasks"
 
   # Create the JSON payload correctly for the chat model
   json_payload=$(jq -n --arg content "$message_content" '{
       "model": "gpt-4",
       "messages": [{"role": "system", "content": "Sinä olet tehtävien priorisoija."},
                    {"role": "user", "content": $content}],
-      "max_tokens": 500,
+      "max_tokens": 5000,
       "temperature": 0.5
     }')
 
@@ -98,7 +175,7 @@ get_priorities() {
 
   # Continue fetching until the response is complete
   while [ "$finish_reason" != "stop" ]; do
-    echo -e "${BOLD}${YELLOW}Vastaus jatkuu, haetaan lisää...${RESET}"
+    #echo -e "${BOLD}${YELLOW}Vastaus jatkuu, haetaan lisää...${RESET}"
     
     # Create new prompt with the previous content to continue from where it stopped
     json_payload=$(jq -n --arg content "$content_part" '{
@@ -133,17 +210,31 @@ main() {
   echo -e "${BOLD}${YELLOW}Haetaan tämänpäiväiset Todoist-tehtävät...${RESET}"
   tasks=$(fetch_tasks)
 
-  if [ -z "$tasks" ]; then
-    echo -e "${BOLD}${RED}Ei tämänpäiväisiä tehtäviä Todoistissa.${RESET}"
+  echo -e "${BOLD}${YELLOW}Haetaan tämänpäiväiset Google Calendar -tapahtumat...${RESET}"
+  events=$(fetch_calendar_events)  
+
+  if [ -z "$events" ]; then
+    echo -e "${BOLD}${RED}Ei tämänpäiväisiä kalenteritapahtumia Google Calendarissa.${RESET}"
+  fi
+
+  if [ -z "$tasks" ] && [ -z "$events" ]; then
     exit 1
   fi
 
-  echo -e "${BOLD}${GREEN}Tämänpäiväiset tehtävät:${RESET}\n$tasks\n"
-  
-  echo -e "${BOLD}${YELLOW}Priorisoidaan tehtävät OpenAI:n avulla...${RESET}"
-  priorities=$(get_priorities "$tasks")
+  echo -e "${BOLD}${GREEN}Tämänpäiväiset tehtävät ja kalenteritapahtumat:${RESET}\n$tasks\n\n$events\n"
 
-  echo -e "${BOLD}${GREEN}Priorisoidut tehtävät:${RESET}\n$priorities\n"
+  echo -e "${BOLD}${YELLOW}Priorisoidaan tehtävät ja palaverit OpenAI:n avulla...${RESET}"
+  priorities=$(get_priorities "$tasks" "$events")
+
+  echo -e "${BOLD}${GREEN}Priorisoidut tehtävät ja asiat:${RESET}\n$priorities\n"
+
+  # Save output to Obsidian vault
+  date_filename=$(date "+%Y-%m-%d")
+  date_header=$(date "+%d.%m.%Y")
+
+  echo -e "# $date_header\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$date_filename.md"
+
+  echo -e "${BOLD}${GREEN}Priorisointi on valmis ja tallennettu Obsidian-vaultiin.${RESET}"
 }
 
 # Run the script
