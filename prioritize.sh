@@ -140,6 +140,11 @@ get_priorities() {
   local tasks="$1"
   local events="$2"
 
+  if [ -z "$tasks" ]; then
+    echo -e "${BOLD}${RED}Ei tämänpäiväisiä tehtäviä Todoistissa.${RESET}"
+    exit 0
+  fi
+
   # Combine Todoist tasks and Google Calendar events
   combined_tasks="$tasks\n\nPäivän kalenteritapahtumat:\n$events"
 
