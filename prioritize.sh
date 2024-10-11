@@ -6,6 +6,7 @@ TODOIST_API_KEY=${TODOIST_API_KEY}
 OPENAI_API_KEY=${OPENAI_API_KEY}
 GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
 GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+PROMPT=${PROMPT}
 
 # Define color codes for formatting
 BOLD=$(tput bold)
@@ -145,15 +146,12 @@ get_priorities() {
   # Escape the tasks string for JSON format using jq
   escaped_tasks=$(echo "$tasks" | jq -Rs .)
 
-  # Create a message structure for OpenAI's chat model
-  message_content="Olen liiketoimintalähtöinen teknologiajohtaja, yrittäjä ja perustaja 15 henkilön yrityksessä. Yrityksemme on WordPress-digitoimisto ja päätuotteemme ovat WordPress-verkkosivut, WooCommerce-verkkokaupat, WordPress-ylläpito ja visuaalinen käyttöliittymäsuunnittelu. Teemme mm. kokonaisia projekteja, sivustouudistuksia, jatkokehitystä ja niin edelleen. Olen super kiireinen ja tehtävälistani on usein täynnä. Yrityksessämme on lisäkseni 1 toimitusjohtaja, 1 projektipäällikkö, 10 koodaria, 2 suunnittelijaa ja 1 harjoittelija. Firman rahatilanne on myös melko tiukilla tällä hetkellä. Tehtävä sinulle: Mitkä ovat tärkeimmät tehtävät, joita minun tulisi tehdä tänään, top 5? Ehdota myös tehtävät lykättäväksi myöhemmäksi. Muotoile lista markdown-muodossa, muista selkeät välit otsikoiden jälkeen ja arvioi jokaiselle tehtävälle aika. Työaikani on noin 8h päivässä, mutta voin venyä. Ota huomioon päivän palaverit (keskimäärin 1h per tapahtuma) ja tehtävän laajuus (jos alatehtäviä, tehtävä on laajempi). Huom, älä keksi päästäsi omiasi tai lisää, vaan kunnioita alkuperäistä listaa. Kerro täydellinen lista alkuperäisine tehtävineen, ainoastaan lajiteltuna ja perusteltuna. Älä unohda yhtäkään tehtävää koosteesta. Tässä on todellinen lista tämänpäiväisistä tehtävistä ja palavereistani, johon lopputuloksesi tulee pohjata:\n$combined_tasks"
-
-  # Create the JSON payload correctly for the chat model
-  json_payload=$(jq -n --arg content "$message_content" '{
+  # Create the JSON payload
+  json_payload=$(jq -n --arg prompt "$PROMPT" --arg tasks "$tasks" --arg events "$events" '{
       "model": "gpt-4",
       "messages": [{"role": "system", "content": "Sinä olet tehtävien priorisoija."},
-                   {"role": "user", "content": $content}],
-      "max_tokens": 5000,
+                   {"role": "user", "content": ($prompt + "\n\nTässä on tämänpäiväiset tehtävät:\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events)}],
+      "max_tokens": 500,
       "temperature": 0.5
     }')
 
@@ -176,26 +174,24 @@ get_priorities() {
   # Continue fetching until the response is complete
   while [ "$finish_reason" != "stop" ]; do
     #echo -e "${BOLD}${YELLOW}Vastaus jatkuu, haetaan lisää...${RESET}"
-    
-    # Create new prompt with the previous content to continue from where it stopped
+
+    # Create the JSON payload
     json_payload=$(jq -n --arg content "$content_part" '{
         "model": "gpt-4",
         "messages": [{"role": "user", "content": $content}],
         "max_tokens": 500,
         "temperature": 0.5
       }')
-    
-    # Make a new API call to continue the conversation
+
+    # Make API call to OpenAI
     response=$(curl -s --request POST \
       --url "https://api.openai.com/v1/chat/completions" \
       --header "Content-Type: application/json" \
       --header "Authorization: Bearer ${OPENAI_API_KEY}" \
       --data "$json_payload")
 
-    # Append the new content to the previous part
-    new_content=$(echo "$response" | jq -r '.choices[0].message.content // ""')
-    content_part+="$new_content"
-    finish_reason=$(echo "$response" | jq -r '.choices[0].finish_reason // ""')
+    # Parse response
+    echo "$response" | jq -r '.choices[0].message.content // "Ei tuloksia"'
   done
 
   # Add basic bold formatting to keywords or task headers
@@ -211,7 +207,7 @@ main() {
   tasks=$(fetch_tasks)
 
   echo -e "${BOLD}${YELLOW}Haetaan tämänpäiväiset Google Calendar -tapahtumat...${RESET}"
-  events=$(fetch_calendar_events)  
+  events=$(fetch_calendar_events)
 
   if [ -z "$events" ]; then
     echo -e "${BOLD}${RED}Ei tämänpäiväisiä kalenteritapahtumia Google Calendarissa.${RESET}"
@@ -229,7 +225,7 @@ main() {
   echo -e "${BOLD}${GREEN}Priorisoidut tehtävät ja asiat:${RESET}\n$priorities\n"
 
   # Save output to Obsidian vault
-  date_filename=$(date "+%Y-%m-%d")
+  date_filename=$(date "+%Y-%m-%d_%H-%M-%S")
   date_header=$(date "+%d.%m.%Y")
 
   echo -e "# $date_header\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$date_filename.md"
