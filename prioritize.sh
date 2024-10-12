@@ -200,25 +200,23 @@ postpone_task() {
   task_name=$(echo "$task_data" | jq -r '.content')
   current_labels=$(echo "$task_data" | jq -r '.labels')
 
+  # Ensure labels is a valid JSON array, even if it's empty
+  current_labels=$(echo "$current_labels" | jq -c '.')
+
   # Add "Lykätyt" label if not already present
-  if [[ "$current_labels" != *"$postponed_label_id"* ]]; then
-    current_labels=$(echo "$current_labels" | jq --arg postponed "$postponed_label_id" 'if . == [] then [$postponed] else . + [$postponed] end')
+  if [[ ! " ${current_labels[@]} " =~ " ${postponed_label_id} " ]]; then
+    current_labels=$(echo "$current_labels" | jq --arg postponed "$postponed_label_id" '. + [$postponed]')
   fi
 
   # Update the task's due date and labels
-  curl -s --request POST \
-    --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
-    --header "Content-Type: application/json" \
-    --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-    --data "{\"due_date\": \"$next_day\", \"labels\": $current_labels}" >/dev/null
-
-  # Debug
-  if [ "$DEBUG" = true ]; then
-    update_response=$(curl -s --request POST \
+  update_response=$(curl -s --request POST \
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
     --header "Content-Type: application/json" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}" \
     --data "{\"due_date\": \"$next_day\", \"labels\": $current_labels}")
+
+  # Debug
+  if [ "$DEBUG" = true ]; then
     echo -e "${BOLD}${CYAN}Tehtävän päivitysvastaus:${RESET}\n$update_response\n"
 
     # Debug postponed label
