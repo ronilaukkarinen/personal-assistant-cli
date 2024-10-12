@@ -44,6 +44,15 @@ is_leisure_time() {
   fi
 }
 
+# Function: Calculate remaining hours in the day
+calculate_remaining_hours() {
+  local current_hour
+  local end_of_day=24  # The end of the day is at midnight (24:00)
+  current_hour=$(date +%H)  # Get the current hour (24-hour format)
+  remaining_hours=$((end_of_day - current_hour))  # Calculate remaining hours
+  echo "$remaining_hours"
+}
+
 # Leave empty if all tasks should be fetched
 if is_leisure_time; then
   SELECTED_PROJECT=""
@@ -302,17 +311,16 @@ main() {
 
   echo -e "${BOLD}${GREEN}Priorisoidut tehtävät ja asiat:${RESET}\n$priorities\n"
 
-  # Use Helsinki/Europe timezone and local time
-  timezone="Europe/Helsinki"
-  export TZ=$timezone
+  # Get the current local time with timezone
+  current_time=$(TZ=$(cat /etc/timezone) date "+%H:%M")
+  remaining_hours=$(calculate_remaining_hours)
 
   # Filename format: YYYY-MM-DD_HH-MM-SS.md
   filename=$(date "+%Y-%m-%d_%H-%M-%S")
   date_header=$(date "+%d.%m.%Y")
 
-  # Save output to Obsidian vault
-  echo -e "# $date_header\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$date_filename.md"
-
+  # Save output to Obsidian vault with the current time and remaining hours in the header
+  echo -e "# $date_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivässä on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
   echo -e "${BOLD}${GREEN}Priorisointi on valmis ja tallennettu Obsidian-vaultiin.${RESET}"
 
   echo -e "${BOLD}${YELLOW}Siirretään tehtäviä seuraavalle päivälle...${RESET}"
