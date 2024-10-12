@@ -6,7 +6,6 @@ TODOIST_API_KEY=${TODOIST_API_KEY}
 OPENAI_API_KEY=${OPENAI_API_KEY}
 GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
 GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-PROMPT=${PROMPT}
 
 # Define color codes for formatting
 BOLD=$(tput bold)
@@ -24,8 +23,35 @@ for arg in "$@"; do
   fi
 done
 
+# Function: Determine whether it's work time or leisure time
+is_leisure_time() {
+  local current_day
+  local current_hour
+
+  current_day=$(date +%u)  # Get the current day of the week (1 = Monday, ..., 7 = Sunday)
+  current_hour=$(date +%H)  # Get the current hour (24-hour format)
+
+  # Determine if it's leisure time:
+  # - Weekdays (Monday to Friday) after 18:00
+  # - Weekends (Friday after 18:00 until Monday 00:00)
+  if ((current_day >= 1 && current_day <= 5 && current_hour >= 18)) || \
+     ((current_day == 5 && current_hour >= 18)) || \
+     ((current_day == 6)) || \
+     ((current_day == 7 && current_hour < 24)); then
+    return 0  # It's leisure time
+  else
+    return 1  # It's work time
+  fi
+}
+
 # Leave empty if all tasks should be fetched
-SELECTED_PROJECT="Todo"
+if is_leisure_time; then
+  SELECTED_PROJECT=""
+  PROMPT=${LEISURE_PROMPT}
+else
+  SELECTED_PROJECT="Todo"
+  PROMPT=${WORK_PROMPT}
+fi
 
 # If not debian based or macOS, exit
 if [ "$(uname)" != "Darwin" ] && [ "$(uname)" != "Linux" ]; then
@@ -101,9 +127,9 @@ fetch_tasks() {
     ) |
     # Assign pre-calculated subtask count
     .subtask_count = ($subtask_counts[.id] // 0) |
-    "- " + .content + " (" + .project_name + ")" +
-    (if .labels | length > 0 then " (Labels: " + (.labels | join(", ")) + ")" else "" end) +
-    " (Tehtävän laajuus, eli alatehtävien määrä tälle: \(.subtask_count))"'
+    "- ID: " + .id + " - " + .content + " (" + .project_name + ")" +
+      (if .labels | length > 0 then " (Labels: " + (.labels | join(", ")) + ")" else "" end) +
+      " (Alatehtäviä: \(.subtask_count))"'
 }
 
 # Function: Fetch today's Google Calendar events from a specific calendar
@@ -135,25 +161,107 @@ fetch_calendar_events() {
   echo "$calendar_output"
 }
 
+# Function: Ensure that the "Lykätyt" label exists and get its ID
+ensure_postponeed_label() {
+  local postponeed_label_id
+
+  # Fetch all labels
+  labels=$(curl -s --request GET \
+    --url "https://api.todoist.com/rest/v2/labels" \
+    --header "Authorization: Bearer ${TODOIST_API_KEY}")
+
+  # Check if "Lykätyt" label already exists
+  postponeed_label_id=$(echo "$labels" | jq -r '.[] | select(.name == "Lykätyt") | .id')
+
+  # If not found, create the "Lykätyt" label
+  if [[ -z "$postponeed_label_id" ]]; then
+    postponeed_label_id=$(curl -s --request POST \
+      --url "https://api.todoist.com/rest/v2/labels" \
+      --header "Content-Type: application/json" \
+      --header "Authorization: Bearer ${TODOIST_API_KEY}" \
+      --data '{"name": "Lykätyt"}' | jq -r '.id')
+    echo "Label 'Lykätyt' luotiin."
+  fi
+
+  echo "$postponeed_label_id"
+}
+
+# Function: Postpone a task to the next day and add a "Lykätyt" label
+postpone_task() {
+  local task_id="$1"
+  local postponeed_label_id="$2"
+  local next_day
+  next_day=$(date -d "tomorrow" +%Y-%m-%d)  # Calculate next day date
+
+  # Get existing labels and task name for the task
+  task_data=$(curl -s --request GET \
+    --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
+    --header "Authorization: Bearer ${TODOIST_API_KEY}")
+
+  task_name=$(echo "$task_data" | jq -r '.content')
+  current_labels=$(echo "$task_data" | jq -r '.labels')
+
+  # Add "Lykätyt" label if not already present
+  if [[ "$current_labels" != *"$postponeed_label_id"* ]]; then
+    # Merge the current labels with the "Lykätyt" label ID
+    current_labels=$(echo "$current_labels" | jq --arg postponeed "$postponeed_label_id" '. += [$postponeed]')
+  fi
+
+  # Update the task's due date and labels
+  curl -s --request POST \
+    --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
+    --header "Content-Type: application/json" \
+    --header "Authorization: Bearer ${TODOIST_API_KEY}" \
+    --data "{\"due_date\": \"$next_day\", \"labels\": $current_labels}" >/dev/null
+
+  # Print the task ID and name when the task is postponeed
+  echo -e "${YELLOW}Tehtävä siirretty: $task_name (ID: $task_id)${RESET}"
+}
+
 # Function: Send task list to OpenAI and get prioritized tasks using the chat model
 get_priorities() {
   local tasks="$1"
   local events="$2"
 
-  # Combine Todoist tasks and Google Calendar events
-  combined_tasks="$tasks\n\nPäivän kalenteritapahtumat:\n$events"
-
-  # Escape the tasks string for JSON format using jq
-  escaped_tasks=$(echo "$tasks" | jq -Rs .)
-
   # Create the JSON payload
   json_payload=$(jq -n --arg prompt "$PROMPT" --arg tasks "$tasks" --arg events "$events" '{
       "model": "gpt-4",
       "messages": [{"role": "system", "content": "Sinä olet tehtävien priorisoija."},
-                   {"role": "user", "content": ($prompt + "\n\nTässä on tämänpäiväiset tehtävät:\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events)}],
+                   {"role": "user", "content": ($prompt + "\n\nSiivoa ID:t pois muistiinpanoista. Tässä on tämänpäiväiset tehtävät:\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events)}],
       "max_tokens": 3000,
       "temperature": 0.5
     }')
+
+  # Make API call to OpenAI with the given message structure
+  response=$(curl -s --request POST \
+    --url "https://api.openai.com/v1/chat/completions" \
+    --header "Content-Type: application/json" \
+    --header "Authorization: Bearer ${OPENAI_API_KEY}" \
+    --data "$json_payload")
+
+  # If debug flag is enabled, print the raw response
+  if [ "$DEBUG" = true ]; then
+    echo -e "${BOLD}${CYAN}Raaka OpenAI-vastaus:${RESET}\n$response\n"
+  fi
+
+  # Parse response
+  echo "$response" | jq -r '.choices[0].message.content // "Ei tuloksia"'
+}
+
+get_postponed_tasks() {
+  local tasks="$1"
+  local events="$2"
+
+  # Create the JSON payload
+  json_payload=$(jq -n --arg prompt "$PROMPT" --arg tasks "$tasks" --arg events "$events" '{
+      "model": "gpt-4",
+      "messages": [
+        {"role": "system", "content": "Sinä olet tehtävien priorisoija."},
+        {"role": "user", "content": ($prompt + "\n\nTässä on tämänpäiväiset tehtävät (mukana ID:t):\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events + "\n\nMerkitse ne tehtävät, jotka tulisi siirtää seuraavalle päivälle, lisäämällä niiden perään \"siirretty seuraavalle päivälle\". Jos tehtäviä ei tarvitse siirtää, älä lisää mitään.") }
+      ],
+      "max_tokens": 3000,
+      "temperature": 0.5
+  }')
 
   # Make API call to OpenAI with the given message structure
   response=$(curl -s --request POST \
@@ -189,18 +297,46 @@ main() {
 
   echo -e "${BOLD}${GREEN}Tämänpäiväiset tehtävät ja kalenteritapahtumat:${RESET}\n$tasks\n\n$events\n"
 
-  echo -e "${BOLD}${YELLOW}Priorisoidaan tehtävät ja palaverit OpenAI:n avulla...${RESET}"
+  echo -e "${BOLD}${YELLOW}Priorisoidaan tehtävät ja palaverit OpenAI:n avulla ja luodaan muistiinpano...${RESET}"
   priorities=$(get_priorities "$tasks" "$events")
 
   echo -e "${BOLD}${GREEN}Priorisoidut tehtävät ja asiat:${RESET}\n$priorities\n"
 
-  # Save output to Obsidian vault
-  date_filename=$(date "+%Y-%m-%d_%H-%M-%S")
+  # Use Helsinki/Europe timezone and local time
+  timezone="Europe/Helsinki"
+  export TZ=$timezone
+
+  # Filename format: YYYY-MM-DD_HH-MM-SS.md
+  filename=$(date "+%Y-%m-%d_%H-%M-%S")
   date_header=$(date "+%d.%m.%Y")
 
+  # Save output to Obsidian vault
   echo -e "# $date_header\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$date_filename.md"
 
   echo -e "${BOLD}${GREEN}Priorisointi on valmis ja tallennettu Obsidian-vaultiin.${RESET}"
+
+  echo -e "${BOLD}${YELLOW}Siirretään tehtäviä seuraavalle päivälle...${RESET}"
+  postponed_tasks=$(get_postponed_tasks "$tasks" "$events")
+
+  # Choose to be postponeed tasks based on the AI response
+  task_ids_to_postpone=$(echo "$postponed_tasks" | grep -oE 'ID: [0-9]+.*siirretty seuraavalle päivälle' | awk '{print $2}')
+
+  # Moving those tasks to the next day that AI suggested
+  if [[ -n "$task_ids_to_postpone" ]]; then
+    echo -e "${BOLD}${YELLOW}Siirretään AI:n suosittelemat tehtävät seuraavalle päivälle...${RESET}"
+    for task_id in $task_ids_to_postpone; do
+      # Check that the task can actually be postponed
+      task_due_date=$(curl -s --request GET \
+        --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
+        --header "Authorization: Bearer ${TODOIST_API_KEY}" | jq -r '.due.date')
+
+      if [[ "$task_due_date" == $(date +%Y-%m-%d) ]]; then
+        postpone_task "$task_id" "$postponeed_label_id"
+      fi
+    done
+  else
+    echo -e "${BOLD}${CYAN}AI ei suositellut tehtävien siirtämistä.${RESET}"
+  fi
 }
 
 # Run the script
