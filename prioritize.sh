@@ -170,19 +170,19 @@ fetch_calendar_events() {
   echo "$calendar_output"
 }
 
-# Function: Ensure that the "Lykätyt" label exists and get its ID (Personal label only)
-ensure_postponed_label() {
-  local postponed_label_id
+postpone_task() {
+  local task_id="$1"
+  local next_day
+  next_day=$(date -d "tomorrow" +%Y-%m-%d)  # Calculate next day date
 
-  # Fetch all personal labels (not shared labels)
+  # Fetch the "Lykätyt" label ID or create it if it doesn't exist
   labels=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/labels" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}")
 
-  # Check if "Lykätyt" label already exists (ensure it's not a shared label)
-  postponed_label_id=$(echo "$labels" | jq -r '.[] | select(.name == "Lykätyt" and .is_shared == false) | .id')
+  postponed_label_id=$(echo "$labels" | jq -r '.[] | select(.name == "Lykätyt") | .id')
 
-  # If not found, create the "Lykätyt" label
+  # If "Lykätyt" label does not exist, create it
   if [[ -z "$postponed_label_id" ]]; then
     postponed_label_id=$(curl -s --request POST \
       --url "https://api.todoist.com/rest/v2/labels" \
@@ -192,15 +192,6 @@ ensure_postponed_label() {
     echo "Label 'Lykätyt' luotiin."
   fi
 
-  echo "$postponed_label_id"
-}
-
-postpone_task() {
-  local task_id="$1"
-  local postponed_label_id="$2"
-  local next_day
-  next_day=$(date -d "tomorrow" +%Y-%m-%d)  # Calculate next day date
-
   # Get existing labels and task name for the task
   task_data=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
@@ -209,9 +200,9 @@ postpone_task() {
   task_name=$(echo "$task_data" | jq -r '.content')
   current_labels=$(echo "$task_data" | jq -r '.labels')
 
-  # Add "Lykätyt" personal label if not already present
+  # Add "Lykätyt" label if not already present
   if [[ "$current_labels" != *"$postponed_label_id"* ]]; then
-    current_labels=$(echo "$current_labels" | jq --arg postponed "$postponed_label_id" '. += [$postponed]')
+    current_labels=$(echo "$current_labels" | jq --arg postponed "$postponed_label_id" 'if . == [] then [$postponed] else . + [$postponed] end')
   fi
 
   # Update the task's due date and labels
@@ -220,6 +211,19 @@ postpone_task() {
     --header "Content-Type: application/json" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}" \
     --data "{\"due_date\": \"$next_day\", \"labels\": $current_labels}" >/dev/null
+
+  # Debug
+  if [ "$DEBUG" = true ]; then
+    update_response=$(curl -s --request POST \
+    --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
+    --header "Content-Type: application/json" \
+    --header "Authorization: Bearer ${TODOIST_API_KEY}" \
+    --data "{\"due_date\": \"$next_day\", \"labels\": $current_labels}")
+    echo -e "${BOLD}${CYAN}Tehtävän päivitysvastaus:${RESET}\n$update_response\n"
+
+    # Debug postponed label
+    echo -e "${BOLD}${CYAN}Lykätyt-label ID:${RESET} $postponed_label_id"
+  fi
 
   # Print the task ID and name when the task is postponed
   echo -e "${YELLOW}Tehtävä siirretty: $task_name (ID: $task_id)${RESET}"
@@ -345,7 +349,7 @@ main() {
         --header "Authorization: Bearer ${TODOIST_API_KEY}" | jq -r '.due.date')
 
       if [[ "$task_due_date" == $(date +%Y-%m-%d) ]]; then
-        postpone_task "$task_id" "$postponed_label_id"
+        postpone_task "$task_id"
       fi
     done
   else
