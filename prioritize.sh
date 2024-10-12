@@ -171,8 +171,8 @@ fetch_calendar_events() {
 }
 
 # Function: Ensure that the "Lykätyt" label exists and get its ID
-ensure_postponeed_label() {
-  local postponeed_label_id
+ensure_postponed_label() {
+  local postponed_label_id
 
   # Fetch all labels
   labels=$(curl -s --request GET \
@@ -180,11 +180,11 @@ ensure_postponeed_label() {
     --header "Authorization: Bearer ${TODOIST_API_KEY}")
 
   # Check if "Lykätyt" label already exists
-  postponeed_label_id=$(echo "$labels" | jq -r '.[] | select(.name == "Lykätyt") | .id')
+  postponed_label_id=$(echo "$labels" | jq -r '.[] | select(.name == "Lykätyt") | .id')
 
   # If not found, create the "Lykätyt" label
-  if [[ -z "$postponeed_label_id" ]]; then
-    postponeed_label_id=$(curl -s --request POST \
+  if [[ -z "$postponed_label_id" ]]; then
+    postponed_label_id=$(curl -s --request POST \
       --url "https://api.todoist.com/rest/v2/labels" \
       --header "Content-Type: application/json" \
       --header "Authorization: Bearer ${TODOIST_API_KEY}" \
@@ -192,13 +192,12 @@ ensure_postponeed_label() {
     echo "Label 'Lykätyt' luotiin."
   fi
 
-  echo "$postponeed_label_id"
+  echo "$postponed_label_id"
 }
 
-# Function: Postpone a task to the next day and add a "Lykätyt" label
 postpone_task() {
   local task_id="$1"
-  local postponeed_label_id="$2"
+  local postponed_label_id="$2"
   local next_day
   next_day=$(date -d "tomorrow" +%Y-%m-%d)  # Calculate next day date
 
@@ -211,9 +210,8 @@ postpone_task() {
   current_labels=$(echo "$task_data" | jq -r '.labels')
 
   # Add "Lykätyt" label if not already present
-  if [[ "$current_labels" != *"$postponeed_label_id"* ]]; then
-    # Merge the current labels with the "Lykätyt" label ID
-    current_labels=$(echo "$current_labels" | jq --arg postponeed "$postponeed_label_id" '. += [$postponeed]')
+  if [[ "$current_labels" != *"$postponed_label_id"* ]]; then
+    current_labels=$(echo "$current_labels" | jq --arg postponed "$postponed_label_id" '. += [$postponed]')
   fi
 
   # Update the task's due date and labels
@@ -223,7 +221,7 @@ postpone_task() {
     --header "Authorization: Bearer ${TODOIST_API_KEY}" \
     --data "{\"due_date\": \"$next_day\", \"labels\": $current_labels}" >/dev/null
 
-  # Print the task ID and name when the task is postponeed
+  # Print the task ID and name when the task is postponed
   echo -e "${YELLOW}Tehtävä siirretty: $task_name (ID: $task_id)${RESET}"
 }
 
@@ -232,11 +230,15 @@ get_priorities() {
   local tasks="$1"
   local events="$2"
 
+  # Get the current local time and remaining hours
+  current_time=$(TZ=$(cat /etc/timezone) date "+%H:%M")
+  remaining_hours=$(calculate_remaining_hours)
+
   # Create the JSON payload
-  json_payload=$(jq -n --arg prompt "$PROMPT" --arg tasks "$tasks" --arg events "$events" '{
+  json_payload=$(jq -n --arg prompt "$PROMPT" --arg tasks "$tasks" --arg events "$events" --arg remaining_hours "$remaining_hours" --arg current_time "$current_time" '{
       "model": "gpt-4",
       "messages": [{"role": "system", "content": "Sinä olet tehtävien priorisoija."},
-                   {"role": "user", "content": ($prompt + "\n\nSiivoa ID:t pois muistiinpanoista. Tässä on tämänpäiväiset tehtävät:\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events)}],
+                   {"role": "user", "content": ($prompt + "\n\nSiivoa ID:t pois muistiinpanoista. Tässä on tämänpäiväiset tehtävät:\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events + "\n\nKello on nyt $current_time. Kello 22:00 jälkeen ei kannata aloittaa isompia tehtäviä. Priorisoi tehtävät sen mukaisesti.")}],
       "max_tokens": 3000,
       "temperature": 0.5
     }')
@@ -261,12 +263,16 @@ get_postponed_tasks() {
   local tasks="$1"
   local events="$2"
 
+  # Get the current local time and remaining hours
+  current_time=$(TZ=$(cat /etc/timezone) date "+%H:%M")
+  remaining_hours=$(calculate_remaining_hours)
+
   # Create the JSON payload
-  json_payload=$(jq -n --arg prompt "$PROMPT" --arg tasks "$tasks" --arg events "$events" '{
+  json_payload=$(jq -n --arg prompt "$PROMPT" --arg tasks "$tasks" --arg events "$events" --arg remaining_hours "$remaining_hours" --arg current_time "$current_time" '{
       "model": "gpt-4",
       "messages": [
         {"role": "system", "content": "Sinä olet tehtävien priorisoija."},
-        {"role": "user", "content": ($prompt + "\n\nTässä on tämänpäiväiset tehtävät (mukana ID:t):\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events + "\n\nMerkitse ne tehtävät, jotka tulisi siirtää seuraavalle päivälle, lisäämällä niiden perään \"siirretty seuraavalle päivälle\". Jos tehtäviä ei tarvitse siirtää, älä lisää mitään.") }
+        {"role": "user", "content": ($prompt + "\n\nTässä on tämänpäiväiset tehtävät (mukana ID:t):\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events + "\n\nKello on nyt $current_time. Kello 22:00 jälkeen ei kannata aloittaa isompia tehtäviä. Merkitse ne tehtävät, jotka tulisi siirtää seuraavalle päivälle, lisäämällä niiden perään \"siirretty seuraavalle päivälle\". Jos tehtäviä ei tarvitse siirtää, älä lisää mitään.") }
       ],
       "max_tokens": 3000,
       "temperature": 0.5
@@ -326,7 +332,7 @@ main() {
   echo -e "${BOLD}${YELLOW}Siirretään tehtäviä seuraavalle päivälle...${RESET}"
   postponed_tasks=$(get_postponed_tasks "$tasks" "$events")
 
-  # Choose to be postponeed tasks based on the AI response
+  # Choose tasks to be postponed based on the AI response
   task_ids_to_postpone=$(echo "$postponed_tasks" | grep -oE 'ID: [0-9]+.*siirretty seuraavalle päivälle' | awk '{print $2}')
 
   # Moving those tasks to the next day that AI suggested
@@ -339,7 +345,7 @@ main() {
         --header "Authorization: Bearer ${TODOIST_API_KEY}" | jq -r '.due.date')
 
       if [[ "$task_due_date" == $(date +%Y-%m-%d) ]]; then
-        postpone_task "$task_id" "$postponeed_label_id"
+        postpone_task "$task_id" "$postponed_label_id"
       fi
     done
   else
