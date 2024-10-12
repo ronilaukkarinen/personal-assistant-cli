@@ -170,17 +170,17 @@ fetch_calendar_events() {
   echo "$calendar_output"
 }
 
-# Function: Ensure that the "Lykätyt" label exists and get its ID
+# Function: Ensure that the "Lykätyt" label exists and get its ID (Personal label only)
 ensure_postponed_label() {
   local postponed_label_id
 
-  # Fetch all labels
+  # Fetch all personal labels (not shared labels)
   labels=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/labels" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}")
 
-  # Check if "Lykätyt" label already exists
-  postponed_label_id=$(echo "$labels" | jq -r '.[] | select(.name == "Lykätyt") | .id')
+  # Check if "Lykätyt" label already exists (ensure it's not a shared label)
+  postponed_label_id=$(echo "$labels" | jq -r '.[] | select(.name == "Lykätyt" and .is_shared == false) | .id')
 
   # If not found, create the "Lykätyt" label
   if [[ -z "$postponed_label_id" ]]; then
@@ -209,7 +209,7 @@ postpone_task() {
   task_name=$(echo "$task_data" | jq -r '.content')
   current_labels=$(echo "$task_data" | jq -r '.labels')
 
-  # Add "Lykätyt" label if not already present
+  # Add "Lykätyt" personal label if not already present
   if [[ "$current_labels" != *"$postponed_label_id"* ]]; then
     current_labels=$(echo "$current_labels" | jq --arg postponed "$postponed_label_id" '. += [$postponed]')
   fi
@@ -272,7 +272,7 @@ get_postponed_tasks() {
       "model": "gpt-4",
       "messages": [
         {"role": "system", "content": "Sinä olet tehtävien priorisoija."},
-        {"role": "user", "content": ($prompt + "\n\nTässä on tämänpäiväiset tehtävät (mukana ID:t):\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events + "\n\nKello on nyt $current_time. Kello 22:00 jälkeen ei kannata aloittaa isompia tehtäviä. Merkitse ne tehtävät, jotka tulisi siirtää seuraavalle päivälle, lisäämällä niiden perään \"siirretty seuraavalle päivälle\". Jos tehtäviä ei tarvitse siirtää, älä lisää mitään.") }
+        {"role": "user", "content": ($prompt + "\n\nKello on nyt $current_time. Kello 22:00 jälkeen ei kannata aloittaa isompia tehtäviä. Tässä on tämänpäiväiset tehtävät (mukana ID:t):\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events + "\n\nMerkitse ne tehtävät, jotka tulisi siirtää seuraavalle päivälle, lisäämällä niiden perään \"siirretty seuraavalle päivälle\". Jos tehtäviä ei tarvitse siirtää, älä lisää mitään.") }
       ],
       "max_tokens": 3000,
       "temperature": 0.5
