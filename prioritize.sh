@@ -337,7 +337,7 @@ main() {
   postponed_tasks=$(get_postponed_tasks "$tasks" "$events")
 
   # Choose tasks to be postponed based on the AI response
-  task_ids_to_postpone=$(echo "$postponed_tasks" | grep -oE 'ID: [0-9]+.*siirretty seuraavalle päivälle' | awk '{print $2}')
+  task_ids_to_postpone=$(echo "$postponed_tasks" | tr -d '\r' | grep -oE 'ID: [0-9]+.*siirretty seuraavalle päivälle' | awk '{print $2}')
 
   # Moving those tasks to the next day that AI suggested
   if [[ -n "$task_ids_to_postpone" ]]; then
