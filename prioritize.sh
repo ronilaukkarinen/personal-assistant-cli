@@ -289,7 +289,7 @@ get_postponed_tasks() {
 
   # If debug flag is enabled, print the raw response
   if [ "$DEBUG" = true ]; then
-    echo -e "${BOLD}${CYAN}Raaka OpenAI-vastaus:${RESET}\n$response\n"
+    echo -e "${BOLD}${CYAN}Lykättävät tehtävät, raaka OpenAI-vastaus:${RESET}\n$response\n"
   fi
 
   # Parse response
@@ -328,27 +328,20 @@ main() {
   date_header=$(date "+%d.%m.%Y")
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
-  echo -e "# $date_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivässä on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
+  echo -e "# $date_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
   echo -e "${BOLD}${GREEN}Priorisointi on valmis ja tallennettu Obsidian-vaultiin.${RESET}"
 
   echo -e "${BOLD}${YELLOW}Siirretään tehtäviä seuraavalle päivälle...${RESET}"
   postponed_tasks=$(get_postponed_tasks "$tasks" "$events")
 
   # Choose tasks to be postponed based on the AI response
-  task_ids_to_postpone=$(echo "$postponed_tasks" | tr -d '\r' | grep -oE 'ID: [0-9]+.*siirretty seuraavalle päivälle' | awk '{print $2}')
+  task_ids_to_postpone=$(echo "$postponed_tasks" | grep -oP '(?<=ID: )\d+')
 
   # Moving those tasks to the next day that AI suggested
   if [[ -n "$task_ids_to_postpone" ]]; then
     echo -e "${BOLD}${YELLOW}Siirretään AI:n suosittelemat tehtävät seuraavalle päivälle...${RESET}"
     for task_id in $task_ids_to_postpone; do
-      # Check that the task can actually be postponed
-      task_due_date=$(curl -s --request GET \
-        --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
-        --header "Authorization: Bearer ${TODOIST_API_KEY}" | jq -r '.due.date')
-
-      if [[ "$task_due_date" == $(date +%Y-%m-%d) ]]; then
-        postpone_task "$task_id"
-      fi
+      postpone_task "$task_id"
     done
   else
     echo -e "${BOLD}${CYAN}AI ei suositellut tehtävien siirtämistä.${RESET}"
