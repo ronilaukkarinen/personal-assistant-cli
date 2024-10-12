@@ -174,53 +174,18 @@ postpone_task() {
   local task_id="$1"
   local next_day
   next_day=$(date -d "tomorrow" +%Y-%m-%d)  # Calculate next day date
-
-  # Fetch the "Lykätyt" label ID or create it if it doesn't exist
-  labels=$(curl -s --request GET \
-    --url "https://api.todoist.com/rest/v2/labels" \
-    --header "Authorization: Bearer ${TODOIST_API_KEY}")
-
-  postponed_label_id=$(echo "$labels" | jq -r '.[] | select(.name == "Lykätyt") | .id')
-
-  # If "Lykätyt" label does not exist, create it
-  if [[ -z "$postponed_label_id" ]]; then
-    postponed_label_id=$(curl -s --request POST \
-      --url "https://api.todoist.com/rest/v2/labels" \
-      --header "Content-Type: application/json" \
-      --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-      --data '{"name": "Lykätyt"}' | jq -r '.id')
-    echo "Label 'Lykätyt' luotiin."
-  fi
-
-  # Get existing labels and task name for the task
-  task_data=$(curl -s --request GET \
-    --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
-    --header "Authorization: Bearer ${TODOIST_API_KEY}")
-
   task_name=$(echo "$task_data" | jq -r '.content')
-  current_labels=$(echo "$task_data" | jq -r '.labels')
 
-  # Ensure labels is a valid JSON array, even if it's empty
-  current_labels=$(echo "$current_labels" | jq -c '.')
-
-  # Add "Lykätyt" label if not already present
-  if [[ ! " ${current_labels[@]} " =~ " ${postponed_label_id} " ]]; then
-    current_labels=$(echo "$current_labels" | jq --arg postponed "$postponed_label_id" '. + [$postponed]')
-  fi
-
-  # Update the task's due date and labels
+  # Update the task's due date
   update_response=$(curl -s --request POST \
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
     --header "Content-Type: application/json" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-    --data "{\"due_date\": \"$next_day\", \"labels\": $current_labels}")
+    --data "{\"due_date\": \"$next_day\"}")
 
   # Debug
   if [ "$DEBUG" = true ]; then
     echo -e "${BOLD}${CYAN}Tehtävän päivitysvastaus:${RESET}\n$update_response\n"
-
-    # Debug postponed label
-    echo -e "${BOLD}${CYAN}Lykätyt-label ID:${RESET} $postponed_label_id"
   fi
 
   # Print the task ID and name when the task is postponed
