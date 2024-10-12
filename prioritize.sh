@@ -218,7 +218,7 @@ get_priorities() {
   json_payload=$(jq -n --arg prompt_bginfo "$PROMPT_BGINFO" --arg prompt_notes "$PROMPT_NOTES" --arg tasks "$tasks" --arg events "$events" --arg remaining_hours "$remaining_hours" --arg current_time "$current_time" '{
       "model": "gpt-4",
       "messages": [{"role": "system", "content": "Sinä olet tehtävien priorisoija."},
-                   {"role": "user", "content": ($prompt_bginfo + "\n\n" + $prompt_notes + "\n\nSiivoa ID:t pois muistiinpanoista. Tässä on tämänpäiväiset tehtävät:\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events + "\n\nKello on nyt $current_time. Kello 22:00 jälkeen ei kannata aloittaa isompia tehtäviä. Priorisoi tehtävät sen mukaisesti.")}],
+                   {"role": "user", "content": ($prompt_bginfo + "\n\n" + $prompt_notes + "\n\nSiivoa ID:t pois päämuistiinpanoista.\n\nTässä on tämänpäiväiset tehtävät (mukana ID:t):\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events + "\n\nPriorisoi tehtävät sen mukaisesti.\n\nTee myös alimmaksi erillinen lista aiemmin mainituista lykättävistä tehtävistä muistiinpanojen pohjalle, jossa on yksi tehtävä per ranskalainen viiva tässä muodossa: ID: 8183917150 - Tehtävän nimi, siirretty seuraavalle päivälle.")}],
       "max_tokens": 3000,
       "temperature": 0.5
     }')
@@ -233,41 +233,6 @@ get_priorities() {
   # If debug flag is enabled, print the raw response
   if [ "$DEBUG" = true ]; then
     echo -e "${BOLD}${CYAN}Raaka OpenAI-vastaus:${RESET}\n$response\n"
-  fi
-
-  # Parse response
-  echo "$response" | jq -r '.choices[0].message.content // "Ei tuloksia"'
-}
-
-get_postponed_tasks() {
-  local tasks="$1"
-  local events="$2"
-
-  # Get the current local time and remaining hours
-  current_time=$(TZ=$(cat /etc/timezone) date "+%H:%M")
-  remaining_hours=$(calculate_remaining_hours)
-
-  # Create the JSON payload
-  json_payload=$(jq -n --arg prompt_bginfo "$PROMPT_BGINFO" --arg tasks "$tasks" --arg events "$events" --arg remaining_hours "$remaining_hours" --arg current_time "$current_time" '{
-      "model": "gpt-4",
-      "messages": [
-        {"role": "system", "content": "Sinä olet tehtävien priorisoija."},
-        {"role": "user", "content": ($prompt_bginfo + "\n\nKello on nyt $current_time. Kello 22:00 jälkeen ei kannata aloittaa isompia tehtäviä. Tässä on tämänpäiväiset tehtävät (mukana ID:t):\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events + "\n\nMerkitse ne tehtävät, jotka tulisi siirtää seuraavalle päivälle, lisäämällä niiden perään \"siirretty seuraavalle päivälle\". Jos tehtäviä ei tarvitse siirtää, älä lisää mitään. Listaa tehtävät ilman muotoiluja muodossa: ID: 8183917150 - Tehtävän nimi, siirretty seuraavalle päivälle. Mitään muita tietoja ei tarvita.") }
-      ],
-      "max_tokens": 3000,
-      "temperature": 0.5
-  }')
-
-  # Make API call to OpenAI with the given message structure
-  response=$(curl -s --request POST \
-    --url "https://api.openai.com/v1/chat/completions" \
-    --header "Content-Type: application/json" \
-    --header "Authorization: Bearer ${OPENAI_API_KEY}" \
-    --data "$json_payload")
-
-  # If debug flag is enabled, print the raw response
-  if [ "$DEBUG" = true ]; then
-    echo -e "${BOLD}${CYAN}Lykättävät tehtävät, raaka OpenAI-vastaus:${RESET}\n$response\n"
   fi
 
   # Parse response
@@ -310,15 +275,14 @@ main() {
   echo -e "${BOLD}${GREEN}Priorisointi on valmis ja tallennettu Obsidian-vaultiin.${RESET}"
 
   echo -e "${BOLD}${YELLOW}Siirretään tehtäviä seuraavalle päivälle...${RESET}"
-  postponed_tasks=$(get_postponed_tasks "$tasks" "$events")
 
   # Debug: Print the full content of postponed_tasks to see what's being parsed
   if [ "$DEBUG" = true ]; then
-    echo -e "${BOLD}${CYAN}Content of postponed_tasks:${RESET}\n$postponed_tasks\n"
+    echo -e "${BOLD}${CYAN}Content of postponed_tasks:${RESET}\n$priorities\n"
   fi
 
   # Choose tasks to be postponed based on the AI response
-  task_ids_to_postpone=$(echo "$postponed_tasks" | grep -oE 'ID: [0-9]+.*siirretty seuraavalle päivälle' | awk '{print $2}')
+  task_ids_to_postpone=$(echo "$priorities" | grep -oE 'ID: [0-9]+.*siirretty seuraavalle päivälle' | awk '{print $2}')
 
   # Debugging to see the extracted task IDs
   if [ "$DEBUG" = true ]; then
@@ -328,6 +292,7 @@ main() {
   # Moving those tasks to the next day that AI suggested
   if [[ -n "$task_ids_to_postpone" ]]; then
     echo -e "${BOLD}${YELLOW}Siirretään AI:n suosittelemat tehtävät seuraavalle päivälle...${RESET}"
+
     for task_id in $task_ids_to_postpone; do
       postpone_task "$task_id"
     done
