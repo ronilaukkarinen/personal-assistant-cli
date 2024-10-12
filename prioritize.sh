@@ -233,13 +233,6 @@ is_holiday() {
   fi
 }
 
-# Function to estimate token count from word count
-estimate_token_count() {
-  local text="$1"
-  # Estimate token count as roughly 1.33 tokens per word
-  echo "$text" | wc -w | awk '{print int($1 * 1.33)}'
-}
-
 get_priorities() {
   local tasks="$1"
   local events="$2"
@@ -264,37 +257,14 @@ get_priorities() {
   # Combine parts of the message in Bash, removing unnecessary spaces and line breaks
   combined_message="${PROMPT_BGINFO}\n\n${PROMPT_NOTES}\n\nTässä on tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\nTässä ovat päivän kalenteritapahtumat:\n${events}\n\nTänään on $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$time_msg"
 
-  # Estimate the number of tokens in the combined message based on character count
-  message_token_count=$(estimate_token_count "$combined_message")
-
-  # Calculate the maximum allowed response tokens, with a larger safety margin
-  max_context_tokens=8192
-
-  # Works with max 50 tasks and events combined
-  safety_margin=2000
-
-  max_tokens_for_response=$(( max_context_tokens - message_token_count - safety_margin ))
-
-  # Ensure max_tokens_for_response is not negative or zero
-  if [ "$max_tokens_for_response" -le 0 ]; then
-    echo "Error: Message is too long and exceeds the maximum context length of 8192 tokens."
-    exit 1
-  fi
-
-  # Debugging: Print token counts only locally, not affecting the payload
-  if [ "$DEBUG" = true ]; then
-    echo -e "Message token count (estimated): $message_token_count"
-    echo -e "Max tokens for response with margin: $max_tokens_for_response"
-  fi
-
   # Create the JSON payload - no debug info is included in the payload
-  json_payload=$(jq -n --arg combined_message "$combined_message" --argjson max_tokens "$max_tokens_for_response" '{
+  json_payload=$(jq -n --arg combined_message "$combined_message" '{
       "model": "gpt-4",
       "messages": [
           {"role": "system", "content": "Sinä olet tehtävien priorisoija."},
           {"role": "user", "content": $combined_message}
       ],
-      "max_tokens": $max_tokens,
+      "max_tokens": 5000,
       "temperature": 0.5
   }')
 
@@ -360,8 +330,8 @@ main() {
     echo -e "${BOLD}${CYAN}Content of postponed_tasks:${RESET}\n$priorities\n"
   fi
 
-  # Select all numbers that are in side parentheses like (8479576161)
-  task_ids_to_postpone=$(echo "$priorities" | grep -oP '\(\K[0-9]+(?=\))')
+  # Select all numbers that have more than 5 digits
+  task_ids_to_postpone=$(echo "$priorities" | grep -oP '\d{5,}')
 
   # Debugging to see the extracted task IDs
   if [ "$DEBUG" = true ]; then
