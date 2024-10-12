@@ -205,7 +205,41 @@ postpone_task() {
   fi
 }
 
-# Function: Send task list to OpenAI and get prioritized tasks using the chat model
+# Function: Check if it's weekend
+is_weekend() {
+  local current_day
+  current_day=$(date +%u)
+
+  # If it's Saturday or Sunday, return true
+  if ((current_day == 6)) || ((current_day == 7)); then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Function: Check if it's holiday
+is_holiday() {
+  local today
+  today=$(date +%Y-%m-%d)
+
+  # If gcal shows "loma" or "joulu" or "vapaa" in the calendar event, return true
+  if [[ $(gcalcli --nocolor --calendar "Roni Laukkarinen (Rollen työkalenteri)" agenda "$today" "$today 23:00" 2>&1) == *"loma"* ]] || \
+     [[ $(gcalcli --nocolor --calendar "Roni Laukkarinen (Rollen työkalenteri)" agenda "$today" "$today 23:00" 2>&1) == *"joulu"* ]] || \
+     [[ $(gcalcli --nocolor --calendar "Roni Laukkarinen (Rollen työkalenteri)" agenda "$today" "$today 23:00" 2>&1) == *"vapaa"* ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Function to estimate token count from word count
+estimate_token_count() {
+  local text="$1"
+  # Estimate token count as roughly 1.33 tokens per word
+  echo "$text" | wc -w | awk '{print int($1 * 1.33)}'
+}
+
 get_priorities() {
   local tasks="$1"
   local events="$2"
@@ -214,14 +248,55 @@ get_priorities() {
   current_time=$(TZ=$(cat /etc/timezone) date "+%H:%M")
   remaining_hours=$(calculate_remaining_hours)
 
-  # Create the JSON payload
-  json_payload=$(jq -n --arg prompt_bginfo "$PROMPT_BGINFO" --arg prompt_notes "$PROMPT_NOTES" --arg tasks "$tasks" --arg events "$events" --arg remaining_hours "$remaining_hours" --arg current_time "$current_time" '{
+  # Day of the week in Finnish
+  day_of_week=$(date +%A)
+
+  # Pass $time_msg "Nyt on viikonloppu" if it's weekend
+  if is_weekend; then
+    time_msg="Ota myös huomioon että nyt on viikonloppu, eikä silloin työasioita tehdä."
+  fi
+
+  # Pass $time_msg "Nyt on loma" if it's holiday
+  if is_holiday; then
+    time_msg="Ota myös huomioon että nyt on loma, eikä silloin työasioita tehdä."
+  fi
+
+  # Combine parts of the message in Bash, removing unnecessary spaces and line breaks
+  combined_message="${PROMPT_BGINFO}\n\n${PROMPT_NOTES}\n\nTässä on tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\nTässä ovat päivän kalenteritapahtumat:\n${events}\n\nTänään on $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$time_msg"
+
+  # Estimate the number of tokens in the combined message based on character count
+  message_token_count=$(estimate_token_count "$combined_message")
+
+  # Calculate the maximum allowed response tokens, with a larger safety margin
+  max_context_tokens=8192
+
+  # Works with max 50 tasks and events combined
+  safety_margin=2000
+
+  max_tokens_for_response=$(( max_context_tokens - message_token_count - safety_margin ))
+
+  # Ensure max_tokens_for_response is not negative or zero
+  if [ "$max_tokens_for_response" -le 0 ]; then
+    echo "Error: Message is too long and exceeds the maximum context length of 8192 tokens."
+    exit 1
+  fi
+
+  # Debugging: Print token counts only locally, not affecting the payload
+  if [ "$DEBUG" = true ]; then
+    echo -e "Message token count (estimated): $message_token_count"
+    echo -e "Max tokens for response with margin: $max_tokens_for_response"
+  fi
+
+  # Create the JSON payload - no debug info is included in the payload
+  json_payload=$(jq -n --arg combined_message "$combined_message" --argjson max_tokens "$max_tokens_for_response" '{
       "model": "gpt-4",
-      "messages": [{"role": "system", "content": "Sinä olet tehtävien priorisoija."},
-                   {"role": "user", "content": ($prompt_bginfo + "\n\n" + $prompt_notes + "\n\nSiivoa ID:t pois päämuistiinpanoista.\n\nTässä on tämänpäiväiset tehtävät (mukana ID:t):\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events + "\n\nPriorisoi tehtävät sen mukaisesti.\n\nTee myös alimmaksi erillinen lista aiemmin mainituista lykättävistä tehtävistä muistiinpanojen pohjalle, jossa on yksi tehtävä per ranskalainen viiva tässä muodossa: ID: 8183917150 - Tehtävän nimi, siirretty seuraavalle päivälle.")}],
-      "max_tokens": 3000,
+      "messages": [
+          {"role": "system", "content": "Sinä olet tehtävien priorisoija."},
+          {"role": "user", "content": $combined_message}
+      ],
+      "max_tokens": $max_tokens,
       "temperature": 0.5
-    }')
+  }')
 
   # Make API call to OpenAI with the given message structure
   response=$(curl -s --request POST \
@@ -230,9 +305,13 @@ get_priorities() {
     --header "Authorization: Bearer ${OPENAI_API_KEY}" \
     --data "$json_payload")
 
-  # If debug flag is enabled, print the raw response
-  if [ "$DEBUG" = true ]; then
-    echo -e "${BOLD}${CYAN}Raaka OpenAI-vastaus:${RESET}\n$response\n"
+  # Print the response anyway if there's an error
+  if [[ "$response" == *"error"* ]]; then
+    echo -e "${BOLD}${RED}Virhe: OpenAI-priorisointi epäonnistui.${RESET}"
+
+    # Message
+    echo -e "${BOLD}${RED}Viesti:${RESET}\n$response"
+    exit 1
   fi
 
   # Parse response
@@ -281,8 +360,8 @@ main() {
     echo -e "${BOLD}${CYAN}Content of postponed_tasks:${RESET}\n$priorities\n"
   fi
 
-  # Choose tasks to be postponed based on the AI response
-  task_ids_to_postpone=$(echo "$priorities" | grep -oE 'ID: [0-9]+.*siirretty seuraavalle päivälle' | awk '{print $2}')
+  # Select all numbers that are in side parentheses like (8479576161)
+  task_ids_to_postpone=$(echo "$priorities" | grep -oP '\(\K[0-9]+(?=\))')
 
   # Debugging to see the extracted task IDs
   if [ "$DEBUG" = true ]; then
