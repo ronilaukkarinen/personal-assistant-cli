@@ -56,10 +56,12 @@ calculate_remaining_hours() {
 # Leave empty if all tasks should be fetched
 if is_leisure_time; then
   SELECTED_PROJECT=""
-  PROMPT=${LEISURE_PROMPT}
+  PROMPT_BGINFO=${LEISURE_PROMPT_BGINFO}
+  PROMPT_NOTES=${LEISURE_PROMPT_NOTES}
 else
   SELECTED_PROJECT="Todo"
-  PROMPT=${WORK_PROMPT}
+  PROMPT_BGINFO=${WORK_PROMPT_BGINFO}
+  PROMPT_NOTES=${WORK_PROMPT_NOTES}
 fi
 
 # If not debian based or macOS, exit
@@ -174,6 +176,11 @@ postpone_task() {
   local task_id="$1"
   local next_day
   next_day=$(date -d "tomorrow" +%Y-%m-%d)  # Calculate next day date
+
+  # Get existing labels and task name for the task
+  task_data=$(curl -s --request GET \
+    --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
+    --header "Authorization: Bearer ${TODOIST_API_KEY}")
   task_name=$(echo "$task_data" | jq -r '.content')
 
   # Update the task's due date
@@ -188,8 +195,14 @@ postpone_task() {
     echo -e "${BOLD}${CYAN}Tehtävän päivitysvastaus:${RESET}\n$update_response\n"
   fi
 
-  # Print the task ID and name when the task is postponed
-  echo -e "${YELLOW}Tehtävä siirretty: $task_name (ID: $task_id)${RESET}"
+  # If error occurs, print the error message
+  if [[ "$update_response" == *"error"* ]]; then
+    echo -e "${BOLD}${RED}Virhe: Tehtävän siirtäminen seuraavalle päivälle epäonnistui.${RESET}"
+    exit 1
+  else
+    # Print the task ID and name when the task is postponed
+    echo -e "${YELLOW}Tehtävä siirretty: $task_name (ID: $task_id)${RESET}"
+  fi
 }
 
 # Function: Send task list to OpenAI and get prioritized tasks using the chat model
@@ -202,10 +215,10 @@ get_priorities() {
   remaining_hours=$(calculate_remaining_hours)
 
   # Create the JSON payload
-  json_payload=$(jq -n --arg prompt "$PROMPT" --arg tasks "$tasks" --arg events "$events" --arg remaining_hours "$remaining_hours" --arg current_time "$current_time" '{
+  json_payload=$(jq -n --arg prompt_bginfo "$PROMPT_BGINFO" --arg prompt_notes "$PROMPT_NOTES" --arg tasks "$tasks" --arg events "$events" --arg remaining_hours "$remaining_hours" --arg current_time "$current_time" '{
       "model": "gpt-4",
       "messages": [{"role": "system", "content": "Sinä olet tehtävien priorisoija."},
-                   {"role": "user", "content": ($prompt + "\n\nSiivoa ID:t pois muistiinpanoista. Tässä on tämänpäiväiset tehtävät:\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events + "\n\nKello on nyt $current_time. Kello 22:00 jälkeen ei kannata aloittaa isompia tehtäviä. Priorisoi tehtävät sen mukaisesti.")}],
+                   {"role": "user", "content": ($prompt_bginfo + "\n\n" + $prompt_notes + "\n\nSiivoa ID:t pois muistiinpanoista. Tässä on tämänpäiväiset tehtävät:\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events + "\n\nKello on nyt $current_time. Kello 22:00 jälkeen ei kannata aloittaa isompia tehtäviä. Priorisoi tehtävät sen mukaisesti.")}],
       "max_tokens": 3000,
       "temperature": 0.5
     }')
@@ -235,11 +248,11 @@ get_postponed_tasks() {
   remaining_hours=$(calculate_remaining_hours)
 
   # Create the JSON payload
-  json_payload=$(jq -n --arg prompt "$PROMPT" --arg tasks "$tasks" --arg events "$events" --arg remaining_hours "$remaining_hours" --arg current_time "$current_time" '{
+  json_payload=$(jq -n --arg prompt_bginfo "$PROMPT_BGINFO" --arg tasks "$tasks" --arg events "$events" --arg remaining_hours "$remaining_hours" --arg current_time "$current_time" '{
       "model": "gpt-4",
       "messages": [
         {"role": "system", "content": "Sinä olet tehtävien priorisoija."},
-        {"role": "user", "content": ($prompt + "\n\nKello on nyt $current_time. Kello 22:00 jälkeen ei kannata aloittaa isompia tehtäviä. Tässä on tämänpäiväiset tehtävät (mukana ID:t):\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events + "\n\nMerkitse ne tehtävät, jotka tulisi siirtää seuraavalle päivälle, lisäämällä niiden perään \"siirretty seuraavalle päivälle\". Jos tehtäviä ei tarvitse siirtää, älä lisää mitään.") }
+        {"role": "user", "content": ($prompt_bginfo + "\n\nKello on nyt $current_time. Kello 22:00 jälkeen ei kannata aloittaa isompia tehtäviä. Tässä on tämänpäiväiset tehtävät (mukana ID:t):\n" + $tasks + "\n\nTässä ovat päivän kalenteritapahtumat:\n" + $events + "\n\nMerkitse ne tehtävät, jotka tulisi siirtää seuraavalle päivälle, lisäämällä niiden perään \"siirretty seuraavalle päivälle\". Jos tehtäviä ei tarvitse siirtää, älä lisää mitään. Listaa tehtävät ilman muotoiluja muodossa: ID: 8183917150 - Tehtävän nimi, siirretty seuraavalle päivälle. Mitään muita tietoja ei tarvita.") }
       ],
       "max_tokens": 3000,
       "temperature": 0.5
@@ -299,8 +312,18 @@ main() {
   echo -e "${BOLD}${YELLOW}Siirretään tehtäviä seuraavalle päivälle...${RESET}"
   postponed_tasks=$(get_postponed_tasks "$tasks" "$events")
 
+  # Debug: Print the full content of postponed_tasks to see what's being parsed
+  if [ "$DEBUG" = true ]; then
+    echo -e "${BOLD}${CYAN}Content of postponed_tasks:${RESET}\n$postponed_tasks\n"
+  fi
+
   # Choose tasks to be postponed based on the AI response
-  task_ids_to_postpone=$(echo "$postponed_tasks" | grep -oP '(?<=ID: )\d+')
+  task_ids_to_postpone=$(echo "$postponed_tasks" | grep -oE 'ID: [0-9]+.*siirretty seuraavalle päivälle' | awk '{print $2}')
+
+  # Debugging to see the extracted task IDs
+  if [ "$DEBUG" = true ]; then
+    echo -e "${BOLD}${CYAN}Postponed task IDs:${RESET} $task_ids_to_postpone"
+  fi
 
   # Moving those tasks to the next day that AI suggested
   if [[ -n "$task_ids_to_postpone" ]]; then
