@@ -85,7 +85,9 @@ sync_google_calendar_to_todoist() {
       fi
 
       # Debug: print the raw event_start and event_end for debugging purposes
-      echo -e "${BOLD}${CYAN}Debug: event_start: $event_start, event_end: $event_end${RESET}"
+      if [ "$DEBUG" = true ]; then
+        echo -e "${BOLD}${CYAN}Debug: event_start: $event_start, event_end: $event_end${RESET}"
+      fi
 
       # Convert date to seconds since epoch
       start_time=$(date -d "$event_start" +%s 2>/dev/null)
@@ -102,7 +104,9 @@ sync_google_calendar_to_todoist() {
       event_duration=$(date -u -d "@$((end_time - start_time))" +%H:%M)
 
       # Debug: print the calculated duration for debugging purposes
-      echo -e "${BOLD}${CYAN}Debug: calculated event_duration: $event_duration${RESET}"
+      if [ "$DEBUG" = true ]; then
+        echo -e "${BOLD}${CYAN}Debug: calculated event_duration: $event_duration${RESET}"
+      fi
 
       # Create task in Todoist without the "duration" field
       curl -s -X POST "https://api.todoist.com/rest/v2/tasks" \
@@ -146,7 +150,9 @@ sync_google_calendar_to_todoist() {
         fi
 
         # Debug: print the raw event_start and event_end for debugging purposes
-        echo -e "${BOLD}${CYAN}Debug: event_start: $event_start, event_end: $event_end${RESET}"
+        if [ "$DEBUG" = true ]; then
+          echo -e "${BOLD}${CYAN}Debug: event_start: $event_start, event_end: $event_end${RESET}"
+        fi
 
         # Convert date to seconds since epoch
         start_time=$(date -d "$event_start" +%s 2>/dev/null)
@@ -163,7 +169,9 @@ sync_google_calendar_to_todoist() {
         event_duration=$(date -u -d "@$((end_time - start_time))" +%H:%M)
 
         # Debug: print the calculated duration for debugging purposes
-        echo -e "${BOLD}${CYAN}Debug: calculated event_duration: $event_duration${RESET}"
+        if [ "$DEBUG" = true ]; then
+          echo -e "${BOLD}${CYAN}Debug: calculated event_duration: $event_duration${RESET}"
+        fi
 
         # Create task in Todoist without the "duration" field
         curl -s -X POST "https://api.todoist.com/rest/v2/tasks" \
