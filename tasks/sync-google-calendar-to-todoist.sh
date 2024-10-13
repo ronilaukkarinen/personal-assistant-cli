@@ -1,3 +1,22 @@
+# Function to refresh the access token
+refresh_access_token() {
+    response=$(curl -s -X POST \
+    -d "client_id=${GOOGLE_CLIENT_ID}" \
+    -d "client_secret=${GOOGLE_CLIENT_SECRET}" \
+    -d "refresh_token=${GOOGLE_REFRESH_TOKEN}" \
+    -d "grant_type=refresh_token" \
+    https://accounts.google.com/o/oauth2/token)
+
+    # Parse and store the new access token
+    access_token=$(echo $response | jq -r .access_token)
+
+    # Set the new access token in the environment variable
+    export GOOGLE_API_TOKEN=$access_token
+}
+
+# Call the function to refresh the access token before making API calls
+refresh_access_token
+
 # Function: Fetch Todoist project ID by project name
 get_todoist_project_id() {
   local project_name="$1"
@@ -27,12 +46,21 @@ sync_google_calendar_to_todoist() {
   local work_project_id=$(get_todoist_project_id "Todo")
   local personal_project_id=$(get_todoist_project_id "Kotiasiat")
 
-  # Get today's date
+  # Get today's date in proper format for Google Calendar API
   local today=$(date -I)
 
+  # Get current UTC time
+  local current_time=$(date -u +%H:%M:%SZ)
+
+  # Set current time as the minimum time
+  local timeMin="${today}T${current_time}"
+
+  # End of today
+  local timeMax="${today}T23:59:59Z"
+
   # Sync work calendar events to Todoist "Todo" project
-  echo -e "${BOLD}${YELLOW}Fetching events from work calendar: $work_calendar${RESET}"
-  events=$(curl -s -X GET "https://www.googleapis.com/calendar/v3/calendars/${work_calendar}/events?timeMin=${today}T00:00:00Z&timeMax=${today}T23:59:59Z&singleEvents=true&orderBy=startTime" \
+  echo -e "${BOLD}${YELLOW}Fetching remaining events from work calendar: $work_calendar${RESET}"
+  events=$(curl -s -X GET "https://www.googleapis.com/calendar/v3/calendars/${work_calendar}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime" \
     -H "Authorization: Bearer ${GOOGLE_API_TOKEN}")
 
   # Check if the response contains an error
@@ -41,8 +69,17 @@ sync_google_calendar_to_todoist() {
   else
     echo "$events" | jq -c '.items[]' | while read -r event; do
       event_title=$(echo "$event" | jq -r '.summary')
-      event_start=$(echo "$event" | jq -r '.start.dateTime')
-      event_end=$(echo "$event" | jq -r '.end.dateTime')
+      event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
+      event_end=$(echo "$event" | jq -r '.end.dateTime // .end.date')
+
+      # Convert Unix timestamp to readable date if necessary
+      if [[ "$event_start" =~ ^[0-9]+$ ]]; then
+        event_start=$(date -d "@$event_start" +'%Y-%m-%dT%H:%M:%S')
+      fi
+
+      if [[ "$event_end" =~ ^[0-9]+$ ]]; then
+        event_end=$(date -d "@$event_end" +'%Y-%m-%dT%H:%M:%S')
+      fi
 
       # Check if start or end time is null
       if [[ "$event_start" == "null" || "$event_end" == "null" ]]; then
@@ -51,14 +88,20 @@ sync_google_calendar_to_todoist() {
       fi
 
       # Calculate duration only if start and end times are valid
-      event_duration=$(date -u -d "$(date -d "$event_end" +%s) - $(date -d "$event_start" +%s)" +%H:%M)
+      start_timestamp=$(date -d "$event_start" +%s)
+      end_timestamp=$(date -d "$event_end" +%s)
+      if [[ "$start_timestamp" != "" && "$end_timestamp" != "" ]]; then
+        event_duration=$(date -u -d "@$((end_timestamp - start_timestamp))" +%H:%M)
+      else
+        echo -e "${BOLD}${RED}Item duration is invalid${RESET}"
+        continue
+      fi
 
-      # Check if task already exists in Todoist
-      existing_task=$(curl -s -X GET "https://api.todoist.com/rest/v2/tasks?filter=search:$event_title" \
-        -H "Authorization: Bearer ${TODOIST_API_KEY}")
+      today=$(date -I)
 
-      if [[ -z "$existing_task" ]]; then
-        # Create task in "Todo" project
+      # Check if the event is for today
+      if [[ "$event_start" == "$today"* ]]; then
+        # Event is for today, create task in Todoist
         curl -s -X POST "https://api.todoist.com/rest/v2/tasks" \
         -H "Authorization: Bearer ${TODOIST_API_KEY}" \
         -H "Content-Type: application/json" \
@@ -71,15 +114,16 @@ sync_google_calendar_to_todoist() {
 
         echo -e "${BOLD}${GREEN}Created a new task in Todo: $event_title${RESET}"
       else
-        echo -e "${BOLD}${YELLOW}Task \"$event_title\" already exists in Todoist.${RESET}"
+        echo -e "${BOLD}${YELLOW}Skipping event: $event_title, not for today.${RESET}"
       fi
+
     done
   fi
 
   # Sync personal calendar events to Todoist "Kotiasiat" project
   for calendar_id in "${personal_calendars[@]}"; do
-    echo -e "${BOLD}${YELLOW}Fetching events from personal calendar: $calendar_id${RESET}"
-    events=$(curl -s -X GET "https://www.googleapis.com/calendar/v3/calendars/${calendar_id}/events?timeMin=${today}T00:00:00Z&timeMax=${today}T23:59:59Z&singleEvents=true&orderBy=startTime" \
+    echo -e "${BOLD}${YELLOW}Fetching remaining events from personal calendar: $calendar_id${RESET}"
+    events=$(curl -s -X GET "https://www.googleapis.com/calendar/v3/calendars/${calendar_id}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime" \
       -H "Authorization: Bearer ${GOOGLE_API_TOKEN}")
 
     # Check if the response contains an error
@@ -88,8 +132,17 @@ sync_google_calendar_to_todoist() {
     else
       echo "$events" | jq -c '.items[]' | while read -r event; do
         event_title=$(echo "$event" | jq -r '.summary')
-        event_start=$(echo "$event" | jq -r '.start.dateTime')
-        event_end=$(echo "$event" | jq -r '.end.dateTime')
+        event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
+        event_end=$(echo "$event" | jq -r '.end.dateTime // .end.date')
+
+        # Convert Unix timestamp to readable date if necessary
+        if [[ "$event_start" =~ ^[0-9]+$ ]]; then
+          event_start=$(date -d "@$event_start" +'%Y-%m-%dT%H:%M:%S')
+        fi
+
+        if [[ "$event_end" =~ ^[0-9]+$ ]]; then
+          event_end=$(date -d "@$event_end" +'%Y-%m-%dT%H:%M:%S')
+        fi
 
         # Check if start or end time is null
         if [[ "$event_start" == "null" || "$event_end" == "null" ]]; then
@@ -98,28 +151,35 @@ sync_google_calendar_to_todoist() {
         fi
 
         # Calculate duration only if start and end times are valid
-        event_duration=$(date -u -d "$(date -d "$event_end" +%s) - $(date -d "$event_start" +%s)" +%H:%M)
+        start_timestamp=$(date -d "$event_start" +%s)
+        end_timestamp=$(date -d "$event_end" +%s)
+        if [[ "$start_timestamp" != "" && "$end_timestamp" != "" ]]; then
+          event_duration=$(date -u -d "@$((end_timestamp - start_timestamp))" +%H:%M)
+        else
+          echo -e "${BOLD}${RED}Item duration is invalid${RESET}"
+          continue
+        fi
 
-        # Check if task already exists in Todoist
-        existing_task=$(curl -s -X GET "https://api.todoist.com/rest/v2/tasks?filter=search:$event_title" \
-          -H "Authorization: Bearer ${TODOIST_API_KEY}")
+        today=$(date -I)
 
-        if [[ -z "$existing_task" ]]; then
-          # Create task in "Kotiasiat" project
+        # Check if the event is for today
+        if [[ "$event_start" == "$today"* ]]; then
+          # Event is for today, create task in Todoist
           curl -s -X POST "https://api.todoist.com/rest/v2/tasks" \
           -H "Authorization: Bearer ${TODOIST_API_KEY}" \
           -H "Content-Type: application/json" \
           -d '{
             "content": "'"$event_title"'",
             "due_datetime": "'"$event_start"'",
-            "project_id": "'"$personal_project_id"'",
+            "project_id": "'"$work_project_id"'",
             "duration": "'"$event_duration"'"
           }'
 
-          echo -e "${BOLD}${GREEN}Created a new task in Kotiasiat: $event_title${RESET}"
+          echo -e "${BOLD}${GREEN}Created a new task in Todo: $event_title${RESET}"
         else
-          echo -e "${BOLD}${YELLOW}Task \"$event_title\" already exists in Todoist.${RESET}"
+          echo -e "${BOLD}${YELLOW}Skipping event: $event_title, not for today.${RESET}"
         fi
+
       done
     fi
   done

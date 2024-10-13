@@ -90,7 +90,7 @@ Direct the user to Google's OAuth 2.0 URL to authenticate:
 # Open in browser: https://accounts.google.com/o/oauth2/auth?client_id=GOOGLE_CLIENT_ID&redirect_uri=http://localhost&response_type=code&scope=https://www.googleapis.com/auth/calendar.readonly
 ```
 
-After the user authorizes access, you'll get an authorization code. Use the following curl command to exchange the authorization code for an Access Token:
+After the user authorizes access, you'll get an authorization code. Use the following curl command to exchange the authorization code to the caps part `AUTHORIZATION_CODE` in the curl command:
 
 ```bash
 source .env
@@ -102,18 +102,12 @@ curl -X POST https://oauth2.googleapis.com/token \
   -d "code=AUTHORIZATION_CODE"
 ```
 
-Add to your "access_token" part to the GOOGLE_API_TOKEN part in your .env. Then test your token:
-
-```bash
-source .env
-curl -X GET "https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=$(date -I)T00:00:00Z&timeMax=$(date -I)T23:59:59Z&singleEvents=true&orderBy=startTime" \
--H "Authorization: Bearer ${GOOGLE_API_TOKEN}"
-```
+Add to your "refresh_token" part to the GOOGLE_REFRESH_TOKEN part in your .env.
 
 Add to your env:
 
 ```ini
-GOOGLE_API_TOKEN="YOUR_ACCESS_TOKEN"
+GOOGLE_REFRESH_TOKEN="YOUR_REFRESH_TOKEN"
 ```
 
 #### Get Google Calendar IDs
