@@ -85,8 +85,13 @@ get_todoist_project_id() {
 
 # Function: Fetch events from multiple Google Calendars and add them as Todoist tasks
 sync_google_calendar_to_todoist() {
-  local days_to_process="$1"
+  local days_to_process=1
   local start_day=$(date -I)
+
+  # If there's --days argument, set the number of days to process
+  if [[ -n "$1" ]]; then
+    days_to_process="$1"
+  fi
 
   # Define calendar IDs and their associated Todoist projects
   local work_calendar=${WORK_CALENDAR_ID}
@@ -111,10 +116,10 @@ sync_google_calendar_to_todoist() {
     # Calculate the date for each day being processed
     if [[ "$(uname)" == "Darwin" ]]; then
       current_day=$(gdate -I -d "$start_day +$day day")
-      current_time=$(gdate -u +%H:%M:%SZ)
+      current_time=$(gdate +%H:%M:%SZ)
     else
       current_day=$(date -I -d "$start_day +$day day")
-      current_time=$(date -u +%H:%M:%SZ)
+      current_time=$(date +%H:%M:%SZ)
     fi
 
     # Debug
@@ -128,7 +133,7 @@ sync_google_calendar_to_todoist() {
     else
       timeMin="${current_day}T00:00:00Z"
     fi
-    
+
     # End of each day
     timeMax="${current_day}T23:59:59Z"
 
@@ -144,12 +149,35 @@ sync_google_calendar_to_todoist() {
       echo -e "${BOLD}${RED}Error fetching events for work calendar: $(echo "$events" | jq '.error.message')${RESET}"
     else
       echo "$events" | jq -c '.items[]' | while read -r event; do
+
+        # If attendees is not null
+        if [[ "$(echo "$event" | jq -r '.attendees')" != "null" ]]; then
+          # Check if the event is declined
+          self_status=$(echo "$event" | jq -r '.attendees[] | select(.self == true) | .responseStatus')
+
+          # Debug event status
+          if [ "$DEBUG" = true ]; then
+            echo -e "${CYAN}Debug: event_status = $self_status${RESET}"
+          fi
+
+          if [[ "$self_status" == "declined" ]]; then
+            echo -e "${BOLD}${RED}Skipping declined event: $event_title${RESET}"
+            continue
+          fi
+        fi
+
         event_title="Google-kalenterin tapahtuma: $(echo "$event" | jq -r '.summary')"
-        event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
+
+        # If macOS, cut +03:00 from the end of the timestamp
+        if [[ "$(uname)" == "Darwin" ]]; then
+          event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date' | cut -c1-19)
+        else
+          event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
+        fi
 
         # Skip full-day events that only have date without time
         if [[ "$event_start" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-          echo -e "${BOLD}${YELLOW}Skipping full-day event: $event_title${RESET}"
+          echo -e "${BOLD}${RED}Skipping full-day event: $event_title${RESET}"
           continue
         fi
 
@@ -172,6 +200,12 @@ sync_google_calendar_to_todoist() {
         else
           start_timestamp=$(date -d "$event_start" +%s)
           end_timestamp=$(date -d "$(echo "$event" | jq -r '.end.dateTime // .end.date')" +%s)
+        fi
+
+        # Debug
+        if [ "$DEBUG" = true ]; then
+          echo -e "${CYAN}Debug: start_timestamp = $start_timestamp${RESET}"
+          echo -e "${CYAN}Debug: end_timestamp = $end_timestamp${RESET}"
         fi
 
         # Ensure timestamps are valid before calculating the duration
@@ -211,6 +245,7 @@ sync_google_calendar_to_todoist() {
 
     # Sync personal calendar events to Todoist "Kotiasiat" project
     for calendar_id in "${personal_calendars[@]}"; do
+
       echo -e "${BOLD}${YELLOW}Fetching remaining events from personal calendar: $calendar_id${RESET}"
       events=$(curl -s -X GET "https://www.googleapis.com/calendar/v3/calendars/${calendar_id}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime" \
         -H "Authorization: Bearer ${GOOGLE_API_TOKEN}")
@@ -220,12 +255,35 @@ sync_google_calendar_to_todoist() {
         echo -e "${BOLD}${RED}Error fetching events for personal calendar: $(echo "$events" | jq '.error.message')${RESET}"
       else
         echo "$events" | jq -c '.items[]' | while read -r event; do
+
+          # If attendees is not null
+          if [[ "$(echo "$event" | jq -r '.attendees')" != "null" ]]; then
+            # Check if the event is declined
+            self_status=$(echo "$event" | jq -r '.attendees[] | select(.self == true) | .responseStatus')
+
+            # Debug event status
+            if [ "$DEBUG" = true ]; then
+              echo -e "${CYAN}Debug: event_status = $self_status${RESET}"
+            fi
+
+            if [[ "$self_status" == "declined" ]]; then
+              echo -e "${BOLD}${RED}Skipping declined event: $event_title${RESET}"
+              continue
+            fi
+          fi
+
           event_title="Google-kalenterin tapahtuma: $(echo "$event" | jq -r '.summary')"
-          event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
+
+          # If macOS, cut +03:00 from the end of the timestamp
+          if [[ "$(uname)" == "Darwin" ]]; then
+            event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date' | cut -c1-19)
+          else
+            event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
+          fi
 
           # Skip full-day events that only have date without time
           if [[ "$event_start" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-            echo -e "${BOLD}${YELLOW}Skipping full-day event: $event_title${RESET}"
+            echo -e "${BOLD}${RED}Skipping full-day event: $event_title${RESET}"
             continue
           fi
 
@@ -242,6 +300,12 @@ sync_google_calendar_to_todoist() {
           else
             start_timestamp=$(date -d "$event_start" +%s)
             end_timestamp=$(date -d "$(echo "$event" | jq -r '.end.dateTime // .end.date')" +%s)
+          fi
+
+          # Debug
+          if [ "$DEBUG" = true ]; then
+            echo -e "${CYAN}Debug: start_timestamp = $start_timestamp${RESET}"
+            echo -e "${CYAN}Debug: end_timestamp = $end_timestamp${RESET}"
           fi
 
           # Ensure timestamps are valid before calculating the duration

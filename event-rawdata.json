@@ -1,0 +1,141 @@
+{
+  "kind": "calendar#event",
+  "etag": "\"3456750166318000\"",
+  "id": "iceek5l26lhrl1qu7lrb1pbk1j_20241014T070000Z",
+  "status": "confirmed",
+  "htmlLink": "https://www.google.com/calendar/event?eid=aWNlZWs1bDI2bGhybDFxdTdscmIxcGJrMWpfMjAyNDEwMTRUMDcwMDAwWiByb25pQGR1ZGUuZmk",
+  "created": "2022-06-14T14:35:36.000Z",
+  "updated": "2024-10-08T08:11:23.159Z",
+  "summary": "Viikkopalaveri",
+  "creator": {
+    "email": "roni@dude.fi",
+    "displayName": "Roni Laukkarinen",
+    "self": true
+  },
+  "organizer": {
+    "email": "roni@dude.fi",
+    "displayName": "Roni Laukkarinen",
+    "self": true
+  },
+  "start": {
+    "dateTime": "2024-10-14T10:00:00+03:00",
+    "timeZone": "Europe/Helsinki"
+  },
+  "end": {
+    "dateTime": "2024-10-14T11:00:00+03:00",
+    "timeZone": "Europe/Helsinki"
+  },
+  "recurringEventId": "iceek5l26lhrl1qu7lrb1pbk1j_R20240812T070000",
+  "originalStartTime": {
+    "dateTime": "2024-10-14T10:00:00+03:00",
+    "timeZone": "Europe/Helsinki"
+  },
+  "iCalUID": "iceek5l26lhrl1qu7lrb1pbk1j_R20240812T070000@google.com",
+  "sequence": 2,
+  "attendees": [
+    {
+      "email": "juha@dude.fi",
+      "displayName": "Juha Laitinen",
+      "responseStatus": "accepted"
+    },
+    {
+      "email": "tuomas@dude.fi",
+      "responseStatus": "accepted"
+    },
+    {
+      "email": "elias@dude.fi",
+      "responseStatus": "accepted"
+    },
+    {
+      "email": "roni@dude.fi",
+      "displayName": "Roni Laukkarinen",
+      "organizer": true,
+      "self": true,
+      "responseStatus": "declined"
+    },
+    {
+      "email": "jenni@dude.fi",
+      "responseStatus": "accepted"
+    },
+    {
+      "email": "miska@dude.fi",
+      "responseStatus": "accepted"
+    },
+    {
+      "email": "luka@dude.fi",
+      "responseStatus": "accepted"
+    },
+    {
+      "email": "joni@dude.fi",
+      "responseStatus": "accepted"
+    },
+    {
+      "email": "arto@dude.fi",
+      "responseStatus": "accepted"
+    },
+    {
+      "email": "maria@dude.fi",
+      "responseStatus": "needsAction"
+    },
+    {
+      "email": "henri@dude.fi",
+      "responseStatus": "accepted"
+    },
+    {
+      "email": "sanna@dude.fi",
+      "responseStatus": "needsAction"
+    },
+    {
+      "email": "nadya@dude.fi",
+      "responseStatus": "accepted"
+    },
+    {
+      "email": "otto@dude.fi",
+      "responseStatus": "needsAction"
+    },
+    {
+      "email": "william@dude.fi",
+      "responseStatus": "needsAction"
+    }
+  ],
+  "extendedProperties": {
+    "shared": {
+      "origRecurringId": "iceek5l26lhrl1qu7lrb1pbk1j"
+    }
+  },
+  "hangoutLink": "https://meet.google.com/mog-gouu-jys",
+  "conferenceData": {
+    "entryPoints": [
+      {
+        "entryPointType": "video",
+        "uri": "https://meet.google.com/mog-gouu-jys",
+        "label": "meet.google.com/mog-gouu-jys"
+      },
+      {
+        "entryPointType": "more",
+        "uri": "https://tel.meet/mog-gouu-jys?pin=1262148614812",
+        "pin": "1262148614812"
+      },
+      {
+        "regionCode": "FI",
+        "entryPointType": "phone",
+        "uri": "tel:+358-9-23132855",
+        "label": "+358 9 23132855",
+        "pin": "350588636"
+      }
+    ],
+    "conferenceSolution": {
+      "key": {
+        "type": "hangoutsMeet"
+      },
+      "name": "Google Meet",
+      "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png"
+    },
+    "conferenceId": "mog-gouu-jys"
+  },
+  "guestsCanModify": true,
+  "reminders": {
+    "useDefault": true
+  },
+  "eventType": "default"
+}

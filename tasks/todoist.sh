@@ -2,7 +2,7 @@
 fetch_tasks() {
   local start_day="$1"
   local days_to_process="$2"
-  
+
   tasks=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/tasks" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}")
@@ -19,7 +19,13 @@ fetch_tasks() {
   subtask_counts=$(echo "$tasks" | jq -r '[.[] | select(.parent_id != null) | .parent_id] | group_by(.) | map({(.[0]): length}) | add')
 
   for i in $(seq 0 $((days_to_process-1))); do
-    current_day=$(date -d "$start_day + $i days" +%Y-%m-%d)
+
+    if [[ "$(uname)" == "Darwin" ]]; then
+      current_day=$(gdate -d "$start_day + $i days" "+%Y-%m-%d")
+    else
+      current_day=$(date -d "$start_day + $i days" "+%Y-%m-%d")
+    fi
+
     echo -e "${BOLD}${YELLOW}Fetching tasks for: $current_day...${RESET}"
 
     # Add the calculated subtask count to each task using `jq` concatenation

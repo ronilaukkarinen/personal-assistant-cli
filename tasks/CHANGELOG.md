@@ -2,6 +2,8 @@
 
 * Add `--help` option
 * Add `--days` option to prioritize a number of days
+* Skip importing of cancelled events
+* Add support syncing multiple events to tasks
 
 # 1.0.4: 2024-10-13
 
