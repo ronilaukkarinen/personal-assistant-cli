@@ -72,51 +72,35 @@ sync_google_calendar_to_todoist() {
       event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
       event_end=$(echo "$event" | jq -r '.end.dateTime // .end.date')
 
-      # Convert Unix timestamp to readable date if necessary
-      if [[ "$event_start" =~ ^[0-9]+$ ]]; then
-        event_start=$(date -d "@$event_start" +'%Y-%m-%dT%H:%M:%S')
-      fi
-
-      if [[ "$event_end" =~ ^[0-9]+$ ]]; then
-        event_end=$(date -d "@$event_end" +'%Y-%m-%dT%H:%M:%S')
-      fi
-
       # Check if start or end time is null
       if [[ "$event_start" == "null" || "$event_end" == "null" ]]; then
         echo -e "${BOLD}${RED}Skipping event with missing date: $event_title${RESET}"
         continue
       fi
 
-      # Calculate duration only if start and end times are valid
-      start_timestamp=$(date -d "$event_start" +%s)
-      end_timestamp=$(date -d "$event_end" +%s)
-      if [[ "$start_timestamp" != "" && "$end_timestamp" != "" ]]; then
-        event_duration=$(date -u -d "@$((end_timestamp - start_timestamp))" +%H:%M)
+      # Calculate duration in hours and minutes using built-in date manipulation
+      start_time=$(date -d "$event_start" +%s)
+      end_time=$(date -d "$event_end" +%s)
+
+      if [[ -n "$start_time" && -n "$end_time" && "$start_time" -lt "$end_time" ]]; then
+        event_duration=$(date -u -d "@$((end_time - start_time))" +%H:%M)
       else
-        echo -e "${BOLD}${RED}Item duration is invalid${RESET}"
+        echo -e "${BOLD}${RED}Item duration is invalid, skipping event: $event_title${RESET}"
         continue
       fi
 
-      today=$(date -I)
+      # Create task in Todoist
+      curl -s -X POST "https://api.todoist.com/rest/v2/tasks" \
+      -H "Authorization: Bearer ${TODOIST_API_KEY}" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "content": "'"$event_title"'",
+        "due_datetime": "'"$event_start"'",
+        "project_id": "'"$work_project_id"'",
+        "duration": "'"$event_duration"'"
+      }'
 
-      # Check if the event is for today
-      if [[ "$event_start" == "$today"* ]]; then
-        # Event is for today, create task in Todoist
-        curl -s -X POST "https://api.todoist.com/rest/v2/tasks" \
-        -H "Authorization: Bearer ${TODOIST_API_KEY}" \
-        -H "Content-Type: application/json" \
-        -d '{
-          "content": "'"$event_title"'",
-          "due_datetime": "'"$event_start"'",
-          "project_id": "'"$work_project_id"'",
-          "duration": "'"$event_duration"'"
-        }'
-
-        echo -e "${BOLD}${GREEN}Created a new task in Todo: $event_title${RESET}"
-      else
-        echo -e "${BOLD}${YELLOW}Skipping event: $event_title, not for today.${RESET}"
-      fi
-
+      echo -e "${BOLD}${GREEN}Created a new task in Todo: $event_title${RESET}"
     done
   fi
 
@@ -135,51 +119,35 @@ sync_google_calendar_to_todoist() {
         event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
         event_end=$(echo "$event" | jq -r '.end.dateTime // .end.date')
 
-        # Convert Unix timestamp to readable date if necessary
-        if [[ "$event_start" =~ ^[0-9]+$ ]]; then
-          event_start=$(date -d "@$event_start" +'%Y-%m-%dT%H:%M:%S')
-        fi
-
-        if [[ "$event_end" =~ ^[0-9]+$ ]]; then
-          event_end=$(date -d "@$event_end" +'%Y-%m-%dT%H:%M:%S')
-        fi
-
         # Check if start or end time is null
         if [[ "$event_start" == "null" || "$event_end" == "null" ]]; then
           echo -e "${BOLD}${RED}Skipping event with missing date: $event_title${RESET}"
           continue
         fi
 
-        # Calculate duration only if start and end times are valid
-        start_timestamp=$(date -d "$event_start" +%s)
-        end_timestamp=$(date -d "$event_end" +%s)
-        if [[ "$start_timestamp" != "" && "$end_timestamp" != "" ]]; then
-          event_duration=$(date -u -d "@$((end_timestamp - start_timestamp))" +%H:%M)
+        # Calculate duration in hours and minutes using built-in date manipulation
+        start_time=$(date -d "$event_start" +%s)
+        end_time=$(date -d "$event_end" +%s)
+
+        if [[ -n "$start_time" && -n "$end_time" && "$start_time" -lt "$end_time" ]]; then
+          event_duration=$(date -u -d "@$((end_time - start_time))" +%H:%M)
         else
-          echo -e "${BOLD}${RED}Item duration is invalid${RESET}"
+          echo -e "${BOLD}${RED}Item duration is invalid, skipping event: $event_title${RESET}"
           continue
         fi
 
-        today=$(date -I)
+        # Create task in Todoist
+        curl -s -X POST "https://api.todoist.com/rest/v2/tasks" \
+        -H "Authorization: Bearer ${TODOIST_API_KEY}" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "content": "'"$event_title"'",
+          "due_datetime": "'"$event_start"'",
+          "project_id": "'"$personal_project_id"'",
+          "duration": "'"$event_duration"'"
+        }'
 
-        # Check if the event is for today
-        if [[ "$event_start" == "$today"* ]]; then
-          # Event is for today, create task in Todoist
-          curl -s -X POST "https://api.todoist.com/rest/v2/tasks" \
-          -H "Authorization: Bearer ${TODOIST_API_KEY}" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "content": "'"$event_title"'",
-            "due_datetime": "'"$event_start"'",
-            "project_id": "'"$work_project_id"'",
-            "duration": "'"$event_duration"'"
-          }'
-
-          echo -e "${BOLD}${GREEN}Created a new task in Todo: $event_title${RESET}"
-        else
-          echo -e "${BOLD}${YELLOW}Skipping event: $event_title, not for today.${RESET}"
-        fi
-
+        echo -e "${BOLD}${GREEN}Created a new task in Kotiasiat: $event_title${RESET}"
       done
     fi
   done
