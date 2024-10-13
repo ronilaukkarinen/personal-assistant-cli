@@ -1,5 +1,5 @@
 echo ""
-echo "---------------------------"
+echo "${PURPLE}---------------------------"
 echo "Rolle's AI assistant v${SCRIPT_VERSION}"
-echo "---------------------------"
+echo "---------------------------${RESET}"
 echo ""

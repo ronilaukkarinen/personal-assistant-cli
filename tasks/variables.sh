@@ -14,6 +14,7 @@ GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
 RED=$(tput setaf 1)
 CYAN=$(tput setaf 6)
+PURPLE=$(tput setaf 5)
 
 # Leave empty if all tasks should be fetched
 if is_leisure_time; then

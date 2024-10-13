@@ -1,6 +1,3 @@
-# Print header
-source ${SCRIPTS_LOCATION}/tasks/header.sh
-
 # Check if it's leisure time
 source ${SCRIPTS_LOCATION}/tasks/check-leisure.sh
 
@@ -9,6 +6,9 @@ source ${SCRIPTS_LOCATION}/tasks/calculate-remaining-hours.sh
 
 # Import required variables
 source ${SCRIPTS_LOCATION}/tasks/variables.sh
+
+# Print header
+source ${SCRIPTS_LOCATION}/tasks/header.sh
 
 # Rate limiter
 source ${SCRIPTS_LOCATION}/tasks/rate-limiter.sh
