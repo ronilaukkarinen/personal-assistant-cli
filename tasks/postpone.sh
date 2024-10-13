@@ -31,15 +31,15 @@ postpone_task() {
 
   # Debug
   if [ "$DEBUG" = true ]; then
-    echo -e "${BOLD}${CYAN}Tehtävän päivitysvastaus:${RESET}\n$update_response\n"
+    echo -e "${BOLD}${CYAN}Task reponse:${RESET}\n$update_response\n"
   fi
 
   # If error occurs, print the error message
   if [[ "$update_response" == *"error"* ]]; then
-    echo -e "${BOLD}${RED}Virhe: Tehtävän siirtäminen seuraavalle päivälle epäonnistui.${RESET}"
+    echo -e "${BOLD}${RED}Error while postponing task:${RESET}\n$update_response"
     exit 1
   else
     # Print the task ID and name when the task is postponed
-    echo -e "${YELLOW}Tehtävä siirretty: $task_name (ID: $task_id)${RESET}"
+    echo -e "${YELLOW}Task postponed: $task_name (ID: $task_id)${RESET}"
   fi
 }

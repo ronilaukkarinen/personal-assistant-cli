@@ -1,25 +1,25 @@
 # Main function
 main() {
-  echo -e "${BOLD}${YELLOW}Haetaan tämänpäiväiset Todoist-tehtävät...${RESET}"
+  echo -e "${BOLD}${YELLOW}Fetching Todoist tasks for today...${RESET}"
   tasks=$(fetch_tasks)
 
-  echo -e "${BOLD}${YELLOW}Haetaan tämänpäiväiset Google Calendar -tapahtumat...${RESET}"
+  echo -e "${BOLD}${YELLOW}Fetching Google Calendar events for today...${RESET}"
   events=$(fetch_calendar_events)
 
   if [ -z "$events" ]; then
-    echo -e "${BOLD}${RED}Ei tämänpäiväisiä kalenteritapahtumia Google Calendarissa.${RESET}"
+    echo -e "${BOLD}${RED}No events today in Google Calendar.${RESET}"
   fi
 
   if [ -z "$tasks" ] && [ -z "$events" ]; then
     exit 1
   fi
 
-  echo -e "${BOLD}${GREEN}Tämänpäiväiset tehtävät ja kalenteritapahtumat:${RESET}\n$tasks\n\n$events\n"
+  echo -e "${BOLD}${GREEN}The events and tasks for today:${RESET}\n$tasks\n\n$events\n"
 
-  echo -e "${BOLD}${YELLOW}Priorisoidaan tehtävät ja palaverit OpenAI:n avulla ja luodaan muistiinpano...${RESET}"
+  echo -e "${BOLD}${YELLOW}Prioritizing tasks and events with OpenAI and creating a note...${RESET}"
   priorities=$(get_priorities "$tasks" "$events")
 
-  echo -e "${BOLD}${GREEN}Priorisoidut tehtävät ja asiat:${RESET}\n$priorities\n"
+  echo -e "${BOLD}${GREEN}Prioritization ready:${RESET}\n$priorities\n"
 
   # Get the current local time with timezone
   current_time=$(TZ=$(cat /etc/timezone) date "+%H:%M")
@@ -39,9 +39,10 @@ main() {
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
   echo -e "# $date_header\n\n## Todoist\n\n$todoist_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
-  echo -e "${BOLD}${GREEN}Priorisointi on valmis ja tallennettu Obsidian-vaultiin.${RESET}"
 
-  echo -e "${BOLD}${YELLOW}Siirretään tehtäviä seuraavalle päivälle...${RESET}"
+  echo -e "${BOLD}${GREEN}Prioritization is ready and saved to Obsidian.${RESET}"
+
+  echo -e "${BOLD}${YELLOW}Postponing tasks to the next day...${RESET}"
 
   # Debug: Print the full content of postponed_tasks to see what's being parsed
   if [ "$DEBUG" = true ]; then
@@ -58,13 +59,13 @@ main() {
 
   # Moving those tasks to the next day that AI suggested
   if [[ -n "$task_ids_to_postpone" ]]; then
-    echo -e "${BOLD}${YELLOW}Siirretään AI:n suosittelemat tehtävät seuraavalle päivälle...${RESET}"
+    echo -e "${BOLD}${YELLOW}Postponing tasks suggested by AI to the next day...${RESET}"
 
     for task_id in $task_ids_to_postpone; do
       postpone_task "$task_id"
     done
   else
-    echo -e "${BOLD}${CYAN}AI ei suositellut tehtävien siirtämistä.${RESET}"
+    echo -e "${BOLD}${CYAN}AI did not suggest postponing any tasks or task IDs were not found.${RESET}"
   fi
 }
 

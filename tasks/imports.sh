@@ -1,3 +1,6 @@
+# Print header
+source ${SCRIPTS_LOCATION}/tasks/header.sh
+
 # Check if it's leisure time
 source ${SCRIPTS_LOCATION}/tasks/check-leisure.sh
 

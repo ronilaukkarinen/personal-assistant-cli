@@ -42,10 +42,10 @@ get_priorities() {
 
   # Print the response anyway if there's an error
   if [[ "$response" == *"error"* ]]; then
-    echo -e "${BOLD}${RED}Virhe: OpenAI-priorisointi epäonnistui.${RESET}"
+    echo -e "${BOLD}${RED}Error: OpenAI-priorization failed.${RESET}"
 
     # Message
-    echo -e "${BOLD}${RED}Viesti:${RESET}\n$response"
+    echo -e "${BOLD}${RED}Message:${RESET}\n$response"
     exit 1
   fi
 

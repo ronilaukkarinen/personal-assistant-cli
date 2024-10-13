@@ -13,18 +13,18 @@ fetch_calendar_events() {
 
   # If debug mode is enabled, show raw gcalcli output
   if [ "$DEBUG" = true ]; then
-    echo -e "${BOLD}${CYAN}Raaka gcalcli-vastaus:${RESET}\n$calendar_output\n"
+    echo -e "${BOLD}${CYAN}Raw gcalcli response:${RESET}\n$calendar_output\n"
   fi
 
   # Check for API errors
   if [[ "$calendar_output" == *"Invalid Credentials"* ]]; then
-    echo -e "${BOLD}${RED}Virhe: Google Calendar API -avaimet ovat virheelliset tai puuttuvat.${RESET}"
+    echo -e "${BOLD}${RED}Error: Google Calendar API keys are wrong or missing.${RESET}"
     exit 1
   elif [[ "$calendar_output" == *"No calendars found"* ]]; then
-    echo -e "${BOLD}${RED}Virhe: Google Calendar -tilillä ei ole saatavilla olevia kalentereita.${RESET}"
+    echo -e "${BOLD}${RED}Error: Google Calendar account does not have any accessible calendars.${RESET}"
     exit 1
   elif [[ "$calendar_output" == "" ]]; then
-    echo -e "${BOLD}${RED}Virhe: Google Calendar API ei palauttanut mitään tapahtumia. Tarkista internet-yhteys tai API-avaimet.${RESET}"
+    echo -e "${BOLD}${RED}Error: Google Calendar API did not return any events. Check your connection or API keys.${RESET}"
     exit 1
   fi
 
