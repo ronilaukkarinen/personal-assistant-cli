@@ -20,7 +20,7 @@ get_priorities() {
   fi
 
   # Combine parts of the message in Bash, removing unnecessary spaces and line breaks
-  combined_message="${PROMPT_BGINFO}\n\n${PROMPT_NOTES}\n\nTässä on tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\nTässä ovat päivän kalenteritapahtumat:\n${events}\n\nTänään on $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$time_msg"
+  combined_message="${PROMPT_BGINFO}\n\n${PROMPT_NOTES}\n\nTässä on tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\nTässä ovat päivän kalenteritapahtumat:\n${events}\n\nTänään on $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Ota huomioon, että jos kello on paljon, ei jaksa/ehdi tehdä määräänsä enempää.\n\n$time_msg"
 
   # Create the JSON payload - no debug info is included in the payload
   json_payload=$(jq -n --arg combined_message "$combined_message" '{
