@@ -1,3 +1,20 @@
+# Function: Check if a task with the same title already exists in Todoist
+task_exists_in_todoist() {
+  local project_id="$1"
+  local event_title="$2"
+
+  # Fetch tasks from Todoist for the specific project
+  existing_tasks=$(curl -s -X GET "https://api.todoist.com/rest/v2/tasks?project_id=${project_id}" \
+    -H "Authorization: Bearer ${TODOIST_API_KEY}")
+
+  # Check if any task matches the event title
+  if echo "$existing_tasks" | jq -r '.[].content' | grep -qi "$event_title"; then
+    return 0  # Task exists
+  else
+    return 1  # Task does not exist
+  fi
+}
+
 # Function to refresh the access token
 refresh_access_token() {
     response=$(curl -s -X POST \
@@ -70,7 +87,6 @@ sync_google_calendar_to_todoist() {
     echo "$events" | jq -c '.items[]' | while read -r event; do
       event_title="Google-kalenterin tapahtuma: $(echo "$event" | jq -r '.summary')"
       event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
-      event_end=$(echo "$event" | jq -r '.end.dateTime // .end.date')
 
       # Skip full-day events that only have date without time
       if [[ "$event_start" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
@@ -78,37 +94,21 @@ sync_google_calendar_to_todoist() {
         continue
       fi
 
-      # Check if start or end time is null
-      if [[ "$event_start" == "null" || "$event_end" == "null" ]]; then
-        echo -e "${BOLD}${RED}Skipping event with missing date: $event_title${RESET}"
-        continue
+      # Debug: print the event details
+      if [ "$DEBUG" = true ]; then
+        echo -e "${CYAN}Debug: event_title = $event_title${RESET}"
+        echo -e "${CYAN}Debug: event_start = $event_start${RESET}"
       fi
 
-      # Debug: print the raw event_start and event_end for debugging purposes
-      if [ "$DEBUG" = true ]; then
-        echo -e "${BOLD}${CYAN}Debug: event_start: $event_start, event_end: $event_end${RESET}"
+      # Check if a task with the same title already exists in Todoist
+      if task_exists_in_todoist "$work_project_id" "$event_title"; then
+        echo -e "${BOLD}${RED}Task \"$event_title\" already exists in Todoist.${RESET}"
+        continue
       fi
 
       # Convert date to seconds since epoch
-      start_time=$(date -d "$event_start" +%s 2>/dev/null)
-      end_time=$(date -d "$event_end" +%s 2>/dev/null)
-
-      # If date conversion fails, print error and skip the event
-      if [[ -z "$start_time" || -z "$end_time" || "$start_time" -ge "$end_time" ]]; then
-        echo -e "${BOLD}${RED}Item duration is invalid, skipping event: $event_title${RESET}"
-        echo -e "${BOLD}${CYAN}Debug info - start_time: $start_time, end_time: $end_time${RESET}"
-        continue
-      fi
-
-      # Convert ISO 8601 datetime (e.g., 2024-10-13T18:00:00Z) to Unix timestamp
       start_timestamp=$(date -d "$event_start" +%s)
-      end_timestamp=$(date -d "$event_end" +%s)
-
-      # Debug: print start and end timestamps
-      if [ "$DEBUG" = true ]; then
-        echo "${BOLD}${CYAN}Debug: event_start = $event_start, event_end = $event_end${RESET}"
-        echo "${BOLD}${CYAN}Debug: start_timestamp = $start_timestamp, end_timestamp = $end_timestamp${RESET}"
-      fi
+      end_timestamp=$(date -d "$(echo "$event" | jq -r '.end.dateTime // .end.date')" +%s)
 
       # Ensure timestamps are valid before calculating the duration
       if [[ -n "$start_timestamp" && -n "$end_timestamp" && "$start_timestamp" -lt "$end_timestamp" ]]; then
@@ -116,12 +116,11 @@ sync_google_calendar_to_todoist() {
           event_duration=$(( (end_timestamp - start_timestamp) / 60 ))
 
           if [ "$DEBUG" = true ]; then
-            echo "${BOLD}${CYAN}Debug: Event duration in minutes: $event_duration${RESET}"
+            echo "${CYAN}Debug: Event duration in minutes: $event_duration${RESET}"
           fi
       else
-          if [ "$DEBUG" = true ]; then
-            echo "${BOLD}${CYAN}Debug: Invalid timestamps or same start and end time{RESET}"
-          fi
+          echo "${BOLD}${RED}Item duration is invalid, skipping event: $event_title${RESET}"
+          continue
       fi
 
       # Create task in Todoist
@@ -129,17 +128,17 @@ sync_google_calendar_to_todoist() {
       --url "https://api.todoist.com/rest/v2/tasks" \
       --header "Content-Type: application/json" \
       --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-      -d '{
-        "content": "'"$event_title"'",
-        "due_datetime": "'"$event_start"'",
-        "project_id": "'"$work_project_id"'",
-        "duration": '$event_duration',
-        "duration_unit": "minute"
-      }')
+      -d "{
+        \"content\": \"$event_title\",
+        \"due_datetime\": \"$event_start\",
+        \"project_id\": \"$work_project_id\",
+        \"duration\": $event_duration,
+        \"duration_unit\": \"minute\"
+      }")
 
       # Debug
       if [ "$DEBUG" = true ]; then
-        echo -e "${BOLD}${CYAN}Debug: createtask response: $createtask${RESET}"
+        echo -e "${CYAN}Debug: createtask response: $createtask${RESET}"
       fi
 
       echo -e "${BOLD}${GREEN}Created a new task in Todo: $event_title${RESET}"
@@ -159,7 +158,6 @@ sync_google_calendar_to_todoist() {
       echo "$events" | jq -c '.items[]' | while read -r event; do
         event_title="Google-kalenterin tapahtuma: $(echo "$event" | jq -r '.summary')"
         event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
-        event_end=$(echo "$event" | jq -r '.end.dateTime // .end.date')
 
         # Skip full-day events that only have date without time
         if [[ "$event_start" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
@@ -167,37 +165,15 @@ sync_google_calendar_to_todoist() {
           continue
         fi
 
-        # Check if start or end time is null
-        if [[ "$event_start" == "null" || "$event_end" == "null" ]]; then
-          echo -e "${BOLD}${RED}Skipping event with missing date: $event_title${RESET}"
+        # Check if a task with the same title already exists in Todoist
+        if task_exists_in_todoist "$personal_project_id" "$event_title"; then
+          echo -e "${BOLD}${YELLOW}Task \"$event_title\" already exists in Todoist.${RESET}"
           continue
-        fi
-
-        # Debug: print the raw event_start and event_end for debugging purposes
-        if [ "$DEBUG" = true ]; then
-          echo -e "${BOLD}${CYAN}Debug: event_start: $event_start, event_end: $event_end${RESET}"
         fi
 
         # Convert date to seconds since epoch
-        start_time=$(date -d "$event_start" +%s 2>/dev/null)
-        end_time=$(date -d "$event_end" +%s 2>/dev/null)
-
-        # If date conversion fails, print error and skip the event
-        if [[ -z "$start_time" || -z "$end_time" || "$start_time" -ge "$end_time" ]]; then
-          echo -e "${BOLD}${RED}Item duration is invalid, skipping event: $event_title${RESET}"
-          echo -e "${BOLD}${CYAN}Debug info - start_time: $start_time, end_time: $end_time${RESET}"
-          continue
-        fi
-
-        # Convert ISO 8601 datetime (e.g., 2024-10-13T18:00:00Z) to Unix timestamp
         start_timestamp=$(date -d "$event_start" +%s)
-        end_timestamp=$(date -d "$event_end" +%s)
-
-        # Debug: print start and end timestamps
-        if [ "$DEBUG" = true ]; then
-          echo "${BOLD}${CYAN}Debug: event_start = $event_start, event_end = $event_end${RESET}"
-          echo "${BOLD}${CYAN}Debug: start_timestamp = $start_timestamp, end_timestamp = $end_timestamp${RESET}"
-        fi
+        end_timestamp=$(date -d "$(echo "$event" | jq -r '.end.dateTime // .end.date')" +%s)
 
         # Ensure timestamps are valid before calculating the duration
         if [[ -n "$start_timestamp" && -n "$end_timestamp" && "$start_timestamp" -lt "$end_timestamp" ]]; then
@@ -205,12 +181,11 @@ sync_google_calendar_to_todoist() {
             event_duration=$(( (end_timestamp - start_timestamp) / 60 ))
 
             if [ "$DEBUG" = true ]; then
-              echo "${BOLD}${CYAN}Debug: Event duration in minutes: $event_duration${RESET}"
+              echo "${CYAN}Debug: Event duration in minutes: $event_duration${RESET}"
             fi
         else
-            if [ "$DEBUG" = true ]; then
-              echo "${BOLD}${CYAN}Debug: Invalid timestamps or same start and end time{RESET}"
-            fi
+            echo "${BOLD}${RED}Item duration is invalid, skipping event: $event_title${RESET}"
+            continue
         fi
 
         # Create task in Todoist
@@ -218,17 +193,17 @@ sync_google_calendar_to_todoist() {
         --url "https://api.todoist.com/rest/v2/tasks" \
         --header "Content-Type: application/json" \
         --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-        -d '{
-          "content": "'"$event_title"'",
-          "due_datetime": "'"$event_start"'",
-          "project_id": "'"$personal_project_id"'",
-          "duration": '$event_duration',
-          "duration_unit": "minute"
-        }')
+        -d "{
+          \"content\": \"$event_title\",
+          \"due_datetime\": \"$event_start\",
+          \"project_id\": \"$personal_project_id\",
+          \"duration\": $event_duration,
+          \"duration_unit\": \"minute\"
+        }")
 
         # Debug
         if [ "$DEBUG" = true ]; then
-          echo -e "${BOLD}${CYAN}Debug: createtask response: $createtask${RESET}"
+          echo -e "${CYAN}Debug: createtask response: $createtask${RESET}"
         fi
 
         echo -e "${BOLD}${GREEN}Created a new task in Kotiasiat: $event_title${RESET}"
