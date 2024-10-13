@@ -29,8 +29,16 @@ main() {
   filename=$(date "+%Y-%m-%d_%H-%M-%S")
   date_header=$(date "+%d.%m.%Y")
 
+  # Add Todoist plugin header to the first part of the note
+  todoist_header='```todoist
+  filter: "#Todo & '"$date_header"'"
+  autorefresh: 120
+  show:
+  - description
+  ```'
+
   # Save output to Obsidian vault with the current time and remaining hours in the header
-  echo -e "# $date_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
+  echo -e "# $date_header\n\n## Todoist\n\n$todoist_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
   echo -e "${BOLD}${GREEN}Priorisointi on valmis ja tallennettu Obsidian-vaultiin.${RESET}"
 
   echo -e "${BOLD}${YELLOW}Siirretään tehtäviä seuraavalle päivälle...${RESET}"
