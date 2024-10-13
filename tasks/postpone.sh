@@ -9,6 +9,12 @@ postpone_task() {
     --header "Authorization: Bearer ${TODOIST_API_KEY}")
   task_name=$(echo "$task_data" | jq -r '.content')
 
+  # Check if task name contains "Google-kalenterin tapahtuma"
+  if [[ "$task_name" == *"Google-kalenterin tapahtuma"* ]]; then
+    echo -e "${YELLOW}Skipping postponing task: $task_name (ID: $task_id)${RESET}"
+    return 0
+  fi
+
   # If task is recurring
   if [[ "$task_data" == *"recurring"* ]]; then
     # Get current due_string for recurring tasks
