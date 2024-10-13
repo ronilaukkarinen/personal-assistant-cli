@@ -7,15 +7,29 @@ get_priorities() {
   combined_message=""
 
   for i in $(seq 0 $((days_to_process-1))); do
-    current_day=$(date -d "$start_day + $i days" +%Y-%m-%d)
-    current_time=$(TZ=$(cat /etc/timezone) date "+%H:%M")
+
+    # Check if macOS is used
+    if [[ "$(uname)" == "Darwin" ]]; then
+      current_day=$(gdate -d "$start_day + $i days" "+%Y-%m-%d")
+      current_time=$(gdate "+%H:%M")
+    else
+      current_day=$(date -d "$start_day + $i days" "+%Y-%m-%d")
+      current_time=$(date "+%H:%M")
+    fi
+
     remaining_hours=$(calculate_remaining_hours "$current_time")
 
     # Day of the week in Finnish for the current day
-    day_of_week=$(date -d "$current_day" +%A)
-
-    # Date in Finnish for the current day
-    date_today=$(date -d "$current_day" "+%d.%m.%Y")
+    # Check if macOS is used
+    if [[ "$(uname)" == "Darwin" ]]; then
+      day_of_week=$(gdate -d "$current_day" +%A)
+      # Date in Finnish for the current day
+      date_today=$(gdate -d "$current_day" "+%d.%m.%Y")
+    else
+      day_of_week=$(date -d "$current_day" +%A)
+      # Date in Finnish for the current day
+      date_today=$(date -d "$current_day" "+%d.%m.%Y")
+    fi
 
     # Check for weekend or holiday
     if is_weekend "$current_day"; then
@@ -26,11 +40,18 @@ get_priorities() {
       combined_message+="Ota myös huomioon että nyt on loma, eikä silloin tehdä työasioita.\n"
     fi
 
+    # macOS version and Linux version of date +%Y-%m-%d
+    if [[ "$(uname)" == "Darwin" ]]; then
+      compare_day=$(gdate "+%Y-%m-%d")
+    else
+      compare_day=$(date "+%Y-%m-%d")
+    fi
+
     # If day is today
-    if [ "$current_day" == "$(date +%Y-%m-%d)" ]; then
+    if [ "$current_day" == "$compare_day" ]; then
       combined_message+="${PROMPT_BGINFO}\n\n${PROMPT_NOTES}\n\nPyydän sinua arvioimaan tehtäville kellonajat ja kestot. Tässä ovat tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\nTässä ovat päivän kalenteritapahtumat:\n${events}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Klo 22 jälkeen yritän rauhoittua nukkumaan, älä ajoita sinne enää tehtäviä.\n\n$time_msg"
     else
-      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT_NOTES}\n\nTässä ovat $date_today päivän tehtävät (mukana ID:t):\n${tasks}\n\nTässä ovat päivän kalenteritapahtumat:\n${events}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve.\n\n"  
+      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT_NOTES}\n\nTässä ovat $date_today päivän tehtävät (mukana ID:t):\n${tasks}\n\nTässä ovat päivän kalenteritapahtumat:\n${events}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve.\n\n"
     fi
   done
 

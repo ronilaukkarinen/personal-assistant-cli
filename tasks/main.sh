@@ -1,3 +1,13 @@
+get_timezone() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    # macOS: Get the timezone from the system configuration
+    readlink /etc/localtime | sed 's|.*/zoneinfo/||'
+  else
+    # Linux: Get the timezone from /etc/timezone
+    cat /etc/timezone
+  fi
+}
+
 # Main function
 main() {
   local mode="today"
@@ -24,7 +34,8 @@ main() {
   echo -e "${BOLD}${GREEN}Prioritization ready:${RESET}\n$priorities\n"
 
   # Get the current local time with timezone
-  current_time=$(TZ=$(cat /etc/timezone) date "+%H:%M")
+  current_timezone=$(get_timezone)
+  current_time=$(TZ="$current_timezone" date "+%H:%M")
   remaining_hours=$(calculate_remaining_hours)
 
   # Filename format: YYYY-MM-DD_HH-MM-SS.md
@@ -61,7 +72,19 @@ main() {
   fi
 
   # Look for the line (Metadata: "duration": 90, "datetime": "2022-10-14T08:00:00.000000Z") (8183679870, "siirretty seuraavalle päivälle") for postponed tasks
-  task_ids_to_postpone=$(echo "$priorities" | grep -oP '\b\d{5,}\b(?=.*siirretty seuraavalle päivälle)' )
+
+  # If macOS and no ggrep found, install ggrep directly
+  if [[ "$(uname)" == "Darwin" ]] && ! command -v ggrep &> /dev/null; then
+    echo -e "${BOLD}${YELLOW}Installing ggrep for macOS...${RESET}"
+    brew install grep
+  fi
+
+  # macOS and Linux compatible version of grep
+  if [[ "$(uname)" == "Darwin" ]]; then
+    task_ids_to_postpone=$(echo "$priorities" | ggrep -oP '\b\d{5,}\b(?=.*siirretty seuraavalle päivälle)')
+  else
+    task_ids_to_postpone=$(echo "$priorities" | grep -oP '\b\d{5,}\b(?=.*siirretty seuraavalle päivälle)')
+  fi
 
   # Debugging to see the extracted task IDs
   if [ "$DEBUG" = true ]; then
