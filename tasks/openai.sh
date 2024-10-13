@@ -9,6 +9,9 @@ get_priorities() {
   # Day of the week in Finnish
   day_of_week=$(date +%A)
 
+  # Date in Finnish, e.g., "13.10.2024"
+  date_today=$(date "+%d.%m.%Y")
+
   # Pass $time_msg "Nyt on viikonloppu" if it's weekend
   if is_weekend; then
     time_msg="Ota myös huomioon että nyt on viikonloppu, eikä silloin työasioita tehdä."
@@ -20,7 +23,7 @@ get_priorities() {
   fi
 
   # Combine parts of the message in Bash, removing unnecessary spaces and line breaks
-  combined_message="${PROMPT_BGINFO}\n\n${PROMPT_NOTES}\n\nPyydän sinua arvioimaan tehtäville kellonajat ja kestot. Tässä on tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\nTässä ovat päivän kalenteritapahtumat:\n${events}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Ota huomioon, että jos kello on paljon, ei jaksa/ehdi tehdä määräänsä enempää.\n\n$time_msg"
+  combined_message="${PROMPT_BGINFO}\n\n${PROMPT_NOTES}\n\nPyydän sinua arvioimaan tehtäville kellonajat ja kestot. Tässä on tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\nTässä ovat päivän kalenteritapahtumat:\n${events}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Klo 22 jälkeen yritän rauhoittua nukkumaan, älä ajoita sinne enää tehtäviä.\n\n$time_msg"
 
   # Create the JSON payload - no debug info is included in the payload
   json_payload=$(jq -n --arg combined_message "$combined_message" '{
