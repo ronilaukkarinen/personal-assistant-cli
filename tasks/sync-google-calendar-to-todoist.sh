@@ -167,7 +167,7 @@ sync_google_calendar_to_todoist() {
 
         # Check if a task with the same title already exists in Todoist
         if task_exists_in_todoist "$personal_project_id" "$event_title"; then
-          echo -e "${BOLD}${YELLOW}Task \"$event_title\" already exists in Todoist.${RESET}"
+          echo -e "${BOLD}${RED}Task \"$event_title\" already exists in Todoist.${RESET}"
           continue
         fi
 

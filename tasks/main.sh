@@ -3,18 +3,8 @@ main() {
   echo -e "${BOLD}${YELLOW}Fetching Todoist tasks for today...${RESET}"
   tasks=$(fetch_tasks)
 
-  echo -e "${BOLD}${YELLOW}Fetching Google Calendar events for today...${RESET}"
-  events=$(fetch_calendar_events)
-
-  if [ -z "$events" ]; then
-    echo -e "${BOLD}${RED}No events today in Google Calendar.${RESET}"
-  fi
-
-  if [ -z "$tasks" ] && [ -z "$events" ]; then
-    exit 1
-  fi
-
-  echo -e "${BOLD}${GREEN}The events and tasks for today:${RESET}\n$tasks\n\n$events\n"
+  #echo -e "${BOLD}${YELLOW}Fetching Google Calendar events for today...${RESET}"
+  # events=$(fetch_calendar_events)
 
   echo -e "${BOLD}${YELLOW}Prioritizing tasks and events with OpenAI and creating a note...${RESET}"
   priorities=$(get_priorities "$tasks" "$events")
@@ -50,7 +40,10 @@ main() {
   fi
 
   # Select all numbers that have more than 5 digits
-  task_ids_to_postpone=$(echo "$priorities" | grep -oP '\d{5,}')
+  #task_ids_to_postpone=$(echo "$priorities" | grep -oP '\d{5,}')
+
+  # Look for the line (Metadata: "duration": 90, "datetime": "2022-10-14T08:00:00.000000Z") (8183679870, "siirretty seuraavalle päivälle") for postponed tasks
+  task_ids_to_postpone=$(echo "$priorities" | grep -oP '(\d{10,}, "siirretty seuraavalle päivälle")' | cut -d, -f1)
 
   # Debugging to see the extracted task IDs
   if [ "$DEBUG" = true ]; then
