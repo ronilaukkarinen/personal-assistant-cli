@@ -65,6 +65,9 @@ WORK_PROMPT_BGINFO="your_background_info_here"
 LEISURE_PROMPT_BGINFO="your_background_info_here"
 WORK_PROMPT_NOTES="your_instructions_on_which_format_to_write_notes"
 LEISURE_PROMPT_NOTES="your_instructions_on_which_format_to_write_notes"
+WORK_CALENDAR_ID="your_work_calendar_id"
+FAMILY_CALENDAR_ID="your_family_calendar_id"
+TRAINING_CALENDAR_ID="your_training_calendar_id"
 ```
 
 The prompt need to be super accurate. Otherwise this won't work properly.
@@ -79,7 +82,7 @@ The prompt need to be super accurate. Otherwise this won't work properly.
 >
 > For creating Google Cloud OAuth 2.0 credentials, follow [this guide](https://github.com/insanum/gcalcli/blob/521bf2a4a41f6830d561dc1993275ca152428596/docs/api-auth.md). In short, go to [Google Cloud Console](https://console.cloud.google.com/) and create credentials for your application from there.
 
-#### Get API token
+#### Get API token (GOOGLE_API_TOKEN)
 
 Direct the user to Google's OAuth 2.0 URL to authenticate:
 
@@ -112,6 +115,30 @@ Add to your env:
 ```ini
 GOOGLE_API_TOKEN="YOUR_ACCESS_TOKEN"
 ```
+
+#### Get Google Calendar IDs
+
+Follow these steps to locate the Calendar ID in Google Calendar:
+
+1. **Open Google Calendar Website:**
+   - Go to [Google Calendar](https://calendar.google.com/).
+
+2. **Select the Calendar:**
+   - In the left sidebar, you’ll see a list of calendars. Click the three dots (menu) next to the calendar you want the ID for, then select **Settings and sharing**.
+
+3. **Find the Calendar ID:**
+   - In the calendar settings, scroll down to the section labeled **Integrate calendar**.
+   - The **Calendar ID** is displayed in this section.
+     - For **public calendars**, it will usually be in the format: `xxxxxx@group.calendar.google.com`.
+     - For **private calendars** (such as personal calendars), the ID may be your email address: `user@gmail.com`.
+
+### Example Calendar IDs:
+- **Public Calendar**: `example123@group.calendar.google.com`
+- **Private Calendar**: `user@gmail.com`
+
+You will need this Calendar ID when making API calls to Google Calendar.
+
+Add these to your .env.
 
 ### Step 4: Authenticate Google Calendar (`gcalcli`)
 
