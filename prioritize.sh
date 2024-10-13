@@ -127,7 +127,7 @@ fetch_tasks() {
 
   # Add the calculated subtask count to each task using `jq` concatenation
   echo "$tasks" | jq -r --arg today "$today" --argjson project_map "$project_map" --argjson subtask_counts "$subtask_counts" --arg selected_project "$SELECTED_PROJECT" '
-    .[] | select(.due.date == $today) |
+    .[] | select(.due.date <= $today) |
     .project_name = ($project_map[.project_id | tostring] // "Muu projekti") |
     # Change "Todo" project name to "Työasiat"
     .project_name = (if .project_name == "Todo" then "Työasiat" else .project_name end) |
