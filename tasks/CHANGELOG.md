@@ -1,3 +1,8 @@
+# 1.0.6: 2024-10-14
+
+* Add rate limiter
+* Fix date and grep functions for macOS
+
 # 1.0.5: 2024-10-14
 
 * Add `--help` option

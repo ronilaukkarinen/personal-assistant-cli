@@ -10,6 +10,9 @@ source ${SCRIPTS_LOCATION}/tasks/calculate-remaining-hours.sh
 # Import required variables
 source ${SCRIPTS_LOCATION}/tasks/variables.sh
 
+# Rate limiter
+source ${SCRIPTS_LOCATION}/tasks/rate-limiter.sh
+
 # Check dependencies
 source ${SCRIPTS_LOCATION}/tasks/dependencies.sh
 
@@ -29,6 +32,9 @@ source ${SCRIPTS_LOCATION}/tasks/postpone.sh
 
 # Prioritize with OpenAI
 source ${SCRIPTS_LOCATION}/tasks/openai.sh
+
+# Get timezone
+source ${SCRIPTS_LOCATION}/tasks/timezone.sh
 
 # Main function
 source ${SCRIPTS_LOCATION}/tasks/main.sh
