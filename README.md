@@ -66,6 +66,8 @@ WORK_PROMPT_NOTES="your_instructions_on_which_format_to_write_notes"
 LEISURE_PROMPT_NOTES="your_instructions_on_which_format_to_write_notes"
 ```
 
+The prompt need to be super accurate. Otherwise this won't work properly.
+
 **Prompt Example:** "I am a business-oriented technology leader, entrepreneur and founder of a 50-person company. Our company is a [YOUR COMPANY AREA OF EXPERTISER] and our main products are [YOUR PRODUCTS HERE]. We do [YOUR SERVICES HERE] and so on. I'm super busy and my to-do list is often full. In addition to me, our company has [YOUR PERSONNEL HERE]. A job for you: What are the most important tasks I should do today, top 5? Also suggest tasks to postpone to a later date. Format your list in markdown format, remembering to have clear spaces after the headings and estimate a time for each task. My working hours are about 8h per day, but I can stretch. Take into account the day's meetings (1h per event on average) and the scope of the task (if sub-tasks, the task will be more extensive). Note, don't make up your own or more, but respect the original list. Please provide a complete list with original tasks, only sorted and justified. Do not omit any task from the compilation. Here is the actual list of today's tasks and meetings on which to base your conclusion:"
 
 - Replace `your_todoist_api_key` with your Todoist API key.
