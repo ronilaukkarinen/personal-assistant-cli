@@ -15,14 +15,6 @@ YELLOW=$(tput setaf 3)
 RED=$(tput setaf 1)
 CYAN=$(tput setaf 6)
 
-# Parse command-line arguments for --debug flag
-DEBUG=false
-for arg in "$@"; do
-  if [ "$arg" == "--debug" ]; then
-    DEBUG=true
-  fi
-done
-
 # Leave empty if all tasks should be fetched
 if is_leisure_time; then
   SELECTED_PROJECT=""

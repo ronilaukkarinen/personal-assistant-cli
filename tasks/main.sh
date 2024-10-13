@@ -1,13 +1,56 @@
 # Main function
 main() {
-  echo -e "${BOLD}${YELLOW}Fetching Todoist tasks for today...${RESET}"
-  tasks=$(fetch_tasks)
+  local mode="today"
+  local days_to_process=1
+  local start_day=$(date +%Y-%m-%d)
 
-  #echo -e "${BOLD}${YELLOW}Fetching Google Calendar events for today...${RESET}"
-  # events=$(fetch_calendar_events)
+  # Usage
+  usage() {
+    echo "Usage: $0 [--days <number>] [--debug]"
+    echo "  --days <number>  Process the next <number> of days"
+    echo "  --debug          Enable debug mode"
+    exit 1
+  }
 
-  echo -e "${BOLD}${YELLOW}Prioritizing tasks and events with OpenAI and creating a note...${RESET}"
-  priorities=$(get_priorities "$tasks" "$events")
+  # Show usage with --help
+  if [ "$1" = "--help" ]; then
+    usage
+  fi
+
+  # Parse command-line arguments
+  for arg in "$@"; do
+    case "$arg" in
+      --days)
+        shift
+        days_to_process="$1"
+        mode="days"
+        ;;
+      --debug)
+        DEBUG=true
+        ;;
+      *)
+        echo "Unknown argument: $arg"
+        exit 1
+        ;;
+    esac
+  done
+
+  # Process based on mode
+  if [ "$mode" = "days" ] && [ "$days_to_process" -gt 0 ]; then
+    echo -e "${BOLD}${YELLOW}Processing tasks for the next $days_to_process days...${RESET}"
+    fetch_tasks "$start_day" "$days_to_process"
+  else
+    echo -e "${BOLD}${YELLOW}Processing today's tasks...${RESET}"
+    fetch_tasks "$start_day" 1
+  fi
+
+  if [ "$mode" = "days" ] && [ "$days_to_process" -gt 0 ]; then
+    echo -e "${BOLD}${YELLOW}Prioritizing tasks and events with OpenAI for the next $days_to_process days...${RESET}"
+    priorities=$(get_priorities "$tasks" "$events" "$days_to_process" "$start_day")
+  else
+    echo -e "${BOLD}${YELLOW}Prioritizing tasks and events with OpenAI for today...${RESET}"
+    priorities=$(get_priorities "$tasks" "$events" 1 "$start_day")
+  fi
 
   echo -e "${BOLD}${GREEN}Prioritization ready:${RESET}\n$priorities\n"
 
@@ -48,9 +91,6 @@ main() {
     echo -e "${BOLD}${CYAN}Content of postponed_tasks:${RESET}\n$priorities\n"
   fi
 
-  # Select all numbers that have more than 5 digits
-  #task_ids_to_postpone=$(echo "$priorities" | grep -oP '\d{5,}')
-
   # Look for the line (Metadata: "duration": 90, "datetime": "2022-10-14T08:00:00.000000Z") (8183679870, "siirretty seuraavalle päivälle") for postponed tasks
   task_ids_to_postpone=$(echo "$priorities" | grep -oP '\b\d{5,}\b(?=.*siirretty seuraavalle päivälle)' )
 
@@ -64,7 +104,7 @@ main() {
     echo -e "${BOLD}${YELLOW}Postponing tasks suggested by AI to the next day...${RESET}"
 
     for task_id in $task_ids_to_postpone; do
-      postpone_task "$task_id"
+      postpone_task "$task_id" "$current_day"
     done
   else
     echo -e "${BOLD}${CYAN}AI did not suggest postponing any tasks or task IDs were not found.${RESET}"

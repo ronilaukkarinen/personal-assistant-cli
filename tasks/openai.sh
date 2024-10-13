@@ -1,29 +1,38 @@
 get_priorities() {
   local tasks="$1"
   local events="$2"
+  local days_to_process="$3"
+  local start_day="$4"
 
-  # Get the current local time and remaining hours
-  current_time=$(TZ=$(cat /etc/timezone) date "+%H:%M")
-  remaining_hours=$(calculate_remaining_hours)
+  combined_message=""
 
-  # Day of the week in Finnish
-  day_of_week=$(date +%A)
+  for i in $(seq 0 $((days_to_process-1))); do
+    current_day=$(date -d "$start_day + $i days" +%Y-%m-%d)
+    current_time=$(TZ=$(cat /etc/timezone) date "+%H:%M")
+    remaining_hours=$(calculate_remaining_hours "$current_time")
 
-  # Date in Finnish, e.g., "13.10.2024"
-  date_today=$(date "+%d.%m.%Y")
+    # Day of the week in Finnish for the current day
+    day_of_week=$(date -d "$current_day" +%A)
 
-  # Pass $time_msg "Nyt on viikonloppu" if it's weekend
-  if is_weekend; then
-    time_msg="Ota myös huomioon että nyt on viikonloppu, eikä silloin työasioita tehdä."
-  fi
+    # Date in Finnish for the current day
+    date_today=$(date -d "$current_day" "+%d.%m.%Y")
 
-  # Pass $time_msg "Nyt on loma" if it's holiday
-  if is_holiday; then
-    time_msg="Ota myös huomioon että nyt on loma, eikä silloin työasioita tehdä."
-  fi
+    # Check for weekend or holiday
+    if is_weekend "$current_day"; then
+      combined_message+="Ota myös huomioon että nyt on viikonloppu, eikä silloin tehdä työasioita.\n"
+    fi
 
-  # Combine parts of the message in Bash, removing unnecessary spaces and line breaks
-  combined_message="${PROMPT_BGINFO}\n\n${PROMPT_NOTES}\n\nPyydän sinua arvioimaan tehtäville kellonajat ja kestot. Tässä on tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\nTässä ovat päivän kalenteritapahtumat:\n${events}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Klo 22 jälkeen yritän rauhoittua nukkumaan, älä ajoita sinne enää tehtäviä.\n\n$time_msg"
+    if is_holiday "$current_day"; then
+      combined_message+="Ota myös huomioon että nyt on loma, eikä silloin tehdä työasioita.\n"
+    fi
+
+    # If day is today
+    if [ "$current_day" == "$(date +%Y-%m-%d)" ]; then
+      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT_NOTES}\n\nPyydän sinua arvioimaan tehtäville kellonajat ja kestot. Tässä ovat tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\nTässä ovat päivän kalenteritapahtumat:\n${events}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Klo 22 jälkeen yritän rauhoittua nukkumaan, älä ajoita sinne enää tehtäviä.\n\n$time_msg"
+    else
+      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT_NOTES}\n\nTässä ovat $date_today päivän tehtävät (mukana ID:t):\n${tasks}\n\nTässä ovat päivän kalenteritapahtumat:\n${events}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve.\n\n"  
+    fi
+  done
 
   # Create the JSON payload - no debug info is included in the payload
   json_payload=$(jq -n --arg combined_message "$combined_message" '{

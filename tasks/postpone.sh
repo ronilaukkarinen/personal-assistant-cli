@@ -1,8 +1,11 @@
 postpone_task() {
   local task_id="$1"
+  local current_day="$2"
   local next_day
-  next_day=$(date -d "tomorrow" +%Y-%m-%d)  # Calculate next day date
 
+  # Calculate the next day based on the current day
+  next_day=$(date -d "$current_day +1 day" +%Y-%m-%d)
+  
   # Get existing labels and task name for the task
   task_data=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \

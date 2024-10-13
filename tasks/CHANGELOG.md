@@ -1,3 +1,8 @@
+# 1.0.5: 2024-10-14
+
+* Add `--help` option
+* Add `--days` option to prioritize a number of days
+
 # 1.0.4: 2024-10-13
 
 * Improve prompt so that datetime timestamps are always bulletproof
