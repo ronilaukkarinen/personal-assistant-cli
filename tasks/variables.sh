@@ -25,3 +25,42 @@ else
   PROMPT_BGINFO=${WORK_PROMPT_BGINFO}
   PROMPT_NOTES=${WORK_PROMPT_NOTES}
 fi
+
+# Usage
+usage() {
+  echo "Usage: $0 [--days <number>] [--debug]"
+  echo "  --days <number>  Process the next <number> of days"
+  echo "  --debug          Enable debug mode"
+  exit 1
+}
+
+# Show usage with --help
+if [ "$1" = "--help" ]; then
+  usage
+fi
+
+# Make it possible to use --debug in any position
+if [ "$1" = "--debug" ]; then
+  DEBUG=true
+  shift
+else
+  DEBUG=false
+fi
+
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --days)
+      days_to_process="$2"
+      shift # shift past --days
+      shift # shift past the value of --days
+      ;;
+    --debug)
+      DEBUG=true
+      shift # shift past --debug
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done

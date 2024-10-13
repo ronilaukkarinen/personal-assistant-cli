@@ -4,37 +4,6 @@ main() {
   local days_to_process=1
   local start_day=$(date +%Y-%m-%d)
 
-  # Usage
-  usage() {
-    echo "Usage: $0 [--days <number>] [--debug]"
-    echo "  --days <number>  Process the next <number> of days"
-    echo "  --debug          Enable debug mode"
-    exit 1
-  }
-
-  # Show usage with --help
-  if [ "$1" = "--help" ]; then
-    usage
-  fi
-
-  # Parse command-line arguments
-  for arg in "$@"; do
-    case "$arg" in
-      --days)
-        shift
-        days_to_process="$1"
-        mode="days"
-        ;;
-      --debug)
-        DEBUG=true
-        ;;
-      *)
-        echo "Unknown argument: $arg"
-        exit 1
-        ;;
-    esac
-  done
-
   # Process based on mode
   if [ "$mode" = "days" ] && [ "$days_to_process" -gt 0 ]; then
     echo -e "${BOLD}${YELLOW}Processing tasks for the next $days_to_process days...${RESET}"

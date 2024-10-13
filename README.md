@@ -7,6 +7,7 @@ This is a Bash-based tool that prioritizes your daily tasks using OpenAI's GPT-4
 
 ## Features
 
+- Support for macOS and Linux.
 - **Fetches Todoist tasks** for the current day.
 - **Integrates Google Calendar events** for the day.
 - Uses **OpenAI GPT-4** to prioritize tasks and meetings.
