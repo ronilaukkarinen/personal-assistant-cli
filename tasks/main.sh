@@ -18,10 +18,11 @@ main() {
   # Filename format: YYYY-MM-DD_HH-MM-SS.md
   filename=$(date "+%Y-%m-%d_%H-%M-%S")
   date_header=$(date "+%d.%m.%Y")
+  todois_tasklist_date_header=$(date "+%b %d %Y")
 
   # Add Todoist plugin header to the first part of the note
   todoist_header='```todoist
-  filter: "#Todo & '"$date_header"'"
+  filter: "#Todo & '"$todois_tasklist_date_header"'"
   autorefresh: 120
   show:
   - description
