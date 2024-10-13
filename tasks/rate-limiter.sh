@@ -1,4 +1,5 @@
-LAST_RUN_FILE="$HOME/.run"
+# Add file to the root directory
+LAST_RUN_FILE=".last_run"
 
 # Aikaraja minuuteissa (esim. 10 minuuttia)
 TIME_LIMIT_MINUTES=5
