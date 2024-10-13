@@ -68,7 +68,7 @@ sync_google_calendar_to_todoist() {
     echo -e "${BOLD}${RED}Error fetching events for work calendar: $(echo "$events" | jq '.error.message')${RESET}"
   else
     echo "$events" | jq -c '.items[]' | while read -r event; do
-      event_title=$(echo "$event" | jq -r '.summary')
+      event_title="Google-kalenterin tapahtuma: $(echo "$event" | jq -r '.summary')"
       event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
       event_end=$(echo "$event" | jq -r '.end.dateTime // .end.date')
 
@@ -100,23 +100,47 @@ sync_google_calendar_to_todoist() {
         continue
       fi
 
-      # Calculate event duration in hours and minutes
-      event_duration=$(date -u -d "@$((end_time - start_time))" +%H:%M)
+      # Convert ISO 8601 datetime (e.g., 2024-10-13T18:00:00Z) to Unix timestamp
+      start_timestamp=$(date -d "$event_start" +%s)
+      end_timestamp=$(date -d "$event_end" +%s)
 
-      # Debug: print the calculated duration for debugging purposes
+      # Debug: print start and end timestamps
       if [ "$DEBUG" = true ]; then
-        echo -e "${BOLD}${CYAN}Debug: calculated event_duration: $event_duration${RESET}"
+        echo "${BOLD}${CYAN}Debug: event_start = $event_start, event_end = $event_end${RESET}"
+        echo "${BOLD}${CYAN}Debug: start_timestamp = $start_timestamp, end_timestamp = $end_timestamp${RESET}"
       fi
 
-      # Create task in Todoist without the "duration" field
-      curl -s -X POST "https://api.todoist.com/rest/v2/tasks" \
-      -H "Authorization: Bearer ${TODOIST_API_KEY}" \
-      -H "Content-Type: application/json" \
+      # Ensure timestamps are valid before calculating the duration
+      if [[ -n "$start_timestamp" && -n "$end_timestamp" && "$start_timestamp" -lt "$end_timestamp" ]]; then
+          # Calculate the duration in minutes
+          event_duration=$(( (end_timestamp - start_timestamp) / 60 ))
+
+          if [ "$DEBUG" = true ]; then
+            echo "${BOLD}${CYAN}Debug: Event duration in minutes: $event_duration${RESET}"
+          fi
+      else
+          if [ "$DEBUG" = true ]; then
+            echo "${BOLD}${CYAN}Debug: Invalid timestamps or same start and end time{RESET}"
+          fi
+      fi
+
+      # Create task in Todoist
+      createtask=$(curl -s -X POST \
+      --url "https://api.todoist.com/rest/v2/tasks" \
+      --header "Content-Type: application/json" \
+      --header "Authorization: Bearer ${TODOIST_API_KEY}" \
       -d '{
         "content": "'"$event_title"'",
         "due_datetime": "'"$event_start"'",
-        "project_id": "'"$work_project_id"'"
-      }'
+        "project_id": "'"$work_project_id"'",
+        "duration": '$event_duration',
+        "duration_unit": "minute"
+      }')
+
+      # Debug
+      if [ "$DEBUG" = true ]; then
+        echo -e "${BOLD}${CYAN}Debug: createtask response: $createtask${RESET}"
+      fi
 
       echo -e "${BOLD}${GREEN}Created a new task in Todo: $event_title${RESET}"
     done
@@ -133,7 +157,7 @@ sync_google_calendar_to_todoist() {
       echo -e "${BOLD}${RED}Error fetching events for personal calendar: $(echo "$events" | jq '.error.message')${RESET}"
     else
       echo "$events" | jq -c '.items[]' | while read -r event; do
-        event_title=$(echo "$event" | jq -r '.summary')
+        event_title="Google-kalenterin tapahtuma: $(echo "$event" | jq -r '.summary')"
         event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
         event_end=$(echo "$event" | jq -r '.end.dateTime // .end.date')
 
@@ -165,23 +189,47 @@ sync_google_calendar_to_todoist() {
           continue
         fi
 
-        # Calculate event duration in hours and minutes
-        event_duration=$(date -u -d "@$((end_time - start_time))" +%H:%M)
+        # Convert ISO 8601 datetime (e.g., 2024-10-13T18:00:00Z) to Unix timestamp
+        start_timestamp=$(date -d "$event_start" +%s)
+        end_timestamp=$(date -d "$event_end" +%s)
 
-        # Debug: print the calculated duration for debugging purposes
+        # Debug: print start and end timestamps
         if [ "$DEBUG" = true ]; then
-          echo -e "${BOLD}${CYAN}Debug: calculated event_duration: $event_duration${RESET}"
+          echo "${BOLD}${CYAN}Debug: event_start = $event_start, event_end = $event_end${RESET}"
+          echo "${BOLD}${CYAN}Debug: start_timestamp = $start_timestamp, end_timestamp = $end_timestamp${RESET}"
         fi
 
-        # Create task in Todoist without the "duration" field
-        curl -s -X POST "https://api.todoist.com/rest/v2/tasks" \
-        -H "Authorization: Bearer ${TODOIST_API_KEY}" \
-        -H "Content-Type: application/json" \
+        # Ensure timestamps are valid before calculating the duration
+        if [[ -n "$start_timestamp" && -n "$end_timestamp" && "$start_timestamp" -lt "$end_timestamp" ]]; then
+            # Calculate the duration in minutes
+            event_duration=$(( (end_timestamp - start_timestamp) / 60 ))
+
+            if [ "$DEBUG" = true ]; then
+              echo "${BOLD}${CYAN}Debug: Event duration in minutes: $event_duration${RESET}"
+            fi
+        else
+            if [ "$DEBUG" = true ]; then
+              echo "${BOLD}${CYAN}Debug: Invalid timestamps or same start and end time{RESET}"
+            fi
+        fi
+
+        # Create task in Todoist
+        createtask=$(curl -s -X POST \
+        --url "https://api.todoist.com/rest/v2/tasks" \
+        --header "Content-Type: application/json" \
+        --header "Authorization: Bearer ${TODOIST_API_KEY}" \
         -d '{
           "content": "'"$event_title"'",
           "due_datetime": "'"$event_start"'",
-          "project_id": "'"$personal_project_id"'"
-        }'
+          "project_id": "'"$personal_project_id"'",
+          "duration": '$event_duration',
+          "duration_unit": "minute"
+        }')
+
+        # Debug
+        if [ "$DEBUG" = true ]; then
+          echo -e "${BOLD}${CYAN}Debug: createtask response: $createtask${RESET}"
+        fi
 
         echo -e "${BOLD}${GREEN}Created a new task in Kotiasiat: $event_title${RESET}"
       done

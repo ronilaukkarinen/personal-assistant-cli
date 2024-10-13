@@ -16,6 +16,11 @@ source ${SCRIPTS_LOCATION}/tasks/dependencies.sh
 # Add events as Todoist tasks
 source ${SCRIPTS_LOCATION}/tasks/sync-google-calendar-to-todoist.sh
 
+# Killswitch for debugging
+if [ "$DEBUG" = true ]; then
+  exit 1
+fi
+
 # Fetch tasks from Todoist
 source ${SCRIPTS_LOCATION}/tasks/todoist.sh
 
