@@ -1,5 +1,10 @@
 # Function: Fetch today's Google Calendar events from a specific calendar
 fetch_calendar_events() {
+  # If GCAL_EVENTS_TO_TASKS_ENABLED is 1, do not run this function
+  if [ "$GCAL_EVENTS_TO_TASKS_ENABLED" = 1 ]; then
+    return
+  fi
+
   local today
   today=$(date +%Y-%m-%d)
 

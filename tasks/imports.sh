@@ -10,6 +10,9 @@ source ${SCRIPTS_LOCATION}/tasks/variables.sh
 # Check dependencies
 source ${SCRIPTS_LOCATION}/tasks/dependencies.sh
 
+# Add events as Todoist tasks
+source ${SCRIPTS_LOCATION}/tasks/sync-google-calendar-to-todoist.sh
+
 # Fetch tasks from Todoist
 source ${SCRIPTS_LOCATION}/tasks/todoist.sh
 

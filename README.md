@@ -60,6 +60,7 @@ TODOIST_API_KEY="your_todoist_api_key"
 OPENAI_API_KEY="your_openai_api_key"
 GOOGLE_CLIENT_ID="your_google_client_id"
 GOOGLE_CLIENT_SECRET="your_google_client_secret"
+GOOGLE_API_TOKEN="your_google_api_token"
 WORK_PROMPT_BGINFO="your_background_info_here"
 LEISURE_PROMPT_BGINFO="your_background_info_here"
 WORK_PROMPT_NOTES="your_instructions_on_which_format_to_write_notes"
@@ -76,7 +77,41 @@ The prompt need to be super accurate. Otherwise this won't work properly.
 
 > **Note**: For help generating your Todoist API key, visit [Todoist Developer Portal](https://developer.todoist.com/).
 >
-> For creating Google Cloud OAuth 2.0 credentials, follow [this guide](https://github.com/insanum/gcalcli/blob/521bf2a4a41f6830d561dc1993275ca152428596/docs/api-auth.md).
+> For creating Google Cloud OAuth 2.0 credentials, follow [this guide](https://github.com/insanum/gcalcli/blob/521bf2a4a41f6830d561dc1993275ca152428596/docs/api-auth.md). In short, go to [Google Cloud Console](https://console.cloud.google.com/) and create credentials for your application from there.
+
+#### Get API token
+
+Direct the user to Google's OAuth 2.0 URL to authenticate:
+
+```bash
+# Open in browser: https://accounts.google.com/o/oauth2/auth?client_id=GOOGLE_CLIENT_ID&redirect_uri=http://localhost&response_type=code&scope=https://www.googleapis.com/auth/calendar.readonly
+```
+
+After the user authorizes access, you'll get an authorization code. Use the following curl command to exchange the authorization code for an Access Token:
+
+```bash
+source .env
+curl -X POST https://oauth2.googleapis.com/token \
+  -d "client_id=${GOOGLE_CLIENT_ID}" \
+  -d "client_secret=${GOOGLE_CLIENT_SECRET}" \
+  -d "redirect_uri=http://localhost" \
+  -d "grant_type=authorization_code" \
+  -d "code=AUTHORIZATION_CODE"
+```
+
+Add to your "access_token" part to the GOOGLE_API_TOKEN part in your .env. Then test your token:
+
+```bash
+source .env
+curl -X GET "https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=$(date -I)T00:00:00Z&timeMax=$(date -I)T23:59:59Z&singleEvents=true&orderBy=startTime" \
+-H "Authorization: Bearer ${GOOGLE_API_TOKEN}"
+```
+
+Add to your env:
+
+```ini
+GOOGLE_API_TOKEN="YOUR_ACCESS_TOKEN"
+```
 
 ### Step 4: Authenticate Google Calendar (`gcalcli`)
 
