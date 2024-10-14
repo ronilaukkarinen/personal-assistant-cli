@@ -20,6 +20,15 @@ postpone_task() {
   # Get task duration, handle cases where duration is null or missing
   task_duration=$(echo "$task_data" | jq -r '.duration.amount // empty')
 
+  # Get task date
+  task_date=$(echo "$task_data" | jq -r '.due.date')
+
+  # If task date is not today, skip postponing
+  if [ "$task_date" != "$current_day" ]; then
+    echo -e "${YELLOW}Skipping postponing task that is not due today: $task_name (ID: $task_id)${RESET}"
+    return 0
+  fi
+
   # Do not postpone tasks that have a duration
   if [ -n "$task_duration" ]; then
     echo -e "${YELLOW}Skipping postponing task that has a duration set: $task_name (ID: $task_id)${RESET}"
