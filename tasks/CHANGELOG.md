@@ -5,6 +5,7 @@
 * Add --force option to force schedule
 * Fix adding tasks from Google Calendar 3 hours late on Linux
 * Fix leisure time not effective on holiday week
+* Fix re-adding a calendar event as task even if it's already a completed task
 * Do not postpone task if it's already scheduled
 * Add postponed count to the task label
 
