@@ -3,6 +3,7 @@
 * Schedule feature: Add duration and time for tasks in Todoist based on AI recommendations
 * Fix replacing the label with now postpone count
 * Fix retaining recurrence when postponing tasks
+* Fix scheduled task duration unit not being set
 
 # 1.0.8: 2024-10-14
 
