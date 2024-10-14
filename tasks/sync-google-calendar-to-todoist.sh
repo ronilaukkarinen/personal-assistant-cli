@@ -169,11 +169,7 @@ sync_google_calendar_to_todoist() {
         event_title="Google-kalenterin tapahtuma: $(echo "$event" | jq -r '.summary')"
 
         # Cut +03:00 from the end of the timestamp
-        if [[ "$(uname)" == "Darwin" ]]; then
-          event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date' | cut -c1-19)
-        else
-          event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date') | cut -c1-19)
-        fi
+        event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date' | awk '{print substr($0, 1, 19)}')
 
         # Skip full-day events that only have date without time
         if [[ "$event_start" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
@@ -275,11 +271,7 @@ sync_google_calendar_to_todoist() {
           event_title="Google-kalenterin tapahtuma: $(echo "$event" | jq -r '.summary')"
 
           # Cut +03:00 from the end of the timestamp
-          if [[ "$(uname)" == "Darwin" ]]; then
-            event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date' | cut -c1-19)
-          else
-            event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date') | cut -c1-19)
-          fi
+          event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date' | awk '{print substr($0, 1, 19)}')
 
           # Skip full-day events that only have date without time
           if [[ "$event_start" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then

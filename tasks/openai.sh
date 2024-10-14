@@ -7,8 +7,10 @@ get_priorities() {
 
   for i in $(seq 0 $((days_to_process-1))); do
 
-    # Exit if file can be found that matches this day
-    if [ -f "$HOME/Documents/Brain dump/Päivän suunnittelu/$(date -d "$start_day + $i days" "+%Y-%m-%d")"* ] && [ "$FORCE" = false ]; then
+    # Exit if a file matching this day exists
+    file=$(find "$HOME/Documents/Brain dump/Päivän suunnittelu" -name "$(date -d "$start_day + $i days" "+%Y-%m-%d")*.md")
+
+    if [ -n "$file" ] && [ "$FORCE" = false ]; then
       echo -e "${BOLD}${RED}Error: The schedule has already been made for this day. Exiting.${RESET}"
       exit 1
     fi

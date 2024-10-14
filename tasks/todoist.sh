@@ -22,9 +22,11 @@ fetch_tasks() {
   # Loop through the days to process
   for i in $(seq 0 $((days_to_process - 1))); do
 
-    # Exit if file can be found that matches this day and if --force is not set
-    if [ -f "$HOME/Documents/Brain dump/Päivän suunnittelu/$(date -d "$start_day + $i days" "+%Y-%m-%d")"* ] && [ "$FORCE" = false ]; then
-      echo -e "${BOLD}${RED}Error: The tasks have already been fetched for this day. Exiting.${RESET}"
+    # Exit if a file matching this day exists
+    file=$(find "$HOME/Documents/Brain dump/Päivän suunnittelu" -name "$(date -d "$start_day + $i days" "+%Y-%m-%d")*.md")
+
+    if [ -n "$file" ] && [ "$FORCE" = false ]; then
+      echo -e "${BOLD}${RED}Error: The schedule has already been made for this day. Exiting.${RESET}"
       exit 1
     fi
 
