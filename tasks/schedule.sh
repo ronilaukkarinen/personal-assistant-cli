@@ -53,14 +53,14 @@ schedule_task() {
       --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
       --header "Content-Type: application/json" \
       --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-      --data "{\"due_datetime\": \"$datetime\", \"due_string\": \"$due_string\", \"duration\": \"$duration\"}")
+      --data "{\"due_datetime\": \"$datetime\", \"due_string\": \"$due_string\", \"duration\": \"$duration\", \"duration_unit\": \"minute\"}")
   else
     # Update the task's detauls
     update_response=$(curl -s --request POST \
       --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
       --header "Content-Type: application/json" \
       --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-      --data "{\"due_datetime\": \"$datetime\", \"duration\": \"$duration\"}")
+      --data "{\"due_datetime\": \"$datetime\", \"duration\": \"$duration\", \"duration_unit\": \"minute\"}")
   fi
 
   # Check if there was an error during the update
@@ -68,5 +68,10 @@ schedule_task() {
     echo -e "${RED}Error scheduling task with ID $task_id: $update_response${RESET}"
   else
     echo -e "${GREEN}Task with ID $task_id successfully scheduled.${RESET}"
+  fi
+
+  # Debug response
+  if [ "$DEBUG" = true ]; then
+    echo -e "${CYAN}Update response:${RESET}\n$update_response\n"
   fi
 }
