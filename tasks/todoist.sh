@@ -49,7 +49,7 @@ fetch_tasks() {
       "- ID: \(.id) - \(.content) (\(.project_name))" +
       (if (.labels | length > 0) then " (Labels: " + (.labels | join(", ")) + ")" else "" end) +
       " (Alatehtäviä: \(.subtask_count))" +
-      (if (.duration != null and .duration.amount != null) then " (Ennalta määritetty kesto: \(.duration.amount) \(.duration.unit))" else "" end)
+      (if (.duration != null and .duration.amount != null) then " (Ennalta määritetty kesto: \(.duration.amount) \(.duration.unit))" else "" end) +
       (if (.due.datetime != null) then " (Ennalta määritetty ajankohta: \(.due.datetime))" else "" end)
     ')
   done
