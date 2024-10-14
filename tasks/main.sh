@@ -128,7 +128,6 @@ main() {
           task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime":\s")[^"]+')
         fi
 
-        echo -e "${YELLOW}Scheduling task with ID: $task_id (Duration: $task_duration minutes, Datetime: $task_datetime)...${RESET}"
         schedule_task "$task_id" "$task_duration" "$task_datetime"
       else
         echo -e "${RED}Error: Missing duration or datetime for task ID $task_id${RESET}"
