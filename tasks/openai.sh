@@ -1,8 +1,7 @@
 get_priorities() {
   local tasks="$1"
-  local events="$2"
-  local days_to_process="$3"
-  local start_day="$4"
+  local days_to_process="$2"
+  local start_day="$3"
 
   combined_message=""
 
@@ -47,13 +46,38 @@ get_priorities() {
       compare_day=$(date "+%Y-%m-%d")
     fi
 
+    # Note instructions prompt
+    note_instructions='Ohjeistus muistiipanolle (noudata tarkkaan!):\n
+      - Muotoile listat markdown-muodossa. Muista rivinvaihto otsikon jälkeen.\n
+      - Ensimmäinen lista, h2-otsikko: "Tärkeimmät tehtävät tänään (Top X)", arvioi itse määrä. Ole hyvä ja arvioi, miksi tehtävä on tärkeä, milloin minun tulisi suorittaa kukin tehtävä ja kuinka kauan ne kestävät. Tehtävän nimessä ei tarvitse olla ID:tä, mutta metadata on oltava viimeisenä tehtävän tietojen jälkeen omalla rivillään, kaikki samalla rivillä.\n
+      - Toinen lista, h2-otsikko: "Tehtävät, jotka voidaan lykätä myöhempään". Laita tähän listaan ne tehtävät, jotka eivät mahdu realistisesti päivääni. Tee täydellinen lista lykättävistä tehtävistä. Älä tiivistä lykättävien tehtävien listaa äläkä jätä mitään tehtäviä alkuperäiseen listaan verrattuna pois! Voit koostaa lopuksi miksi nämä tehtävät lykättiin, mutta tehtävien tiedot on oltava listassa 100% täydellisinä.\n
+      - Huom, tärkeä: Jokaisen tehtävän perään Metadata täsmälleen tässä muodossa, omalle rivilleen, esimerkki: (Metadata: "duration": 60, "datetime": "2016-09-01T12:00:00.000000Z") (12345678901).
+      - Merkitse lykättävät tehtävät siten, että lisää niiden perään vielä "siirretty seuraavalle päivälle" sulkuihin. Nämä ovat ehdottoman tärkeitä tietoja, jotta muu koodini osaa parseroida listaa.'
+
     # If day is today
     if [ "$current_day" == "$compare_day" ]; then
-      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT_NOTES}\n\nPyydän sinua arvioimaan tehtäville kellonajat ja kestot. Tässä ovat tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\nTässä ovat päivän kalenteritapahtumat:\n${events}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Klo 22 jälkeen yritän rauhoittua nukkumaan, älä ajoita sinne enää tehtäviä.\n\n$time_msg"
+      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\n$note_instructions\n\nPyydän sinua arvioimaan tehtäville kellonajat ja kestot. Tässä ovat tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Klo 22 jälkeen yritän rauhoittua nukkumaan, älä ajoita sinne enää tehtäviä.\n\n$time_msg"
     else
-      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT_NOTES}\n\nTässä ovat $date_today päivän tehtävät (mukana ID:t):\n${tasks}\n\nTässä ovat päivän kalenteritapahtumat:\n${events}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve.\n\n"
+      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\n$note_instructions\n\nTässä ovat $date_today päivän tehtävät (mukana ID:t):\n${tasks}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve.\n\n"
     fi
   done
+
+  # Debug
+  if [ "$DEBUG" = true ]; then
+    # Print all data
+    echo -e "${BOLD}${CYAN}current_day:${RESET} $current_day"
+    echo -e "${BOLD}${CYAN}current_time:${RESET} $current_time"
+    echo -e "${BOLD}${CYAN}remaining_hours:${RESET} $remaining_hours"
+    echo -e "${BOLD}${CYAN}day_of_week:${RESET} $day_of_week"
+    echo -e "${BOLD}${CYAN}date_today:${RESET} $date_today"
+    echo -e "${BOLD}${CYAN}compare_day:${RESET} $compare_day"
+    echo -e "${BOLD}${CYAN}combined_message:${RESET}\n$combined_message"
+  fi
+
+  # Killswitch for debugging
+  if [ "$KILLSWITH" = true ]; then
+    exit 1
+  fi
 
   # Create the JSON payload - no debug info is included in the payload
   json_payload=$(jq -n --arg combined_message "$combined_message" '{

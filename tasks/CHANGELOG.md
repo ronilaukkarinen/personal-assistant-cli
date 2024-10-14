@@ -1,3 +1,9 @@
+# 1.0.7: 2024-10-14
+
+* Fix tasks not crunching correctly for openAI which exceeds the token limit
+* Fix some prompts not being specific enough
+* Change from too similar notes prompts to general prompts
+
 # 1.0.6: 2024-10-14
 
 * Add rate limiter

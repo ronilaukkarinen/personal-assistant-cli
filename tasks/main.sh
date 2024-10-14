@@ -12,7 +12,7 @@ main() {
         shift
         if [[ "$1" =~ ^[0-9]+$ ]]; then
           days_to_process="$1"
-          mode="days"  # Switch mode to process multiple days
+          mode="days" # Switch mode to process multiple days
         else
           echo "Error: --days argument requires a valid number."
           exit 1
@@ -29,11 +29,6 @@ main() {
     shift
   done
 
-  # Killswitch for debugging
-  if [ "$KILLSWITH" = true ]; then
-    exit 1
-  fi
-
   # Process based on mode
   if [ "$mode" = "days" ] && [ "$days_to_process" -gt 0 ]; then
     echo -e "${BOLD}${YELLOW}Processing tasks for the next $days_to_process days...${RESET}"
@@ -44,11 +39,12 @@ main() {
   fi
 
   if [ "$mode" = "days" ] && [ "$days_to_process" -gt 0 ]; then
-    echo -e "${BOLD}${YELLOW}Prioritizing tasks and events with OpenAI for the next $days_to_process days...${RESET}"
-    priorities=$(get_priorities "$tasks" "$events" "$days_to_process" "$start_day")
+    echo -e "${BOLD}${YELLOW}Prioritizing tasks with OpenAI for the next $days_to_process days...${RESET}"
+    priorities=$(get_priorities "$day_tasks" "$days_to_process" "$start_day")
   else
     echo -e "${BOLD}${YELLOW}Prioritizing tasks and events with OpenAI for today...${RESET}"
-    priorities=$(get_priorities "$tasks" "$events" 1 "$start_day")
+
+    priorities=$(get_priorities "$day_tasks" 1 "$start_day")
   fi
 
   echo -e "${BOLD}${GREEN}Prioritization ready:${RESET}\n$priorities\n"
@@ -78,6 +74,11 @@ main() {
 
   # Change back to Finnish
   export LC_TIME=fi_FI.UTF-8
+
+  # Killswitch for debugging
+  if [ "$KILLSWITH" = true ]; then
+    exit 1
+  fi
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
   echo -e "# $date_header\n\n## Todoist\n\n$todoist_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"

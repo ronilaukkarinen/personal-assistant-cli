@@ -4,8 +4,12 @@ postpone_task() {
   local next_day
 
   # Calculate the next day based on the current day
-  next_day=$(date -d "$current_day +1 day" +%Y-%m-%d)
-  
+  if [[ "$(uname)" == "Darwin" ]]; then
+    next_day=$(gdate -d "$current_day + 1 day" "+%Y-%m-%d")
+  else
+    next_day=$(date -d "$current_day + 1 day" "+%Y-%m-%d")
+  fi
+
   # Get existing labels and task name for the task
   task_data=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
