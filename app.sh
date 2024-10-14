@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script version
-SCRIPT_VERSION="1.0.7"
+SCRIPT_VERSION="1.0.8"
 
 # Vars needed for this file to function globally
 SCRIPTS_LOCATION="$( pwd )"

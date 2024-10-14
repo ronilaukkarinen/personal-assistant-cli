@@ -1,3 +1,7 @@
+# 1.0.8: 2024-10-14
+
+* Add cleanup_notes() function
+
 # 1.0.7: 2024-10-14
 
 * Fix tasks not crunching correctly for openAI which exceeds the token limit

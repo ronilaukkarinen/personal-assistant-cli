@@ -33,3 +33,6 @@ source ${SCRIPTS_LOCATION}/tasks/timezone.sh
 
 # Main function
 source ${SCRIPTS_LOCATION}/tasks/main.sh
+
+# Clean ups
+source ${SCRIPTS_LOCATION}/tasks/cleanup-notes.sh
