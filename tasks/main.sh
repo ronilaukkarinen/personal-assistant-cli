@@ -40,11 +40,11 @@ main() {
 
   if [ "$mode" = "days" ] && [ "$days_to_process" -gt 0 ]; then
     echo -e "${BOLD}${YELLOW}Prioritizing tasks with OpenAI for the next $days_to_process days...${RESET}"
-    priorities=$(get_priorities "$day_tasks" "$days_to_process" "$start_day")
+    priorities=$(get_priorities "$day_tasks" "$days_to_process" "$start_day" "$tomorrow_tasks")
   else
     echo -e "${BOLD}${YELLOW}Prioritizing tasks and events with OpenAI for today...${RESET}"
 
-    priorities=$(get_priorities "$day_tasks" 1 "$start_day")
+    priorities=$(get_priorities "$day_tasks" 1 "$start_day" "$tomorrow_tasks")
   fi
 
   echo -e "${BOLD}${GREEN}Prioritization ready:${RESET}\n$priorities\n"
