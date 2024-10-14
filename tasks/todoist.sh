@@ -48,9 +48,14 @@ fetch_tasks() {
       .subtask_count = ($subtask_counts[.id] // 0) |
       "- ID: \(.id) - \(.content) (\(.project_name))" +
       (if (.labels | length > 0) then " (Labels: " + (.labels | join(", ")) + ")" else "" end) +
-      " (Alatehtäviä: \(.subtask_count))"
+      " (Alatehtäviä: \(.subtask_count))" +
+      (if (.duration != null and .duration.amount != null) then " (Ennalta määritetty kesto: \(.duration.amount) \(.duration.unit))" else "" end)
+      (if (.due.datetime != null) then " (Ennalta määritetty ajankohta: \(.due.datetime))" else "" end)
     ')
   done
+
+  # Print tasks
+  echo -e "${BOLD}${GREEN}Tasks fetched:${RESET}\n$day_tasks"
 
   # Debug
   if [ "$DEBUG" = true ]; then
