@@ -28,21 +28,32 @@ if [[ "$(uname)" == "Darwin" && ! -x "$(command -v gdate)" ]]; then
   brew install coreutils
 fi
 
-# Function: Check if a task with the same title already exists in Todoist
+# Function: Check if a task with the same title already exists in Todoist, including completed tasks
 task_exists_in_todoist() {
   local project_id="$1"
   local event_title="$2"
 
-  # Fetch tasks from Todoist for the specific project, including completed tasks
-  existing_tasks=$(curl -s -X GET "https://api.todoist.com/rest/v2/tasks?project_id=${project_id}&filter=all" \
+  # Fetch active tasks from Todoist for the specific project
+  active_tasks=$(curl -s -X GET "https://api.todoist.com/rest/v2/tasks?project_id=${project_id}" \
     -H "Authorization: Bearer ${TODOIST_API_KEY}")
 
-  # Check if any task matches the event title
-  if echo "$existing_tasks" | jq -r '.[].content' | grep -qi "$event_title"; then
-    return 0  # Task exists
-  else
-    return 1  # Task does not exist
+  # Fetch completed tasks from Todoist for the specific project
+  completed_tasks=$(curl -s -X GET "https://api.todoist.com/sync/v9/completed/get_all?project_id=${project_id}" \
+    -H "Authorization: Bearer ${TODOIST_API_KEY}")
+
+  # Check if any active task matches the event title
+  if echo "$active_tasks" | jq -r '.[].content' | grep -qi "$event_title"; then
+    # Active task exists
+    return 0
   fi
+
+  # Check if any completed task matches the event title
+  if echo "$completed_tasks" | jq -r '.items[].content' | grep -qi "$event_title"; then
+    # Completed task exists
+    return 0
+  fi
+
+  return 1  # Task does not exist
 }
 
 # Function to refresh the access token
