@@ -29,9 +29,9 @@ postpone_task() {
     return 0
   fi
 
-  # Do not postpone tasks that have a duration
-  if [ -n "$task_duration" ]; then
-    echo -e "${YELLOW}Skipping postponing task that has a duration set: $task_name (ID: $task_id)${RESET}"
+  # Do not postpone task if it contains "Rutiinit"
+  if [[ "$task_name" == *"Rutiinit"* ]]; then
+    echo -e "${YELLOW}Skipping postponing task: $task_name (ID: $task_id)${RESET}"
     return 0
   fi
 

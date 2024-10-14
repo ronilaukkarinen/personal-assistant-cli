@@ -1,3 +1,7 @@
+# 1.1.0: 2024-10-15
+
+* Never postpone routines
+
 # 1.0.9: 2024-10-14
 
 * Schedule feature: Add duration and time for tasks in Todoist based on AI recommendations
