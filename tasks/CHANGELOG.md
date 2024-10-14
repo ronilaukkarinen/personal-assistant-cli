@@ -6,6 +6,7 @@
 * Fix scheduled task duration unit not being set
 * Skip postponing task that is not today
 * Improve prompt for AI not to schedule tasks for 00-10
+* Fixes to cleanups, sometimes erases most of the notes
 
 # 1.0.8: 2024-10-14
 
