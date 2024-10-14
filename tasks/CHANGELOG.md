@@ -2,6 +2,7 @@
 
 * Never postpone routines
 * Improve prompt
+* Clean up only metadata, leave other parts of the notes intact
 
 # 1.0.9: 2024-10-14
 

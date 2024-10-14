@@ -1,19 +1,10 @@
-# Function: Cleanup notes by removing task IDs and metadata, while preserving the original text
+# Function: Cleanup notes by removing only (Metadata: ...) lines, while preserving the original text
 cleanup_notes() {
   local notes="$1"
   local cleaned_notes=""
 
-  # Remove patterns like "ID: [number]" and "(ID: [number])", including "(Metadata: ...)"
-  cleaned_notes=$(echo "$notes" | sed -E 's/\(ID: [0-9]{5,}\)//g' \
-                                    | sed -E 's/ID: [0-9]{5,}//g' \
-                                    | sed -E 's/\([0-9]{5,}\)//g' \
-                                    | sed -E 's/\(Metadata:.*\)//g')
-
-  # Ensure that original text formatting and extra dashes are not removed from the actual content
-  cleaned_notes=$(echo "$cleaned_notes" | sed -E 's/\*\* - /\*\* /g')
-
-  # Remove extra spaces left after cleaning up
-  cleaned_notes=$(echo "$cleaned_notes" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  # Remove the entire line containing "(Metadata: ...)"
+  cleaned_notes=$(echo "$notes" | sed '/(Metadata:.*)/d')
 
   # Debugging: Print the cleaned version of notes before saving
   if [ "$DEBUG" = true ]; then
