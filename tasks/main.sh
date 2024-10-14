@@ -1,8 +1,38 @@
+
 # Main function
 main() {
-  local mode="today"
-  local days_to_process=1
+  local mode="today"  # Default to processing today's tasks
+  local days_to_process=1  # Default to 1 day
   local start_day=$(date +%Y-%m-%d)
+
+  # Parse command-line arguments
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      --days)
+        shift
+        if [[ "$1" =~ ^[0-9]+$ ]]; then
+          days_to_process="$1"
+          mode="days"  # Switch mode to process multiple days
+        else
+          echo "Error: --days argument requires a valid number."
+          exit 1
+        fi
+        ;;
+      --debug)
+        DEBUG=true
+        ;;
+      *)
+        echo "Unknown argument: $1"
+        exit 1
+        ;;
+    esac
+    shift
+  done
+
+  # Killswitch for debugging
+  if [ "$KILLSWITH" = true ]; then
+    exit 1
+  fi
 
   # Process based on mode
   if [ "$mode" = "days" ] && [ "$days_to_process" -gt 0 ]; then

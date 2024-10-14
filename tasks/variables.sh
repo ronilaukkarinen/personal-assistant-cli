@@ -32,6 +32,7 @@ usage() {
   echo "Usage: $0 [--days <number>] [--debug]"
   echo "  --days <number>  Process the next <number> of days"
   echo "  --debug          Enable debug mode"
+  echo "  --killswitch     Exit immediately in the defined position for debugging"
   exit 1
 }
 
@@ -48,6 +49,11 @@ else
   DEBUG=false
 fi
 
+# Add --killswitch flag
+if [ "$1" = "--killswitch" ]; then
+  KILLSWITH=true
+fi
+
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -59,6 +65,10 @@ while [[ $# -gt 0 ]]; do
     --debug)
       DEBUG=true
       shift # shift past --debug
+      ;;
+    --killswitch)
+      KILLSWITH=true
+      shift # shift past --killswitch
       ;;
     *)
       usage

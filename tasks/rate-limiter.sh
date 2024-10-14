@@ -1,7 +1,16 @@
 # Add file to the root directory
 LAST_RUN_FILE=".last_run"
 
-# Aikaraja minuuteissa (esim. 10 minuuttia)
+# Skip this file the script is run with --debug
+if [ "$DEBUG" = true ]; then
+  return
+fi
+
+# Skip this file if the script is run with --killswitch
+if [ "$KILLSWITH" = true ]; then
+  return
+fi
+
 TIME_LIMIT_MINUTES=5
 TIME_LIMIT_SECONDS=$((TIME_LIMIT_MINUTES * 60))
 
