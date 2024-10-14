@@ -4,17 +4,16 @@ cleanup_notes() {
   local cleaned_notes=""
 
   # Remove patterns like "ID: [number]" and "(ID: [number])", including "(Metadata: ...)"
-  cleaned_notes=$(echo "$notes" | sed -E 's/ID: [0-9]{5,}//g' \
-                                    | sed -E 's/\(ID: [0-9]{5,}\)//g' \
+  cleaned_notes=$(echo "$notes" | sed -E 's/\(ID: [0-9]{5,}\)//g' \
+                                    | sed -E 's/ID: [0-9]{5,}//g' \
                                     | sed -E 's/\([0-9]{5,}\)//g' \
-                                    | sed '/Metadata:.*[0-9]\{5,\}/d')
+                                    | sed -E 's/\(Metadata:.*\)//g')
 
-  # Remove any extra spaces left after cleaning up
+  # Ensure that original text formatting and extra dashes are not removed from the actual content
+  cleaned_notes=$(echo "$cleaned_notes" | sed -E 's/\*\* - /\*\* /g')
+
+  # Remove extra spaces left after cleaning up
   cleaned_notes=$(echo "$cleaned_notes" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-
-  # Ensure that no extra dashes are removed from actual content
-  cleaned_notes=$(echo "$cleaned_notes" | sed -E 's/\*\* - /\*\* /g' \
-                                    | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
   # Debugging: Print the cleaned version of notes before saving
   if [ "$DEBUG" = true ]; then

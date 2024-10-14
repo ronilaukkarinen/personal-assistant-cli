@@ -22,11 +22,11 @@ source ${SCRIPTS_LOCATION}/tasks/sync-google-calendar-to-todoist.sh
 # Fetch tasks from Todoist
 source ${SCRIPTS_LOCATION}/tasks/todoist.sh
 
-# Schedule tasks
-source ${SCRIPTS_LOCATION}/tasks/schedule.sh
-
 # Postpone tasks
 source ${SCRIPTS_LOCATION}/tasks/postpone.sh
+
+# Schedule tasks
+source ${SCRIPTS_LOCATION}/tasks/schedule.sh
 
 # Prioritize with OpenAI
 source ${SCRIPTS_LOCATION}/tasks/openai.sh
