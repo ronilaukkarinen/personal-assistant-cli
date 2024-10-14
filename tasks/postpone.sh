@@ -17,8 +17,20 @@ postpone_task() {
   task_name=$(echo "$task_data" | jq -r '.content')
   labels=$(echo "$task_data" | jq -r '.labels | join(", ")')
 
-  # Get task duration
-  task_duration=$(echo "$task_data" | jq -r '.duration.amount')
+  # Get task duration, handle cases where duration is null or missing
+  task_duration=$(echo "$task_data" | jq -r '.duration.amount // empty')
+
+  # Do not postpone tasks that have a duration
+  if [ -n "$task_duration" ]; then
+    echo -e "${YELLOW}Skipping postponing task that has a duration set: $task_name (ID: $task_id)${RESET}"
+    return 0
+  fi
+
+  # Do not postpone if the task name contains "Google-kalenterin tapahtuma"
+  if [[ "$task_name" == *"Google-kalenterin tapahtuma"* ]]; then
+    echo -e "${YELLOW}Skipping postponing task: $task_name (ID: $task_id)${RESET}"
+    return 0
+  fi
 
   # Check if the task already has a 'Lykätty x kertaa' label
   retry_count=1
@@ -39,18 +51,6 @@ postpone_task() {
 
   # Remove any existing 'Lykätty x kertaa' label from the label list
   updated_labels=$(echo "$labels" | sed -E 's/Lykätty [0-9]+ kertaa//g' | xargs)
-
-  # Check if task name contains "Google-kalenterin tapahtuma"
-  if [[ "$task_name" == *"Google-kalenterin tapahtuma"* ]]; then
-    echo -e "${YELLOW}Skipping postponing task: $task_name (ID: $task_id)${RESET}"
-    return 0
-  fi
-
-  # Do not postpone tasks that have a duration
-  if [ -n "$task_duration" ]; then
-    echo -e "${YELLOW}Skipping postponing task that has a duration set: $task_name (ID: $task_id)${RESET}"
-    return 0
-  fi
 
   # If task is recurring
   if [[ "$task_data" == *"recurring"* ]]; then
