@@ -12,8 +12,11 @@ schedule_task() {
     --header "Authorization: Bearer ${TODOIST_API_KEY}")
 
   # Extract recurrence and labels
-  recurring=$(echo "$task_data" | jq -r '.due.is_recurring')
-  labels=$(echo "$task_data" | jq -r '.labels | join(", ")')
+  recurring=$(echo "$task_data" | jq -r '.due.is_recurring // false')
+  labels=$(echo "$task_data" | jq -r '.labels | join(", ") // empty')
+
+  # Debugging output to check the variables
+  echo "Task ID: $task_id, Duration: $duration, Datetime: $datetime, Recurring: $recurring, Labels: $labels"
 
   # Send a POST request to Todoist API to update the task's duration, due datetime, labels, and recurrence
   update_response=$(curl -s --request POST \
