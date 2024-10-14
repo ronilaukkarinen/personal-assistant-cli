@@ -84,7 +84,6 @@ main() {
   echo -e "# $date_header\n\n## Todoist\n\n$todoist_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
 
   echo -e "${BOLD}${GREEN}Prioritization is ready and saved to Obsidian.${RESET}"
-
   echo -e "${BOLD}${YELLOW}Postponing tasks to the next day...${RESET}"
 
   # Debug: Print the full content of postponed_tasks to see what's being parsed
@@ -92,12 +91,27 @@ main() {
     echo -e "${BOLD}${CYAN}Content of postponed_tasks:${RESET}\n$priorities\n"
   fi
 
-  # Look for the line (Metadata: "duration": 90, "datetime": "2022-10-14T08:00:00.000000Z") (8183679870, "siirretty seuraavalle päivälle") for postponed tasks
-
   # If macOS and no ggrep found, install ggrep directly
   if [[ "$(uname)" == "Darwin" ]] && ! command -v ggrep &> /dev/null; then
     echo -e "${BOLD}${YELLOW}Installing ggrep for macOS...${RESET}"
     brew install grep
+  fi
+
+  # macOS and Linux compatible version of grep
+  if [[ "$(uname)" == "Darwin" ]]; then
+    task_ids_to_schedule=$(echo "$priorities" | ggrep -oP '\b\d{5,}\b(?=.*"duration":)')
+  else
+    task_ids_to_schedule=$(echo "$priorities" | grep -oP '\b\d{5,}\b(?=.*"duration":)')
+  fi
+
+  if [[ -n "$task_ids_to_schedule" ]]; then
+    echo -e "${BOLD}${YELLOW}Scheduling tasks based on metadata...${RESET}"
+
+    for task_id in $task_ids_to_schedule; do
+      schedule_task "$task_id" "$priorities"
+    done
+  else
+    echo -e "${BOLD}${CYAN}AI did not suggest scheduling any tasks or task IDs were not found.${RESET}"
   fi
 
   # macOS and Linux compatible version of grep

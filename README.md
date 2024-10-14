@@ -20,6 +20,9 @@ This is a Bash-based tool that prioritizes your daily tasks using OpenAI's GPT-4
 - `curl`
 - `jq`
 - `gcalcli` (for Google Calendar integration)
+- `ggrep` (for macOS users)
+- `homebrew` (for macOS users)
+- `coreutils` (for macOS users)
 
 ## Setup
 

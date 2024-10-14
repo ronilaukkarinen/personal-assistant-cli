@@ -59,7 +59,7 @@ get_priorities() {
       - Muotoile listat markdown-muodossa. Muista rivinvaihto otsikon jälkeen.\n
       - Ensimmäinen lista, h2-otsikko: "Tärkeimmät tehtävät tänään (Top X)", arvioi itse määrä. Ole hyvä ja arvioi, miksi tehtävä on tärkeä, milloin minun tulisi suorittaa kukin tehtävä ja kuinka kauan ne kestävät. Tehtävän nimessä ei tarvitse olla ID:tä, mutta metadata on oltava viimeisenä tehtävän tietojen jälkeen omalla rivillään, kaikki samalla rivillä.\n
       - Toinen lista, h2-otsikko: "Tehtävät, jotka voidaan lykätä myöhempään". Laita tähän listaan ne tehtävät, jotka eivät mahdu realistisesti päivääni. Tee täydellinen lista lykättävistä tehtävistä. Älä tiivistä lykättävien tehtävien listaa äläkä jätä mitään tehtäviä alkuperäiseen listaan verrattuna pois! Voit koostaa lopuksi miksi nämä tehtävät lykättiin, mutta tehtävien tiedot on oltava listassa 100% täydellisinä.\n
-      - Huom, tärkeä: Jokaisen tehtävän perään Metadata täsmälleen tässä muodossa, omalle rivilleen, esimerkki: (Metadata: "duration": 60, "datetime": "2016-09-01T12:00:00.000000Z") (12345678901, siirretty seuraavale päivälle). Huom. "siirretty seuraavalle päivälle" vain jos lykättävä tehtävä, ei muutoin. Nämä ovat ehdottoman tärkeitä tietoja, jotta muu koodini osaa parseroida listaa.'
+      - Huom, tärkeä: Jokaisen tehtävän perään Metadata tässä muodossa, omalle rivilleen, esimerkki: (Metadata: "duration": 60, "datetime": "YYYY-MM-DDTHH:MM:SS.000000Z") (12345678901, siirretty seuraavalle päivälle). Huom. "siirretty seuraavalle päivälle" vain jos lykättävä tehtävä, ei muutoin. Nämä ovat ehdottoman tärkeitä tietoja, jotta muu koodini osaa parseroida listaa.'
 
     # If day is today
     if [ "$current_day" == "$compare_day" ]; then
