@@ -63,7 +63,7 @@ get_priorities() {
 
     # If day is today
     if [ "$current_day" == "$compare_day" ]; then
-      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\n$note_instructions\n\nPyydän sinua arvioimaan tehtäville kellonajat ja kestot. Tässä ovat tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Älä lykkää, jos tehtävällä on ennalta määritetty kesto tai ajankohta. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Klo 22 jälkeen yritän rauhoittua nukkumaan, älä ajoita sinne enää tehtäviä.\n\n$time_msg"
+      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\n$note_instructions\n\nPyydän sinua arvioimaan tehtäville kellonajat ja kestot. Tässä ovat tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Älä lykkää, jos tehtävällä on ennalta määritetty kesto tai ajankohta. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Älä ajoita tehtäviä välille 00-10.\n\n$time_msg"
     else
       combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\n$note_instructions\n\nTässä ovat $date_today päivän tehtävät (mukana ID:t):\n${tasks}\n\nArvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve.\n\n"
     fi
