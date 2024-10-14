@@ -99,16 +99,29 @@ main() {
 
   # macOS and Linux compatible version of grep
   if [[ "$(uname)" == "Darwin" ]]; then
-    task_ids_to_schedule=$(echo "$priorities" | ggrep -oP '\b\d{5,}\b(?=.*"duration":)')
+    # Finding task ids to schedule
+    task_ids_to_schedule=$(echo "$priorities" | ggrep -oP '\([0-9]{5,}(?=\)|,)' | awk -F'[()]' '{print $2}')
+
+    # Finding durations for those tasks
+    task_duration=$(echo "$priorities" | ggrep -oP "(?<=duration\": )[0-9]+(?=.*\($task_id\))")
+
+    # Finding datetime for those tasks
+    task_datetime=$(echo "$priorities" | ggrep -oP "(?<=datetime\": \")[^\"]+(?=.*\($task_id\))")
   else
-    task_ids_to_schedule=$(echo "$priorities" | grep -oP '\b\d{5,}\b(?=.*"duration":)')
+    task_ids_to_schedule=$(echo "$priorities" | grep -oP '\([0-9]{5,}(?=\)|,)' | awk -F'[()]' '{print $2}')
+
+    # Finding durations for those tasks
+    task_duration=$(echo "$priorities" | grep -oP "(?<=duration\": )[0-9]+(?=.*\($task_id\))")
+
+    # Finding datetime for those tasks
+    task_datetime=$(echo "$priorities" | grep -oP "(?<=datetime\": \")[^\"]+(?=.*\($task_id\))")
   fi
 
   if [[ -n "$task_ids_to_schedule" ]]; then
     echo -e "${BOLD}${YELLOW}Scheduling tasks based on metadata...${RESET}"
 
     for task_id in $task_ids_to_schedule; do
-      schedule_task "$task_id" "$priorities"
+      schedule_task "$task_id" "$task_duration" "$task_datetime"
     done
   else
     echo -e "${BOLD}${CYAN}AI did not suggest scheduling any tasks or task IDs were not found.${RESET}"

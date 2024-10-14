@@ -3,11 +3,10 @@ schedule_task() {
   local task_id="$1"
   local note="$2"
 
-  # Use grep to extract the Metadata line and extract the duration, datetime, and task ID from it
-  if [[ "$note" =~ Metadata:\ \"duration\":\ ([0-9]+),\ \"datetime\":\ \"([0-9-T:.]+)\",?\ \(?([0-9]+)\, ]]; then
+  # Use grep to extract the Metadata line and extract the duration and datetime from it
+  if [[ "$note" =~ Metadata:\ \"duration\":\ ([0-9]+),\ \"datetime\":\ \"([0-9-T:.]+)\" ]]; then
     local duration="${BASH_REMATCH[1]}"
     local datetime="${BASH_REMATCH[2]}"
-    local task_id="${BASH_REMATCH[3]}"
 
     echo -e "${YELLOW}Scheduling task with ID: $task_id (Duration: $duration minutes, Datetime: $datetime)...${RESET}"
 
@@ -41,5 +40,7 @@ schedule_task() {
     else
       echo -e "${GREEN}Task with ID $task_id successfully scheduled.${RESET}"
     fi
+  else
+    echo -e "${RED}Error: Metadata not found for task $task_id${RESET}"
   fi
 }
