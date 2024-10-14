@@ -40,6 +40,11 @@ postpone_task() {
 
     # Increment the retry count
     retry_count=$((retry_count + 1))
+
+    # If "Lykätty kerran", set retry count to 2
+    if [[ "$labels" == "Lykätty kerran" ]]; then
+      retry_count=2
+    fi
   fi
 
   # Set the correct label based on retry count
