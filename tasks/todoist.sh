@@ -23,10 +23,14 @@ fetch_tasks() {
   for i in $(seq 0 $((days_to_process - 1))); do
 
     # Exit if a file matching this day exists
-    file=$(find "$HOME/Documents/Brain dump/Päivän suunnittelu" -name "$(date -d "$start_day + $i days" "+%Y-%m-%d")*.md")
+    if [[ "$(uname)" == "Darwin" ]]; then
+      file=$(find "$HOME/Documents/Brain dump/Päivän suunnittelu" -name "$(gdate -d "$start_day + $i days" "+%Y-%m-%d")*.md")
+    else
+      file=$(find "$HOME/Documents/Brain dump/Päivän suunnittelu" -name "$(date -d "$start_day + $i days" "+%Y-%m-%d")*.md")
+    fi
 
     if [ -n "$file" ] && [ "$FORCE" = false ]; then
-      echo -e "${BOLD}${RED}Error: The schedule has already been made for this day. Exiting.${RESET}"
+      echo -e "${BOLD}${RED}Error: The schedule has already been made for this day (file: $file).${RESET}"
       exit 1
     fi
 

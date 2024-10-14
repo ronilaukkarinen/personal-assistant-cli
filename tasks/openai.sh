@@ -9,13 +9,12 @@ get_priorities() {
 
     # Exit if a file matching this day exists
     if [[ "$(uname)" == "Darwin" ]]; then
-      file=$(find "$HOME/Documents/Brain dump/Päivän suunnittelu" -name "$(gdate -d "$start_day + $i days" "+%Y-%m-%d")*.md" -print -quit)
+      file=$(find "$HOME/Documents/Brain dump/Päivän suunnittelu" -name "$(gdate -d "$start_day + $i days" "+%Y-%m-%d")*.md")
     else
-      file=$(find "$HOME/Documents/Brain dump/Päivän suunnittelu" -name "$(date -d "$start_day + $i days" "+%Y-%m-%d")*.md" -print -quit)
+      file=$(find "$HOME/Documents/Brain dump/Päivän suunnittelu" -name "$(date -d "$start_day + $i days" "+%Y-%m-%d")*.md")
     fi
 
-    # If a file exists and force is not enabled, exit
-    if [[ -n "$file" && "$FORCE" = false ]]; then
+    if [ -n "$file" ] && [ "$FORCE" = false ]; then
       echo -e "${BOLD}${RED}Error: The schedule has already been made for this day (file: $file).${RESET}"
       exit 1
     fi
