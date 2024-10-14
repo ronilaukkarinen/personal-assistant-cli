@@ -17,6 +17,9 @@ postpone_task() {
   task_name=$(echo "$task_data" | jq -r '.content')
   labels=$(echo "$task_data" | jq -r '.labels | join(", ")')
 
+  # Get task duration
+  task_duration=$(echo "$task_data" | jq -r '.duration.amount')
+
   # Check if the task already has a 'Lykätty x kertaa' label
   retry_count=1
   if [[ "$labels" =~ "Lykätty" ]]; then
@@ -43,9 +46,9 @@ postpone_task() {
     return 0
   fi
 
-  # If task has a duration, don't postpone it
-  if [[ "$task_data" == *"duration"* ]]; then
-    echo -e "${YELLOW}The task has a duration, skipping postponing task: $task_name (ID: $task_id)${RESET}"
+  # Do not postpone tasks that have a duration
+  if [ -n "$task_duration" ]; then
+    echo -e "${YELLOW}Skipping postponing task that has a duration set: $task_name (ID: $task_id)${RESET}"
     return 0
   fi
 
