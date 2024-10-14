@@ -43,6 +43,12 @@ postpone_task() {
     return 0
   fi
 
+  # If task has a duration, don't postpone it
+  if [[ "$task_data" == *"duration"* ]]; then
+    echo -e "${YELLOW}The task has a duration, skipping postponing task: $task_name (ID: $task_id)${RESET}"
+    return 0
+  fi
+
   # If task is recurring
   if [[ "$task_data" == *"recurring"* ]]; then
     # Get current due_string for recurring tasks
