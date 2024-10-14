@@ -1,6 +1,7 @@
 # 1.1.0: 2024-10-15
 
 * Never postpone routines
+* Improve prompt
 
 # 1.0.9: 2024-10-14
 
