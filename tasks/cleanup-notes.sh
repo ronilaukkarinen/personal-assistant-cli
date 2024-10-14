@@ -1,9 +1,3 @@
-
-Ongelma on siinä, että poistat viivat ** - ** -muotoisesta tekstistä, mikä johtaa niiden poistumiseen myös kohdista, joissa ne ovat osa tarkoitettua muotoilua. Korjaan koodia niin, että viivoja ei poisteta, kun ne ovat osa lauseen muotoilua.
-
-Muutettu koodi:
-bash
-Copy code
 # Function: Cleanup notes by removing task IDs and metadata, while preserving the original text
 cleanup_notes() {
   local notes="$1"
@@ -18,7 +12,7 @@ cleanup_notes() {
   # Remove any extra spaces left after cleaning up
   cleaned_notes=$(echo "$cleaned_notes" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
-  # Ensure that we only remove dashes that appear *before* bold text and are not part of the actual content
+  # Ensure that no extra dashes are removed from actual content
   cleaned_notes=$(echo "$cleaned_notes" | sed -E 's/\*\* - /\*\* /g' \
                                     | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
