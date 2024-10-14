@@ -61,7 +61,7 @@ get_priorities() {
     # Note instructions prompt
     note_instructions='Ohjeistus muistiipanolle, johon kirjoitat priorisoinnit (noudata tarkkaan!):\n
       - Muotoile listat markdown-muodossa. Muista rivinvaihto otsikon jälkeen.\n
-      - Ensimmäinen lista, h2-otsikko: "Tärkeimmät tehtävät tänään (Top X)", arvioi itse määrä. Ole hyvä ja arvioi, miksi tehtävä on tärkeä, milloin minun tulisi suorittaa kukin tehtävä ja kuinka kauan ne kestävät, kerro selkokielisessä muodossa (pl. metadata). Tehtävän nimessä ei tarvitse olla ID:tä, mutta metadata on oltava viimeisenä tehtävän tietojen jälkeen omalla rivillään, kaikki samalla rivillä.\n
+      - Ensimmäinen lista, h2-otsikko: "Tärkeimmät tehtävät tänään (Top X)", arvioi itse määrä. Ole hyvä ja arvioi, miksi tehtävä on tärkeä, milloin minun tulisi suorittaa kukin tehtävä ja kuinka kauan ne kestävät, kerro selkokielisessä muodossa eli erottele tunnit ja minuutit (poislukien metadata). Tehtävän nimessä ei tarvitse olla ID:tä, mutta metadata on oltava viimeisenä tehtävän tietojen jälkeen omalla rivillään, kaikki samalla rivillä.\n
       - Toinen lista, h2-otsikko: "Tehtävät, jotka voidaan lykätä myöhempään". Laita tähän listaan ne tehtävät, jotka eivät mahdu realistisesti päivääni, älä jätä yhtään tehtävää listaamatta.\n
       - Huom, tärkeä: Jokaisen tehtävän perään Metadata tässä muodossa, omalle rivilleen, huom. "siirretty seuraavalle päivälle" VAIN jos kyseessä on lykättävä tehtävä, ei muutoin. Nämä ovat ehdottoman tärkeitä tietoja, jotta muu koodini osaa parseroida listaa. Esimerkki metadatatiedosta, jollaisessa muodossa metadata on sisällytettävä tehtävään listassa: (Metadata: "duration": 60, "datetime": "YYYY-MM-DDTHH:MM:SS.000000Z") (12345678901, siirretty seuraavalle päivälle).'
 
