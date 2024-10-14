@@ -35,7 +35,7 @@ postpone_task() {
   # Check if the task already has a 'Lykätty x kertaa' label
   retry_count=1
   if [[ "$labels" =~ "Lykätty" ]]; then
-    # Extract current retry Count
+    # Extract current retry count
     retry_count=$(echo "$labels" | grep -oP 'Lykätty \K[0-9]+')
 
     # Increment the retry count
@@ -49,20 +49,20 @@ postpone_task() {
     new_label="Lykätty $retry_count kertaa"
   fi
 
-  # Remove any existing 'Lykätty x kertaa' label from the label list
-  updated_labels=$(echo "$labels" | sed -E 's/Lykätty [0-9]+ kertaa//g' | xargs)
+  # Remove any existing 'Lykätty x kertaa' or 'Lykätty kerran' label from the label list
+  updated_labels=$(echo "$labels" | sed -E 's/Lykätty [0-9]+ kertaa//g' | sed -E 's/Lykätty kerran//g' | xargs)
 
-  # If task is recurring
-  if [[ "$task_data" == *"recurring"* ]]; then
-    # Get current due_string for recurring tasks
-    current_due_string=$(echo "$task_data" | jq -r '.due_string')
+  # Handle recurring tasks
+  recurring=$(echo "$task_data" | jq -r '.due.is_recurring')
+  due_string=$(echo "$task_data" | jq -r '.due.string')
 
+  if [ "$recurring" == "true" ]; then
     # Update task's due date and keep recurrence
     update_response=$(curl -s --request POST \
       --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
       --header "Content-Type: application/json" \
       --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-      --data "{\"due_string\": \"$current_due_string\", \"due_date\": \"$next_day\", \"labels\": [\"$updated_labels\", \"$new_label\"]}")
+      --data "{\"due_string\": \"$due_string\", \"labels\": [\"$updated_labels\", \"$new_label\"]}")
   else
     # Update the task's due date
     update_response=$(curl -s --request POST \
@@ -74,7 +74,7 @@ postpone_task() {
 
   # Debug
   if [ "$DEBUG" = true ]; then
-    echo -e "${BOLD}${CYAN}Task reponse:${RESET}\n$update_response\n"
+    echo -e "${BOLD}${CYAN}Task response:${RESET}\n$update_response\n"
   fi
 
   # If error occurs, print the error message

@@ -1,6 +1,8 @@
 # 1.0.9: 2024-10-14
 
 * Schedule feature: Add duration and time for tasks in Todoist based on AI recommendations
+* Fix eplacing the label with now postpone count
+* Fix retaining recurrence when postponing tasks
 
 # 1.0.8: 2024-10-14
 
