@@ -28,13 +28,7 @@ schedule_task() {
   # Get task duration, handle cases where duration is null or missing
   task_duration=$(echo "$task_data" | jq -r '.duration.amount // empty')
 
-  # Do not schedule tasks that have a duration
-  if [ -n "$task_duration" ]; then
-    echo -e "${YELLOW}Skipping scheduling task that has a duration set: $task_name (ID: $task_id)${RESET}"
-    return 0
-  fi
-
-  # Do not schedule if the task name contains "Google-kalenterin tapahtuma"
+  # Do not re-schedule if the task name contains "Google-kalenterin tapahtuma"
   if [[ "$task_name" == *"Google-kalenterin tapahtuma"* ]]; then
     echo -e "${YELLOW}Skipping scheduling task: $task_name (ID: $task_id)${RESET}"
     return 0
