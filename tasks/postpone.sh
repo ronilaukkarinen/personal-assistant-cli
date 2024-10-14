@@ -62,7 +62,7 @@ postpone_task() {
       --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
       --header "Content-Type: application/json" \
       --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-      --data "{\"due_string\": \"$due_string\", \"labels\": [\"$updated_labels\", \"$new_label\"]}")
+      --data "{\"due_string\": \"$due_string\", \"due_date\": \"$next_day\", \"labels\": [\"$updated_labels\", \"$new_label\"]}")
   else
     # Update the task's due date
     update_response=$(curl -s --request POST \

@@ -84,11 +84,10 @@ main() {
   echo -e "# $date_header\n\n## Todoist\n\n$todoist_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
 
   echo -e "${BOLD}${GREEN}Prioritization is ready and saved to Obsidian.${RESET}"
-  echo -e "${BOLD}${YELLOW}Postponing tasks to the next day...${RESET}"
 
-  # Debug: Print the full content of postponed_tasks to see what's being parsed
+  # Debug: Print the full content of tasks to see what's being parsed
   if [ "$DEBUG" = true ]; then
-    echo -e "${BOLD}${CYAN}Content of postponed_tasks:${RESET}\n$priorities\n"
+    echo -e "${BOLD}${CYAN}Content of tasks that are being parsed:${RESET}\n$priorities\n"
   fi
 
   # If macOS and no ggrep found, install ggrep directly
@@ -100,33 +99,46 @@ main() {
   # macOS and Linux compatible version of grep
   if [[ "$(uname)" == "Darwin" ]]; then
     # Finding task ids to schedule
-    task_ids_to_schedule=$(echo "$priorities" | ggrep -oP '\([0-9]{5,}(?=\)|,)' | awk -F'[()]' '{print $2}')
+    task_ids_to_schedule=$(echo "$priorities" | ggrep -oP '\([0-9]{5,}(?=\)|\s|,)' | awk -F'[()]' '{print $2}')
 
     # Finding durations for those tasks
-    task_duration=$(echo "$priorities" | ggrep -oP "(?<=duration\": )[0-9]+(?=.*\($task_id\))")
+    task_duration=$(echo "$priorities" | ggrep -Pzo "(?s)\"duration\":\s*([0-9]+).*?\($task_id\)" | sed -n 's/.*\"duration\": \([0-9]\+\).*/\1/p' | tr -d '\0')
 
     # Finding datetime for those tasks
-    task_datetime=$(echo "$priorities" | ggrep -oP "(?<=datetime\": \")[^\"]+(?=.*\($task_id\))")
+    task_datetime=$(echo "$priorities" | ggrep -Pzo "(?s)\"datetime\":\s*\"([0-9T:.Z-]+)\".*?\($task_id\)" | sed -n 's/.*\"datetime\": \"\([0-9T:.Z-]\+\)\".*/\1/p' | tr -d '\0')
   else
-    task_ids_to_schedule=$(echo "$priorities" | grep -oP '\([0-9]{5,}(?=\)|,)' | awk -F'[()]' '{print $2}')
+    task_ids_to_schedule=$(echo "$priorities" | grep -oP '\([0-9]{5,}(?=\)|,)' testnote.md | awk -F'[()]' '{print $2}')
 
     # Finding durations for those tasks
-    task_duration=$(echo "$priorities" | grep -oP "(?<=duration\": )[0-9]+(?=.*\($task_id\))")
+    task_duration=$(echo "$priorities" | grep -Pzo "(?s)\"duration\":\s*([0-9]+).*?\($task_id\)" | sed -n 's/.*\"duration\": \([0-9]\+\).*/\1/p' | tr -d '\0')
 
     # Finding datetime for those tasks
-    task_datetime=$(echo "$priorities" | grep -oP "(?<=datetime\": \")[^\"]+(?=.*\($task_id\))")
+    task_datetime=$(echo "$priorities" | grep -Pzo "(?s)\"datetime\":\s*\"([0-9T:.Z-]+)\".*?\($task_id\)" | sed -n 's/.*\"datetime\": \"\([0-9T:.Z-]\+\)\".*/\1/p' | tr -d '\0')
   fi
+
+  echo "Task ID: $task_id, Duration: $task_duration, Datetime: $task_datetime"
 
   if [[ -n "$task_ids_to_schedule" ]]; then
     echo -e "${BOLD}${YELLOW}Scheduling tasks based on metadata...${RESET}"
 
     for task_id in $task_ids_to_schedule; do
-      schedule_task "$task_id" "$task_duration" "$task_datetime"
+
+      task_duration=$(echo "$priorities" | grep -Pzo "(?s)\"duration\":\s*([0-9]+).*?\($task_id\)" | sed -n 's/.*\"duration\": \([0-9]\+\).*/\1/p' | tr -d '\0')
+      task_datetime=$(echo "$priorities" | grep -Pzo "(?s)\"datetime\":\s*\"([0-9T:.Z-]+)\".*?\($task_id\)" | sed -n 's/.*\"datetime\": \"\([0-9T:.Z-]\+\)\".*/\1/p' | tr -d '\0')
+
+      if [[ -z "$task_duration" || -z "$task_datetime" ]]; then
+        echo -e "${RED}Error: Missing duration or datetime for task ID $task_id${RESET}"
+      else
+        echo "Task ID: $task_id, Duration: $task_duration, Datetime: $task_datetime"
+        schedule_task "$task_id" "$task_duration" "$task_datetime"
+      fi
     done
+
   else
     echo -e "${BOLD}${CYAN}AI did not suggest scheduling any tasks or task IDs were not found.${RESET}"
   fi
 
+  echo -e "${BOLD}${YELLOW}Postponing tasks to the next day...${RESET}"
   # macOS and Linux compatible version of grep
   if [[ "$(uname)" == "Darwin" ]]; then
     task_ids_to_postpone=$(echo "$priorities" | ggrep -oP '\b\d{5,}\b(?=.*siirretty seuraavalle päivälle)')
