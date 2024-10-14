@@ -1,3 +1,6 @@
+tests/event-rawdata.json
+tests/todoist-task-list.txt
+tester.sh
 testnote.md
 .last_run
 .env

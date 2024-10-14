@@ -98,42 +98,42 @@ main() {
 
   # macOS and Linux compatible version of grep
   if [[ "$(uname)" == "Darwin" ]]; then
-    # Finding task ids to schedule
-    task_ids_to_schedule=$(echo "$priorities" | ggrep -oP '\([0-9]{5,}(?=\)|\s|,)' | awk -F'[()]' '{print $2}')
-
-    # Finding durations for those tasks
-    task_duration=$(echo "$priorities" | ggrep -Pzo "(?s)\"duration\":\s*([0-9]+).*?\($task_id\)" | sed -n 's/.*\"duration\": \([0-9]\+\).*/\1/p' | tr -d '\0')
-
-    # Finding datetime for those tasks
-    task_datetime=$(echo "$priorities" | ggrep -Pzo "(?s)\"datetime\":\s*\"([0-9T:.Z-]+)\".*?\($task_id\)" | sed -n 's/.*\"datetime\": \"\([0-9T:.Z-]\+\)\".*/\1/p' | tr -d '\0')
+    # Extract all numbers with more than 5 digits, which we assume to be task IDs
+    task_ids_to_schedule=$(echo "$priorities" | ggrep -oP '\b[0-9]{6,}\b')
   else
-    task_ids_to_schedule=$(echo "$priorities" | grep -oP '\([0-9]{5,}(?=\)|,)' testnote.md | awk -F'[()]' '{print $2}')
-
-    # Finding durations for those tasks
-    task_duration=$(echo "$priorities" | grep -Pzo "(?s)\"duration\":\s*([0-9]+).*?\($task_id\)" | sed -n 's/.*\"duration\": \([0-9]\+\).*/\1/p' | tr -d '\0')
-
-    # Finding datetime for those tasks
-    task_datetime=$(echo "$priorities" | grep -Pzo "(?s)\"datetime\":\s*\"([0-9T:.Z-]+)\".*?\($task_id\)" | sed -n 's/.*\"datetime\": \"\([0-9T:.Z-]\+\)\".*/\1/p' | tr -d '\0')
+    # Extract all numbers with more than 5 digits, which we assume to be task IDs
+    task_ids_to_schedule=$(echo "$priorities" | grep -oP '\b[0-9]{6,}\b')
   fi
-
-  echo "Task ID: $task_id, Duration: $task_duration, Datetime: $task_datetime"
 
   if [[ -n "$task_ids_to_schedule" ]]; then
     echo -e "${BOLD}${YELLOW}Scheduling tasks based on metadata...${RESET}"
 
     for task_id in $task_ids_to_schedule; do
-
-      task_duration=$(echo "$priorities" | grep -Pzo "(?s)\"duration\":\s*([0-9]+).*?\($task_id\)" | sed -n 's/.*\"duration\": \([0-9]\+\).*/\1/p' | tr -d '\0')
-      task_datetime=$(echo "$priorities" | grep -Pzo "(?s)\"datetime\":\s*\"([0-9T:.Z-]+)\".*?\($task_id\)" | sed -n 's/.*\"datetime\": \"\([0-9T:.Z-]\+\)\".*/\1/p' | tr -d '\0')
-
-      if [[ -z "$task_duration" || -z "$task_datetime" ]]; then
-        echo -e "${RED}Error: Missing duration or datetime for task ID $task_id${RESET}"
+      # Finding the entire metadata line for the task ID
+      if [[ "$(uname)" == "Darwin" ]]; then
+        # Search for the metadata that contains duration and datetime for this task ID
+        metadata_line=$(echo "$priorities" | ggrep -P "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
       else
-        echo "Task ID: $task_id, Duration: $task_duration, Datetime: $task_datetime"
+        # Search for the metadata that contains duration and datetime for this task ID
+        metadata_line=$(echo "$priorities" | grep -P "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
+      fi
+
+      if [[ -n "$metadata_line" ]]; then
+        # Extract duration and datetime from the metadata line
+        if [[ "$(uname)" == "Darwin" ]]; then
+          task_duration=$(echo "$metadata_line" | ggrep -oP '(?<=duration":\s)[0-9]+')
+          task_datetime=$(echo "$metadata_line" | ggrep -oP '(?<=datetime":\s")[^"]+')
+        else
+          task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration":\s)[0-9]+')
+          task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime":\s")[^"]+')
+        fi
+
+        echo -e "${YELLOW}Scheduling task with ID: $task_id (Duration: $task_duration minutes, Datetime: $task_datetime)...${RESET}"
         schedule_task "$task_id" "$task_duration" "$task_datetime"
+      else
+        echo -e "${RED}Error: Missing duration or datetime for task ID $task_id${RESET}"
       fi
     done
-
   else
     echo -e "${BOLD}${CYAN}AI did not suggest scheduling any tasks or task IDs were not found.${RESET}"
   fi
