@@ -52,32 +52,13 @@ fetch_tasks() {
       (if (.duration != null and .duration.amount != null) then " (Ennalta määritetty kesto: \(.duration.amount) \(.duration.unit))" else "" end) +
       (if (.due.datetime != null) then " (Ennalta määritetty ajankohta: \(.due.datetime))" else "" end)
     ')
-
-    # Calculate tomorrow's date
-    if [[ "$(uname)" == "Darwin" ]]; then
-      tomorrow=$(gdate -d "$current_day + 1 day" "+%Y-%m-%d")
-    else
-      tomorrow=$(date -d "$current_day + 1 day" "+%Y-%m-%d")
-    fi
-
-    # Filter and format tasks for tomorrow
-    tomorrow_tasks=$(echo "$tasks" | jq -r --arg tomorrow "$tomorrow" --argjson project_map "$project_map" --argjson subtask_counts "$subtask_counts" '
-      .[] | select(.due.date == $tomorrow) |
-      select(.parent_id == null) |
-      .project_name = ($project_map[.project_id | tostring] // "Muu projekti") |
-      .project_name = (if .project_name == "Todo" then "Työasiat" else .project_name end) |
-      .subtask_count = ($subtask_counts[.id] // 0) |
-      "- ID: \(.id) - \(.content) (\(.project_name))" +
-      (if (.labels | length > 0) then " (Labels: " + (.labels | join(", ")) + ")" else "" end) +
-      " (Alatehtäviä: \(.subtask_count))" +
-      (if (.duration != null and .duration.amount != null) then " (Ennalta määritetty kesto: \(.duration.amount) \(.duration.unit))" else "" end) +
-      (if (.due.datetime != null) then " (Ennalta määritetty ajankohta: \(.due.datetime))" else "" end)
-    ')
   done
+
+  # Print tasks
+  echo -e "${BOLD}${GREEN}Tasks fetched:${RESET}\n$day_tasks"
 
   # Debug
   if [ "$DEBUG" = true ]; then
     echo -e "${BOLD}${CYAN}Tasks:\n$day_tasks${RESET}"
-    echo -e "${BOLD}${CYAN}Tasks for tomorrow:\n$tomorrow_tasks${RESET}"
   fi
 }

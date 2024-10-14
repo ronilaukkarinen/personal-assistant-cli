@@ -1,8 +1,3 @@
-# 1.1.0: 2024-10-14
-
-* Take into account tomorrow's tasks when scheduling tasks
-* If task is in the past, re-schedule it
-
 # 1.0.9: 2024-10-14
 
 * Schedule feature: Add duration and time for tasks in Todoist based on AI recommendations
