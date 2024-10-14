@@ -1,6 +1,9 @@
 # 1.0.8: 2024-10-14
 
 * Add cleanup_notes() function
+* Check if schedule has already been made, don't re-do it for the same day
+* Add --force option to force schedule
+* Fix adding tasks from Google Calendar 3 hours late on Linux
 
 # 1.0.7: 2024-10-14
 

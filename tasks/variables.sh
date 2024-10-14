@@ -33,6 +33,7 @@ usage() {
   echo "  --days <number>  Process the next <number> of days"
   echo "  --debug          Enable debug mode"
   echo "  --killswitch     Exit immediately in the defined position for debugging"
+  echo "  --force          Force the script to run even if the schedule has already been made for the day"
   exit 1
 }
 
@@ -47,6 +48,14 @@ if [ "$1" = "--debug" ]; then
   shift
 else
   DEBUG=false
+fi
+
+# Set force
+if [ "$1" = "--force" ]; then
+  FORCE=true
+  shift
+else
+  FORCE=false
 fi
 
 # Add --killswitch flag

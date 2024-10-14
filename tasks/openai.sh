@@ -7,6 +7,12 @@ get_priorities() {
 
   for i in $(seq 0 $((days_to_process-1))); do
 
+    # Exit if file can be found that matches this day
+    if [ -f "$HOME/Documents/Brain dump/Päivän suunnittelu/$(date -d "$start_day + $i days" "+%Y-%m-%d")"* ] && [ "$FORCE" = false ]; then
+      echo -e "${BOLD}${RED}Error: The schedule has already been made for this day. Exiting.${RESET}"
+      exit 1
+    fi
+
     # Check if macOS is used
     if [[ "$(uname)" == "Darwin" ]]; then
       current_day=$(gdate -d "$start_day + $i days" "+%Y-%m-%d")

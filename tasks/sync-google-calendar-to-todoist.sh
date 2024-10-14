@@ -168,11 +168,11 @@ sync_google_calendar_to_todoist() {
 
         event_title="Google-kalenterin tapahtuma: $(echo "$event" | jq -r '.summary')"
 
-        # If macOS, cut +03:00 from the end of the timestamp
+        # Cut +03:00 from the end of the timestamp
         if [[ "$(uname)" == "Darwin" ]]; then
           event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date' | cut -c1-19)
         else
-          event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
+          event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date') | cut -c1-19)
         fi
 
         # Skip full-day events that only have date without time
@@ -274,11 +274,11 @@ sync_google_calendar_to_todoist() {
 
           event_title="Google-kalenterin tapahtuma: $(echo "$event" | jq -r '.summary')"
 
-          # If macOS, cut +03:00 from the end of the timestamp
+          # Cut +03:00 from the end of the timestamp
           if [[ "$(uname)" == "Darwin" ]]; then
             event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date' | cut -c1-19)
           else
-            event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
+            event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date') | cut -c1-19)
           fi
 
           # Skip full-day events that only have date without time

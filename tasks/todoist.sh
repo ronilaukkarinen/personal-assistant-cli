@@ -21,6 +21,13 @@ fetch_tasks() {
 
   # Loop through the days to process
   for i in $(seq 0 $((days_to_process - 1))); do
+
+    # Exit if file can be found that matches this day and if --force is not set
+    if [ -f "$HOME/Documents/Brain dump/Päivän suunnittelu/$(date -d "$start_day + $i days" "+%Y-%m-%d")"* ] && [ "$FORCE" = false ]; then
+      echo -e "${BOLD}${RED}Error: The tasks have already been fetched for this day. Exiting.${RESET}"
+      exit 1
+    fi
+
     # Calculate current day
     if [[ "$(uname)" == "Darwin" ]]; then
       current_day=$(gdate -d "$start_day + $i days" "+%Y-%m-%d")

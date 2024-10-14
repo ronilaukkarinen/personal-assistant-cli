@@ -11,7 +11,7 @@ if [ "$KILLSWITH" = true ]; then
   return
 fi
 
-TIME_LIMIT_MINUTES=5
+TIME_LIMIT_MINUTES=1
 TIME_LIMIT_SECONDS=$((TIME_LIMIT_MINUTES * 60))
 
 # Tarkista, onko viimeisin ajo tehty liian äskettäin
