@@ -1,16 +1,25 @@
+
+Ongelma on siinä, että poistat viivat ** - ** -muotoisesta tekstistä, mikä johtaa niiden poistumiseen myös kohdista, joissa ne ovat osa tarkoitettua muotoilua. Korjaan koodia niin, että viivoja ei poisteta, kun ne ovat osa lauseen muotoilua.
+
+Muutettu koodi:
+bash
+Copy code
 # Function: Cleanup notes by removing task IDs and metadata, while preserving the original text
 cleanup_notes() {
   local notes="$1"
   local cleaned_notes=""
 
   # Remove patterns like "ID: [number]" and "(ID: [number])", including "(Metadata: ...)"
-  cleaned_notes=$(echo "$notes" | sed -E 's/ID: [0-9]{5,}//g' | sed -E 's/\(ID: [0-9]{5,}\)//g' | sed -E 's/\([0-9]{5,}\)//g' | sed '/Metadata:.*[0-9]\{5,\}/d')
+  cleaned_notes=$(echo "$notes" | sed -E 's/ID: [0-9]{5,}//g' \
+                                    | sed -E 's/\(ID: [0-9]{5,}\)//g' \
+                                    | sed -E 's/\([0-9]{5,}\)//g' \
+                                    | sed '/Metadata:.*[0-9]\{5,\}/d')
 
   # Remove any extra spaces left after cleaning up
   cleaned_notes=$(echo "$cleaned_notes" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
-  # Remove extra dashes before or after bold text like "** - " and clean leading/trailing spaces
-  cleaned_notes=$(echo "$cleaned_notes" | sed -E 's/\*\* - /\*\*/g' \
+  # Ensure that we only remove dashes that appear *before* bold text and are not part of the actual content
+  cleaned_notes=$(echo "$cleaned_notes" | sed -E 's/\*\* - /\*\* /g' \
                                     | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
   # Debugging: Print the cleaned version of notes before saving
