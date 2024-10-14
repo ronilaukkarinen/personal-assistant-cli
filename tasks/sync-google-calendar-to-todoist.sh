@@ -33,8 +33,8 @@ task_exists_in_todoist() {
   local project_id="$1"
   local event_title="$2"
 
-  # Fetch tasks from Todoist for the specific project
-  existing_tasks=$(curl -s -X GET "https://api.todoist.com/rest/v2/tasks?project_id=${project_id}" \
+  # Fetch tasks from Todoist for the specific project, including completed tasks
+  existing_tasks=$(curl -s -X GET "https://api.todoist.com/rest/v2/tasks?project_id=${project_id}&filter=all" \
     -H "Authorization: Bearer ${TODOIST_API_KEY}")
 
   # Check if any task matches the event title
