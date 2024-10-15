@@ -92,7 +92,7 @@ get_priorities() {
 
   # Create the JSON payload - no debug info is included in the payload
   json_payload=$(jq -n --arg combined_message "$combined_message" '{
-      "model": "gpt-4",
+      "model": "gpt-4o-mini",
       "messages": [
           {"role": "system", "content": "Sinä olet tehtävien priorisoija."},
           {"role": "user", "content": $combined_message}
