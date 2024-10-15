@@ -1,3 +1,8 @@
+# 1.1.2: 2024-10-15
+
+* Remove labeling tasks for now when postponed
+* Fixes to logic
+
 # 1.1.1: 2024-10-15
 
 * Change to gpt-4o-mini model
