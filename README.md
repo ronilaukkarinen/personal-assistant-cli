@@ -5,6 +5,16 @@
 
 This is a Bash-based tool that prioritizes your daily tasks using OpenAI's GPT-4 model. It integrates tasks from Todoist and events from Google Calendar to create a comprehensive view of your day, allowing you to make informed decisions about what to prioritize.
 
+## Usage
+
+```
+Usage: app.sh [--days <number>] [--debug]
+  --days <number>  Process the next <number> of days
+  --debug          Enable debug mode
+  --killswitch     Exit immediately in the defined position for debugging
+  --force          Force the script to run even if the schedule has already been made for the day
+```
+
 ## Features
 
 - Support for macOS and Linux.
