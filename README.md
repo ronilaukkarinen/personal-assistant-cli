@@ -3,7 +3,9 @@
 > [!NOTE] 
 > **Please note!** This project uses hardcoded Finnish language strings and is 100% meant for my personal usage. The prompt is in Finnish, the tasks are in Finnish, and the output is in Finnish. If you want to use this, you need to modify the script to your own language and needs.
 
-This is a Bash-based tool that prioritizes your daily tasks using OpenAI's GPT-4 model. It integrates tasks from Todoist and events from Google Calendar to create a comprehensive view of your day, allowing you to make informed decisions about what to prioritize.
+This is a Bash-based tool that prioritizes your daily tasks using OpenAI's GPT-4o-mini model. It integrates tasks from Todoist and events from Google Calendar to create a comprehensive view of your day, allowing you to make informed decisions about what to prioritize.
+
+This tool is perfect for those individuals like me who have 5+ events per day with 20+ tasks per day. It helps you focus on the most important tasks and meetings, ensuring you make the most of your time.
 
 ## Usage
 
@@ -18,15 +20,27 @@ Usage: app.sh [--days <number>] [--debug]
 ## Features
 
 - Support for macOS and Linux.
-- **Fetches Todoist tasks** for the current day.
-- **Integrates Google Calendar events** for the day.
-- Uses **OpenAI GPT-4** to prioritize tasks and meetings.
-- Outputs a **formatted and prioritized list** of tasks.
-- Supports a `--debug` flag to show raw OpenAI responses for troubleshooting.
+- Saves a note of the prioritized tasks and reasoning behind them.
+- **Sorts through Todoist tasks** for the day.
+- **Integrates Google Calendar events** for the day, syncs and times them back to Todoist as actual Todoist tasks.
+- Uses **OpenAI GPT-4o-mini** to prioritize tasks and meetings.
+- Outputs a **formatted and prioritized list** of tasks in markdown format.
+- **Automatically postpones tasks** based on AI recommendations.
+- **Schedules task times and durations** based on AI recommendations.
+- **Supports multiple days** with the `--days` option, you can pre-schedule the whole week.
+- **Gets energy levels** from Oura.
 
-## Requirements
+## Software and hardware requirements
 
 - Bash shell
+- macOS or Linux
+- Paid ChatGPT API key
+- Todoist API key
+- Google Cloud OAuth 2.0 credentials
+- Oura ring and API key
+
+## Package requirements
+
 - `curl`
 - `jq`
 - `gcalcli` (for Google Calendar integration)
