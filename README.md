@@ -1,9 +1,11 @@
-# Personal Assistant CLI Tool
+# 🤖 Personal Assistant CLI Tool
+
+## Prioritize tasks for Todoist, save a note of the briefing to Obsidian, sync Google Calendar events to Todoist as tasks 🦾
 
 > [!NOTE] 
 > **Please note!** This project uses hardcoded Finnish language strings and is 100% meant for my personal usage. The prompt is in Finnish, the tasks are in Finnish, and the output is in Finnish. If you want to use this, you need to modify the script to your own language and needs.
 
-This is a Bash-based tool that prioritizes your daily tasks using OpenAI's GPT-4o-mini model. It integrates tasks from Todoist and events from Google Calendar to create a comprehensive view of your day, allowing you to make informed decisions about what to prioritize.
+This is a Bash-based tool that prioritizes your daily tasks using [OpenAI's GPT-4o-mini model](https://openai.com/index/gpt-4o-mini-advancing-cost-efficient-intelligence/). It integrates tasks from Todoist and events from Google Calendar to create a comprehensive view of your day, allowing you to make informed decisions about what to prioritize.
 
 This tool is perfect for those individuals like me who have 5+ events per day with 20+ tasks per day. It helps you focus on the most important tasks and meetings, ensuring you make the most of your time.
 
@@ -28,7 +30,7 @@ It is recommended to run this script as a cronjob. Here is an example cronjob th
 ## Features
 
 - Support for macOS and Linux.
-- Saves a note of the prioritized tasks and reasoning behind them.
+- Saves a note of the prioritized tasks and reasoning behind them to Obsidian Vault. Please see: [Setting up a headless Obsidian instance for syncing](https://rolle.design/setting-up-a-headless-obsidian-instance-for-syncing).
 - **Sorts through Todoist tasks** for the day.
 - **Integrates Google Calendar events** for the day, syncs and times them back to Todoist as actual Todoist tasks.
 - Uses **OpenAI GPT-4o-mini** to prioritize tasks and meetings.
@@ -49,6 +51,8 @@ It is recommended to run this script as a cronjob. Here is an example cronjob th
 
 ## Package requirements
 
+These packages are auto-installed by the script.
+
 - `curl`
 - `jq`
 - `gcalcli` (for Google Calendar integration)
@@ -61,32 +65,19 @@ It is recommended to run this script as a cronjob. Here is an example cronjob th
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/task-prioritization-tool.git
-cd task-prioritization-tool
+git clone https://github.com/ronilaukkarinen/personal-assistant-cli.git
+cd personal-assistant-cli
 ```
 
 ### Step 2: Create a `.env` File
 
-Create a `.env` file in the root directory of the project with the following variables:
+Copy .env.example to .env:
 
 ```bash
-TODOIST_API_KEY="your_todoist_api_key"
-OPENAI_API_KEY="your_openai_api_key"
-GOOGLE_CLIENT_ID="your_google_client_id"
-GOOGLE_CLIENT_SECRET="your_google_client_secret"
-GOOGLE_API_TOKEN="your_google_api_token"
-WORK_PROMPT_BGINFO="your_background_info_here"
-LEISURE_PROMPT_BGINFO="your_background_info_here"
-WORK_PROMPT="your_instructions_on_which_format_to_write_notes"
-LEISURE_PROMPT="your_instructions_on_which_format_to_write_notes"
-WORK_CALENDAR_ID="your_work_calendar_id"
-FAMILY_CALENDAR_ID="your_family_calendar_id"
-TRAINING_CALENDAR_ID="your_training_calendar_id"
+cp .env.example .env
 ```
 
-The prompt need to be super accurate. Otherwise this won't work properly.
-
-**Prompt Example:** "I am a business-oriented technology leader, entrepreneur and founder of a 50-person company. Our company is a [YOUR COMPANY AREA OF EXPERTISER] and our main products are [YOUR PRODUCTS HERE]. We do [YOUR SERVICES HERE] and so on. I'm super busy and my to-do list is often full. In addition to me, our company has [YOUR PERSONNEL HERE]. A job for you: What are the most important tasks I should do today, top 5? Also suggest tasks to postpone to a later date. Format your list in markdown format, remembering to have clear spaces after the headings and estimate a time for each task. My working hours are about 8h per day, but I can stretch. Take into account the day's meetings (1h per event on average) and the scope of the task (if sub-tasks, the task will be more extensive). Note, don't make up your own or more, but respect the original list. Please provide a complete list with original tasks, only sorted and justified. Do not omit any task from the compilation. Here is the actual list of today's tasks and meetings on which to base your conclusion:"
+The prompt need to be super accurate. Otherwise this won't work properly. You can add your own background info to bginfo prompts, it should be about who you are, what you do, what you like, what you don't like, what you want to achieve, etc. Work-related prompts should contain the top priorities of your company and your own work schedule. The more accurate the prompts are, the better the results will be.
 
 > **Note**: For help generating your Todoist API key, visit [Todoist Developer Portal](https://developer.todoist.com/).
 >
@@ -145,22 +136,34 @@ You will need this Calendar ID when making API calls to Google Calendar.
 
 Add these to your .env.
 
-### Step 4: Authenticate Google Calendar (`gcalcli`)
+### Step 3: Authenticate Google Calendar (`gcalcli`)
 
 Run the following command to authenticate Google Calendar using `gcalcli`:
 
 ```bash
-gcalcli list
+gcalcli --client_id $GOOGLE_CLIENT_ID --client_secret $GOOGLE_CLIENT_SECRET init
 ```
 
 This will open a browser window asking for your Google account credentials and permissions to access your calendar. Once authenticated, `gcalcli` will store your credentials locally.
+
+**Please note**: For me this needed lxterminal and surf on an headless Linux desktop environment to get working on a VPS server. Please see: [Setting up a headless Obsidian instance for syncing](https://rolle.design/setting-up-a-headless-obsidian-instance-for-syncing).
+
+### Step 4: Set up hardcoded prompts in openai.sh
+
+You need to set up your own hardcoded prompts in openai.sh. This is the most important part of the script. The more accurate the prompts are, the better the results will be. The prompt will clarify metadata format of the tasks and events that the AI will use to prioritize your day.
+
+Metadata needs to be in the following format:
+
+```bash
+(Metadata: "duration": 60, "datetime": "YYYY-MM-DDTHH:MM:SS") (12345678901, siirretty seuraavalle päivälle)
+```
 
 ### Step 5: Run the Script
 
 You can run the script using the following command:
 
 ```bash
-./prioritize_tasks.sh
+bash app.sh
 ```
 
 ### Step 6: Debugging (Optional)
@@ -168,43 +171,12 @@ You can run the script using the following command:
 To view detailed raw responses from OpenAI, use the `--debug` flag:
 
 ```bash
-./prioritize_tasks.sh --debug
+bash app.sh --debug
 ```
-
-## Troubleshooting
-
-### Issue: `gcalcli` Authentication Fails
-
-If `gcalcli` fails to authenticate, try re-running the authentication step:
-
-```bash
-gcalcli list
-```
-
-Alternatively, you can delete the local `gcalcli` credentials and try again:
-
-```bash
-rm -rf ~/.gcalcli_oauth
-gcalcli list
-```
-
-### Issue: `OPENAI_API_KEY` Not Found
-
-Check that your `.env` file contains the correct OpenAI API key:
-
-```bash
-cat .env
-```
-
-Ensure the line for `OPENAI_API_KEY` is correctly formatted and doesn't have extra spaces or newlines.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-If you have ideas for improvements or want to fix a bug, feel free to submit a pull request or open an issue!
 
 ## Author
 
