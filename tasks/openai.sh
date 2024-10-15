@@ -61,15 +61,16 @@ get_priorities() {
     # Note instructions prompt
     note_instructions='Ohjeistus muistiipanolle, johon kirjoitat priorisoinnit (noudata tarkkaan!):\n
       - Muotoile listat markdown-muodossa. Muista rivinvaihto otsikon jälkeen.\n
-      - Ensimmäinen lista, h2-otsikko: "Tärkeimmät tehtävät tänään (Top X)", arvioi itse määrä. Ole hyvä ja arvioi, miksi tehtävä on tärkeä, milloin minun tulisi suorittaa kukin tehtävä ja kuinka kauan ne kestävät, kerro selkokielisessä muodossa eli erottele tunnit ja minuutit (poislukien metadata). Tehtävän nimessä ei tarvitse olla ID:tä, mutta metadata on oltava viimeisenä tehtävän tietojen jälkeen omalla rivillään, kaikki samalla rivillä.\n
-      - Toinen lista, h2-otsikko: "Tehtävät, jotka voidaan lykätä myöhempään". Laita tähän listaan ne tehtävät, jotka eivät mahdu realistisesti päivääni, älä jätä yhtään tehtävää listaamatta.\n
-      - Huom, tärkeä: Jokaisen tehtävän perään Metadata tässä muodossa, omalle rivilleen, huom. "siirretty seuraavalle päivälle" VAIN jos kyseessä on lykättävä tehtävä, ei muutoin. Nämä ovat ehdottoman tärkeitä tietoja, jotta muu koodini osaa parseroida listaa. Esimerkki metadatatiedosta, jollaisessa muodossa metadata on sisällytettävä tehtävään listassa: (Metadata: "duration": 60, "datetime": "YYYY-MM-DDTHH:MM:SS.000000Z") (12345678901, siirretty seuraavalle päivälle).'
+      - Ensimmäinen lista, h2-otsikko: "Tärkeimmät tehtävät tänään (Top X)", arvioi itse määrä. Ole hyvä ja arvioi, miksi tehtävä on tärkeä, milloin minun tulisi suorittaa kukin tehtävä ja kuinka kauan ne kestävät, kerro selkokielisessä muodossa eli erottele tunnit ja minuutit (poislukien metadata). Tehtävän nimi listan ensimmäiselle riville, perustelu toiselle riville ja metadata kolmannelle riville. Perustele huolellisesti. Tehtävän nimessä ei tarvitse olla ID:tä, mutta metadata on oltava viimeisenä tehtävän tietojen jälkeen omalla rivillään, kaikki samalla rivillä.\n
+      - Toinen lista, h2-otsikko: "Tehtävät, jotka voidaan lykätä myöhempään". Laita tähän listaan ne tehtävät, jotka eivät mahdu realistisesti päivääni, älä jätä yhtään tehtävää listaamatta. Tehtävän nimi listan ensimmäiselle riville, perustelu toiselle riville ja metadata kolmannelle riville. Perustele huolellisesti. \n
+      - Huom, tärkeä: Jokaisen tehtävän perään Metadata tässä muodossa, omalle rivilleen, huom. "siirretty seuraavalle päivälle" VAIN jos kyseessä on lykättävä tehtävä, ei muutoin. Nämä ovat ehdottoman tärkeitä tietoja, jotta muu koodini osaa parseroida listaa. Esimerkki metadatatiedosta, jollaisessa muodossa metadata on sisällytettävä tehtävään listassa: (Metadata: "duration": 60, "datetime": "YYYY-MM-DDTHH:MM:SS.000000Z") (12345678901, siirretty seuraavalle päivälle).\n
+      - Kerro listojen lopuksi omat huomiosi, tehtävien suorittamiseen kuluva kokonaisaika ja mahdolliset muut huomiot. Älä unohda, että olen iltavirkku, heräisin mielelläni klo 9-10, minun on nukuttava vähintään 8 tuntia 15 minuuttia, joten kerro myös, milloin minun tulisi aloittaa iltarauhoittuminen ja milloin minun ei pitäisi tehdä vireyttä lisäävää tekemistä. Älä ajoita tehtäviä välille 00-10.\n'
 
     # If day is today
     if [ "$current_day" == "$compare_day" ]; then
-      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\nTässä ovat tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\n$note_instructions\n\nOle hyvä ja arvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Heräämisaikani on klo 9 ja pyrin nukkumaan vähintään 8 tuntia 15 minuuttia, eli ota tämä myös huomioon, kerro milloin minun ei pitäisi tehdä kehittävää tekemistä ja milloin pitäisi aloittaa iltarauhoittuminen. Älä ajoita tehtäviä välille 00-10."
+      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\nTässä ovat tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\n$note_instructions\n\nOle hyvä ja arvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia."
     else
-      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\n$note_instructions\n\nTässä ovat $date_today päivän tehtävät (mukana ID:t):\n${tasks}\n\n$note_instructions\n\nOle hyvä ja arvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Heräämisaikani on klo 9 ja pyrin nukkumaan vähintään 8 tuntia 15 minuuttia, eli ota tämä myös huomioon, kerro milloin minun ei pitäisi tehdä kehittävää tekemistä ja milloin pitäisi aloittaa iltarauhoittuminen. Älä ajoita tehtäviä välille 00-10."
+      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\n$note_instructions\n\nTässä ovat $date_today päivän tehtävät (mukana ID:t):\n${tasks}\n\n$note_instructions\n\nOle hyvä ja arvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia."
     fi
   done
 
@@ -97,7 +98,7 @@ get_priorities() {
           {"role": "system", "content": "Sinä olet tehtävien priorisoija."},
           {"role": "user", "content": $combined_message}
       ],
-      "max_tokens": 5000,
+      "max_tokens": 10000,
       "temperature": 0.5
   }')
 
