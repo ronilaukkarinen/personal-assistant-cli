@@ -26,12 +26,14 @@ schedule_task() {
 
   echo -e "${YELLOW}Scheduling task with ID: $task_id (Duration: $duration minutes, Datetime: $datetime_utc)...${RESET}"
 
-# Get existing labels and task name for the task
+  # Get existing labels and task name for the task
   task_data=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}")
   task_name=$(echo "$task_data" | jq -r '.content')
-  labels=$(echo "$task_data" | jq -r '.labels | @json')  # Keep labels as JSON array
+
+  # Handle labels correctly as array, filtering out any empty values
+  labels=$(echo "$task_data" | jq -r '.labels | map(select(length > 0))')
 
   # Skip scheduling if the task name contains "Google-kalenterin tapahtuma"
   if [[ "$task_name" == *"Google-kalenterin tapahtuma"* ]]; then
