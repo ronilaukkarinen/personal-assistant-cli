@@ -16,14 +16,11 @@ schedule_task() {
 
   echo -e "${YELLOW}Scheduling task with ID: $task_id (Duration: $duration minutes, Datetime: $datetime)...${RESET}"
 
-  # Get existing labels and task name for the task
+  # Get task data
   task_data=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}")
   task_name=$(echo "$task_data" | jq -r '.content')
-
-  # Handle labels correctly as array, filtering out any empty values
-  labels=$(echo "$task_data" | jq -r '.labels | map(select(length > 0))')
 
   # Skip scheduling if the task name contains "Google-kalenterin tapahtuma"
   if [[ "$task_name" == *"Google-kalenterin tapahtuma"* ]]; then
@@ -36,7 +33,7 @@ schedule_task() {
   due_string=$(echo "$task_data" | jq -r '.due.string')
 
   # Debugging output to check the variables
-  echo "Task name: $task_name, Task ID: $task_id, Duration: $duration, Datetime: $datetime, Recurring: $recurring, Labels: $labels"
+  echo "Task name: $task_name, Task ID: $task_id, Duration: $duration, Datetime: $datetime, Recurring: $recurring"
 
   if [ "$recurring" == "true" ]; then
     if [ "$duration" -gt 0 ]; then
@@ -45,14 +42,14 @@ schedule_task() {
         --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
         --header "Content-Type: application/json" \
         --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-        --data "{\"due_datetime\": \"$datetime\", \"due_string\": \"$due_string\", \"duration\": \"$duration\", \"duration_unit\": \"minute\", \"labels\": $labels}")
+        --data "{\"due_datetime\": \"$datetime\", \"due_string\": \"$due_string\", \"duration\": \"$duration\", \"duration_unit\": \"minute\"}")
     else
       # Update task's details and keep recurrence without duration
       update_response=$(curl -s --request POST \
         --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
         --header "Content-Type: application/json" \
         --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-        --data "{\"due_datetime\": \"$datetime\", \"due_string\": \"$due_string\", \"labels\": $labels}")
+        --data "{\"due_datetime\": \"$datetime\", \"due_string\": \"$due_string\"}")
     fi
   else
     if [ "$duration" -gt 0 ]; then
@@ -61,14 +58,14 @@ schedule_task() {
         --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
         --header "Content-Type: application/json" \
         --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-        --data "{\"due_datetime\": \"$datetime\", \"duration\": \"$duration\", \"duration_unit\": \"minute\", \"labels\": $labels}")
+        --data "{\"due_datetime\": \"$datetime\", \"duration\": \"$duration\", \"duration_unit\": \"minute\"}")
     else
       # Update the task's details without duration
       update_response=$(curl -s --request POST \
         --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
         --header "Content-Type: application/json" \
         --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-        --data "{\"due_datetime\": \"$datetime\", \"labels\": $labels}")
+        --data "{\"due_datetime\": \"$datetime\"}")
     fi
   fi
 
