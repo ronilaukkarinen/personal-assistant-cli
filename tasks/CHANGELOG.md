@@ -1,6 +1,7 @@
 # 1.1.1: 2024-10-15
 
 * Change to gpt-4o-mini model
+* Add winding down prompt
 
 # 1.1.0: 2024-10-15
 
