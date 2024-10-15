@@ -9,6 +9,10 @@ schedule_task() {
     return
   fi
 
+  # Ensure duration and datetime are valid by using only the first match
+  duration=$(echo "$duration" | head -n 1)  # Ensures only the first duration is used
+  datetime=$(echo "$datetime" | head -n 1)  # Ensures only the first datetime is used
+
   # Get task data
   task_data=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
