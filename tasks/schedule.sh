@@ -3,7 +3,12 @@ schedule_task() {
   local duration="$2"
   local datetime="$3"
   local current_day="$4"
-  local timezone
+
+  # Get the system's timezone
+  timezone=$(date +%z)
+
+  # Convert datetime to UTC (RFC3339 format in UTC)
+  datetime_with_utc=$(date -u -d "$datetime" +"%Y-%m-%dT%H:%M:%S.000000Z")
 
   # Convert local datetime to UTC in RFC3339 format without fractional seconds (YYYY-MM-DDTHH:MM:SSZ)
   if [[ "$(uname)" == "Darwin" ]]; then
