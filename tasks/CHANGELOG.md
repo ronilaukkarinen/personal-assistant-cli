@@ -4,6 +4,7 @@
 * Add winding down prompt
 * Fix logic in postponing tasks
 * Suggest more to do
+* Do not try to add duration if it's zero
 
 # 1.1.0: 2024-10-15
 

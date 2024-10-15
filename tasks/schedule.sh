@@ -35,19 +35,37 @@ schedule_task() {
   echo "Task name: $task_name, Task ID: $task_id, Duration: $duration, Datetime: $datetime_sanitized, Recurring: $recurring, Labels: $labels"
 
   if [ "$recurring" == "true" ]; then
-    # Update task's details and keep recurrence
-    update_response=$(curl -s --request POST \
-      --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
-      --header "Content-Type: application/json" \
-      --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-      --data "{\"due_datetime\": \"$datetime_sanitized\", \"due_string\": \"$due_string\", \"duration\": \"$duration\", \"duration_unit\": \"minute\", \"labels\": $labels}")
+    if [ "$duration" -gt 0 ]; then
+      # Update task's details and keep recurrence with duration
+      update_response=$(curl -s --request POST \
+        --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
+        --header "Content-Type: application/json" \
+        --header "Authorization: Bearer ${TODOIST_API_KEY}" \
+        --data "{\"due_datetime\": \"$datetime_sanitized\", \"due_string\": \"$due_string\", \"duration\": \"$duration\", \"duration_unit\": \"minute\", \"labels\": $labels}")
+    else
+      # Update task's details and keep recurrence without duration
+      update_response=$(curl -s --request POST \
+        --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
+        --header "Content-Type: application/json" \
+        --header "Authorization: Bearer ${TODOIST_API_KEY}" \
+        --data "{\"due_datetime\": \"$datetime_sanitized\", \"due_string\": \"$due_string\", \"labels\": $labels}")
+    fi
   else
-    # Update the task's details
-    update_response=$(curl -s --request POST \
-      --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
-      --header "Content-Type: application/json" \
-      --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-      --data "{\"due_datetime\": \"$datetime_sanitized\", \"duration\": \"$duration\", \"duration_unit\": \"minute\", \"labels\": $labels}")
+    if [ "$duration" -gt 0 ]; then
+      # Update the task's details with duration
+      update_response=$(curl -s --request POST \
+        --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
+        --header "Content-Type: application/json" \
+        --header "Authorization: Bearer ${TODOIST_API_KEY}" \
+        --data "{\"due_datetime\": \"$datetime_sanitized\", \"duration\": \"$duration\", \"duration_unit\": \"minute\", \"labels\": $labels}")
+    else
+      # Update the task's details without duration
+      update_response=$(curl -s --request POST \
+        --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
+        --header "Content-Type: application/json" \
+        --header "Authorization: Bearer ${TODOIST_API_KEY}" \
+        --data "{\"due_datetime\": \"$datetime_sanitized\", \"labels\": $labels}")
+    fi
   fi
 
   # Check if there was an error during the update
