@@ -109,28 +109,23 @@ main() {
     echo -e "${BOLD}${YELLOW}Scheduling tasks based on metadata...${RESET}"
 
     for task_id in $task_ids_to_schedule; do
-      # Finding the entire metadata line for the task ID
       if [[ "$(uname)" == "Darwin" ]]; then
-        # Search for the metadata that contains duration and datetime for this task ID
         metadata_line=$(echo "$priorities" | ggrep -P "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
       else
-        # Search for the metadata that contains duration and datetime for this task ID
         metadata_line=$(echo "$priorities" | grep -P "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
       fi
 
       if [[ -n "$metadata_line" ]]; then
-        # Extract duration and datetime from the metadata line
-        if [[ "$(uname)" == "Darwin" ]]; then
-          task_duration=$(echo "$metadata_line" | ggrep -oP '(?<=duration":\s)[0-9]+')
-          task_datetime=$(echo "$metadata_line" | ggrep -oP '(?<=datetime":\s")[^"]+')
-        else
-          task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration":\s)[0-9]+')
-          task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime":\s")[^"]+')
-        fi
+        task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration":\s)[0-9]+')
+        task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime":\s")[^"]+')
 
-        schedule_task "$task_id" "$task_duration" "$task_datetime"
+        if [[ -n "$task_duration" && -n "$task_datetime" ]]; then
+          schedule_task "$task_id" "$task_duration" "$task_datetime"
+        else
+          echo -e "${RED}Error: Missing duration or datetime for task ID $task_id${RESET}"
+        fi
       else
-        echo -e "${RED}Error: Missing duration or datetime for task ID $task_id${RESET}"
+        echo -e "${RED}Error: No metadata found for task ID $task_id${RESET}"
       fi
     done
   else
