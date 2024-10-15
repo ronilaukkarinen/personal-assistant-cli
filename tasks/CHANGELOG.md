@@ -2,6 +2,7 @@
 
 * Change to gpt-4o-mini model
 * Add winding down prompt
+* Fix logic in postponing tasks
 
 # 1.1.0: 2024-10-15
 

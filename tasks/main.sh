@@ -154,8 +154,8 @@ main() {
   if [[ -n "$task_ids_to_postpone" ]]; then
     echo -e "${BOLD}${YELLOW}Postponing tasks suggested by AI to the next day...${RESET}"
 
-    for task_id in $task_ids_to_postpone; do
-      postpone_task "$task_id" "$current_day"
+    for postpone_task_id in $task_ids_to_postpone; do
+      postpone_task "$postpone_task_id" "$current_day"
     done
   else
     echo -e "${BOLD}${CYAN}AI did not suggest postponing any tasks or task IDs were not found.${RESET}"
