@@ -15,7 +15,7 @@ postpone_task() {
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}")
   task_name=$(echo "$task_data" | jq -r '.content')
-  labels=$(echo "$task_data" | jq -r '.labels | join(", ")')
+  labels=$(echo "$task_data" | jq -r '.labels')
 
   # Get task duration, handle cases where duration is null or missing
   task_duration=$(echo "$task_data" | jq -r '.duration.amount // empty')
@@ -43,28 +43,27 @@ postpone_task() {
 
   # Check if the task already has a 'Lykätty x kertaa' label
   retry_count=1
-  if [[ "$labels" =~ "Lykätty" ]]; then
-    # Extract current retry count
-    retry_count=$(echo "$labels" | grep -oP 'Lykätty \K[0-9]+')
-
-    # Increment the retry count
-    retry_count=$((retry_count + 1))
-
-    # If "Lykätty kerran", set retry count to 2
-    if [[ "$labels" == "Lykätty kerran" ]]; then
-      retry_count=2
+  updated_labels=()
+  for label in $(echo "$labels" | jq -r '.[]'); do
+    if [[ "$label" =~ "Lykätty" ]]; then
+      # Extract current retry count
+      retry_count=$(echo "$label" | grep -oP '\d+')
+      retry_count=$((retry_count + 1))
+    else
+      # Add all other labels to updated_labels array
+      updated_labels+=("\"$label\"")
     fi
-  fi
+  done
 
-  # Set the correct label based on retry count
+  # Set the correct "Lykätty" label based on retry count
   if [ "$retry_count" -eq 1 ]; then
     new_label="Lykätty kerran"
   else
     new_label="Lykätty $retry_count kertaa"
   fi
 
-  # Remove any existing 'Lykätty x kertaa' or 'Lykätty kerran' label from the label list
-  updated_labels=$(echo "$labels" | sed -E 's/Lykätty [0-9]+ kertaa//g' | sed -E 's/Lykätty kerran//g' | xargs)
+  # Add the new "Lykätty" label to the updated_labels array
+  updated_labels+=("\"$new_label\"")
 
   # Handle recurring tasks
   recurring=$(echo "$task_data" | jq -r '.due.is_recurring')
@@ -76,14 +75,14 @@ postpone_task() {
       --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
       --header "Content-Type: application/json" \
       --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-      --data "{\"due_string\": \"$due_string\", \"due_date\": \"$next_day\", \"labels\": [\"$updated_labels\", \"$new_label\"]}")
+      --data "{\"due_string\": \"$due_string\", \"due_date\": \"$next_day\", \"labels\": [$(echo ${updated_labels[@]} | sed 's/ /, /g')]}")
   else
     # Update the task's due date
     update_response=$(curl -s --request POST \
       --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
       --header "Content-Type: application/json" \
       --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-      --data "{\"due_date\": \"$next_day\", \"labels\": [\"$updated_labels\", \"$new_label\"]}")
+      --data "{\"due_date\": \"$next_day\", \"labels\": [$(echo ${updated_labels[@]} | sed 's/ /, /g')]}")
   fi
 
   # Debug
