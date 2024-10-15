@@ -1,5 +1,11 @@
-# Load API keys from `.env` file
-source .env
+# Get absolute path of the script
+script_path=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+# Eliminate possible /tasks from the path
+script_path=${script_path%/tasks}
+
+# Get .env
+source "$script_path/.env"
 
 # .env
 TODOIST_API_KEY=${TODOIST_API_KEY}
