@@ -1,4 +1,4 @@
-# Task Prioritization Tool
+# Personal Assistant CLI Tool
 
 > [!NOTE] 
 > **Please note!** This project uses hardcoded Finnish language strings and is 100% meant for my personal usage. The prompt is in Finnish, the tasks are in Finnish, and the output is in Finnish. If you want to use this, you need to modify the script to your own language and needs.
@@ -15,6 +15,14 @@ Usage: app.sh [--days <number>] [--debug]
   --debug          Enable debug mode
   --killswitch     Exit immediately in the defined position for debugging
   --force          Force the script to run even if the schedule has already been made for the day
+```
+
+## Cronjob
+
+It is recommended to run this script as a cronjob. Here is an example cronjob that runs the script every day at 8:00 AM:
+
+```bash
+0 8 * * * bash /path/to/personal-assistant-cli/app.sh >/dev/null 2>&1
 ```
 
 ## Features
