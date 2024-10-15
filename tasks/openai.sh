@@ -60,6 +60,8 @@ get_priorities() {
 
     # Note instructions prompt
     note_instructions='Ohjeistus muistiipanolle, johon kirjoitat priorisoinnit (noudata tarkkaan!):\n
+      - Älä jätä yhtään tehtävää pois alkuperäisestä listasta!\n
+      - Jos päivään mahtuu, voit ehdottaa lisääkin tekemistä. Mutta vain jos on aikaa näille ja tehtävälistassa on löysää.\n
       - Muotoile listat markdown-muodossa. Muista rivinvaihto otsikon jälkeen.\n
       - Ensimmäinen lista, h2-otsikko: "Tärkeimmät tehtävät tänään (Top X)", arvioi itse määrä. Ole hyvä ja arvioi, miksi tehtävä on tärkeä, milloin minun tulisi suorittaa kukin tehtävä ja kuinka kauan ne kestävät, kerro selkokielisessä muodossa eli erottele tunnit ja minuutit. Tehtävän nimi listan ensimmäiselle riville, perustelu toiselle riville ja metadata kolmannelle riville. Perustele huolellisesti. Tehtävän nimessä ei tarvitse olla ID:tä, mutta metadata ja ID on oltava viimeisenä tehtävän tietojen jälkeen omalla rivillään, kaikki samalla rivillä.\n
       - Toinen lista, h2-otsikko: "Tehtävät, jotka voidaan lykätä myöhempään". Laita tähän listaan ne tehtävät, jotka eivät mahdu realistisesti päivääni, älä jätä yhtään tehtävää listaamatta. Tehtävän nimi listan ensimmäiselle riville, perustelu toiselle riville ja metadata ja ID kolmannelle riville. Perustele huolellisesti.\n
@@ -68,9 +70,9 @@ get_priorities() {
 
     # If day is today
     if [ "$current_day" == "$compare_day" ]; then
-      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\nTässä ovat tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\n$note_instructions\n\nOle hyvä ja arvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Jos päivään mahtuu, voit ehdottaa lisääkin tekemistä. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia."
+      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\nTässä ovat tämänpäiväiset tehtävät (mukana ID:t):\n${tasks}\n\n$note_instructions\n\nOle hyvä ja arvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia."
     else
-      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\n$note_instructions\n\nTässä ovat $date_today päivän tehtävät (mukana ID:t):\n${tasks}\n\n$note_instructions\n\nOle hyvä ja arvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Jos päivään mahtuu, voit ehdottaa lisääkin tekemistä. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia."
+      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\n$note_instructions\n\nTässä ovat $date_today päivän tehtävät (mukana ID:t):\n${tasks}\n\n$note_instructions\n\nOle hyvä ja arvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia."
     fi
   done
 
