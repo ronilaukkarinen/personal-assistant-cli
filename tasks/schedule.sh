@@ -3,16 +3,21 @@ schedule_task() {
   local duration="$2"
   local datetime="$3"
   local current_day="$4"
+  local timezone
 
-  # Remove timezone from the datetime
-  datetime_sanitized=$(echo "$datetime" | sed 's/+.*//')
+  # Get the system's timezone in hours and minutes (e.g., +03:00)
+  timezone=$(date +%z)
+  timezone="${timezone:0:3}:${timezone:3:2}"
 
-  if [[ -z "$duration" || -z "$datetime_sanitized" ]]; then
+  # Add the timezone to the datetime to make it explicit
+  datetime_with_timezone="${datetime}${timezone}"
+
+  if [[ -z "$duration" || -z "$datetime_with_timezone" ]]; then
     echo -e "${RED}Error: Missing duration or datetime for task ID $task_id${RESET}"
     return
   fi
 
-  echo -e "${YELLOW}Scheduling task with ID: $task_id (Duration: $duration minutes, Datetime: $datetime_sanitized)...${RESET}"
+  echo -e "${YELLOW}Scheduling task with ID: $task_id (Duration: $duration minutes, Datetime: $datetime_with_timezone)...${RESET}"
 
   # Get existing labels and task name for the task
   task_data=$(curl -s --request GET \
@@ -32,7 +37,7 @@ schedule_task() {
   due_string=$(echo "$task_data" | jq -r '.due.string')
 
   # Debugging output to check the variables
-  echo "Task name: $task_name, Task ID: $task_id, Duration: $duration, Datetime: $datetime_sanitized, Recurring: $recurring, Labels: $labels"
+  echo "Task name: $task_name, Task ID: $task_id, Duration: $duration, Datetime: $datetime_with_timezone, Recurring: $recurring, Labels: $labels"
 
   if [ "$recurring" == "true" ]; then
     if [ "$duration" -gt 0 ]; then
@@ -41,14 +46,14 @@ schedule_task() {
         --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
         --header "Content-Type: application/json" \
         --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-        --data "{\"due_datetime\": \"$datetime_sanitized\", \"due_string\": \"$due_string\", \"duration\": \"$duration\", \"duration_unit\": \"minute\", \"labels\": $labels}")
+        --data "{\"due_datetime\": \"$datetime_with_timezone\", \"due_string\": \"$due_string\", \"duration\": \"$duration\", \"duration_unit\": \"minute\", \"labels\": $labels}")
     else
       # Update task's details and keep recurrence without duration
       update_response=$(curl -s --request POST \
         --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
         --header "Content-Type: application/json" \
         --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-        --data "{\"due_datetime\": \"$datetime_sanitized\", \"due_string\": \"$due_string\", \"labels\": $labels}")
+        --data "{\"due_datetime\": \"$datetime_with_timezone\", \"due_string\": \"$due_string\", \"labels\": $labels}")
     fi
   else
     if [ "$duration" -gt 0 ]; then
@@ -57,14 +62,14 @@ schedule_task() {
         --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
         --header "Content-Type: application/json" \
         --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-        --data "{\"due_datetime\": \"$datetime_sanitized\", \"duration\": \"$duration\", \"duration_unit\": \"minute\", \"labels\": $labels}")
+        --data "{\"due_datetime\": \"$datetime_with_timezone\", \"duration\": \"$duration\", \"duration_unit\": \"minute\", \"labels\": $labels}")
     else
       # Update the task's details without duration
       update_response=$(curl -s --request POST \
         --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
         --header "Content-Type: application/json" \
         --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-        --data "{\"due_datetime\": \"$datetime_sanitized\", \"labels\": $labels}")
+        --data "{\"due_datetime\": \"$datetime_with_timezone\", \"labels\": $labels}")
     fi
   fi
 
