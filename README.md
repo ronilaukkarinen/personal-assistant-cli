@@ -57,29 +57,7 @@ git clone https://github.com/your-username/task-prioritization-tool.git
 cd task-prioritization-tool
 ```
 
-### Step 2: Install Dependencies
-
-Ensure the following tools are installed:
-
-1. **`jq`**: Used for parsing JSON data.
-
-   ```bash
-   sudo apt-get install jq
-   ```
-
-2. **`gcalcli`**: Used for Google Calendar integration.
-
-   ```bash
-   sudo apt-get install gcalcli
-   ```
-
-3. **`curl`**: For making HTTP requests.
-
-   ```bash
-   sudo apt-get install curl
-   ```
-
-### Step 3: Create a `.env` File
+### Step 2: Create a `.env` File
 
 Create a `.env` file in the root directory of the project with the following variables:
 
@@ -101,10 +79,6 @@ TRAINING_CALENDAR_ID="your_training_calendar_id"
 The prompt need to be super accurate. Otherwise this won't work properly.
 
 **Prompt Example:** "I am a business-oriented technology leader, entrepreneur and founder of a 50-person company. Our company is a [YOUR COMPANY AREA OF EXPERTISER] and our main products are [YOUR PRODUCTS HERE]. We do [YOUR SERVICES HERE] and so on. I'm super busy and my to-do list is often full. In addition to me, our company has [YOUR PERSONNEL HERE]. A job for you: What are the most important tasks I should do today, top 5? Also suggest tasks to postpone to a later date. Format your list in markdown format, remembering to have clear spaces after the headings and estimate a time for each task. My working hours are about 8h per day, but I can stretch. Take into account the day's meetings (1h per event on average) and the scope of the task (if sub-tasks, the task will be more extensive). Note, don't make up your own or more, but respect the original list. Please provide a complete list with original tasks, only sorted and justified. Do not omit any task from the compilation. Here is the actual list of today's tasks and meetings on which to base your conclusion:"
-
-- Replace `your_todoist_api_key` with your Todoist API key.
-- Replace `your_openai_api_key` with your OpenAI API key.
-- Replace `your_google_client_id` and `your_google_client_secret` with your Google Cloud OAuth 2.0 credentials.
 
 > **Note**: For help generating your Todoist API key, visit [Todoist Developer Portal](https://developer.todoist.com/).
 >
@@ -146,7 +120,7 @@ Follow these steps to locate the Calendar ID in Google Calendar:
    - Go to [Google Calendar](https://calendar.google.com/).
 
 2. **Select the Calendar:**
-   - In the left sidebar, you’ll see a list of calendars. Click the three dots (menu) next to the calendar you want the ID for, then select **Settings and sharing**.
+   - In the left sidebar, you'll see a list of calendars. Click the three dots (menu) next to the calendar you want the ID for, then select **Settings and sharing**.
 
 3. **Find the Calendar ID:**
    - In the calendar settings, scroll down to the section labeled **Integrate calendar**.
@@ -155,6 +129,7 @@ Follow these steps to locate the Calendar ID in Google Calendar:
      - For **private calendars** (such as personal calendars), the ID may be your email address: `user@gmail.com`.
 
 ### Example Calendar IDs:
+
 - **Public Calendar**: `example123@group.calendar.google.com`
 - **Private Calendar**: `user@gmail.com`
 
@@ -186,29 +161,6 @@ To view detailed raw responses from OpenAI, use the `--debug` flag:
 
 ```bash
 ./prioritize_tasks.sh --debug
-```
-
-## Example Output
-
-When run successfully, the script outputs a formatted list of prioritized tasks based on Todoist tasks and Google Calendar events:
-
-```
-Haetaan tämänpäiväiset Todoist-tehtävät...
-Tämänpäiväiset tehtävät:
-- Review project roadmap
-- Code review for team
-
-Haetaan tämänpäiväiset Google Calendar -tapahtumat...
-Tämänpäiväiset kalenteritapahtumat:
-- 10:00 - Project Kickoff Meeting
-- 14:00 - Client Discussion
-
-Priorisoidaan tehtävät OpenAI:n avulla...
-Priorisoidut tehtävät ja asiat:
-**1.** Project Kickoff Meeting at 10:00
-**2.** Code review for team
-**3.** Review project roadmap
-**4.** Client Discussion at 14:00
 ```
 
 ## Troubleshooting

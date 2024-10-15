@@ -12,13 +12,11 @@ RESET='\033[0m'
 
 # Function to get readiness score from Oura API
 get_readiness_score() {
-    local yesterday=$(date -d "yesterday" +%Y-%m-%d)
     local today=$(date +%Y-%m-%d)
-    local tomorrow=$(date -d "tomorrow" +%Y-%m-%d)
 
     # Fetch readiness data using Oura API
     response=$(curl -s --request GET \
-      --url "https://api.ouraring.com/v2/usercollection/readiness?start_date=$yesterday&end_date=$today" \
+      --url "https://api.ouraring.com/v2/usercollection/readiness?start_date=$today&end_date=$today" \
       --header "Host: api.ouraring.com" \
       --header "Authorization: Bearer $OURA_ACCESS_TOKEN")
 
