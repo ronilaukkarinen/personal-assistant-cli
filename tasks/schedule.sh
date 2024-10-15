@@ -9,13 +9,13 @@ schedule_task() {
     return
   fi
 
-  echo -e "${YELLOW}Scheduling task with ID: $task_id (Duration: $duration minutes, Datetime: $datetime)...${RESET}"
-
   # Get task data
   task_data=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}")
   task_name=$(echo "$task_data" | jq -r '.content')
+
+  echo -e "${YELLOW}Scheduling task $task_name, with ID: $task_id (Duration: $duration minutes, Datetime: $datetime)...${RESET}"
 
   # Skip scheduling if the task name contains "Google-kalenterin tapahtuma"
   if [[ "$task_name" == *"Google-kalenterin tapahtuma"* ]]; then
