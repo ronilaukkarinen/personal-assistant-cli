@@ -2,6 +2,7 @@
 
 * Remove labeling tasks for now when postponed
 * Fixes to logic
+* Change filename format not to include seconds
 
 # 1.1.1: 2024-10-15
 

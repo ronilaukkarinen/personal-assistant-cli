@@ -54,12 +54,11 @@ main() {
   current_time=$(TZ="$current_timezone" date "+%H:%M")
   remaining_hours=$(calculate_remaining_hours)
 
-  # Filename format: YYYY-MM-DD_HH-MM-SS.md
-  filename=$(date "+%Y-%m-%d_%H-%M-%S")
+  # Filename format: YYYY-MM-DD_HH-MM.md
+  filename=$(date "+%Y-%m-%d_%H-%M")
   date_header=$(date "+%d.%m.%Y")
 
   # Get the current date in the format "Oct 13 2024", in English
-
   # Change to English
   export LC_TIME=en_US.UTF-8
   todoist_tasklist_date_header=$(date "+%b %d %Y")
