@@ -23,9 +23,7 @@ schedule_task() {
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}")
   task_name=$(echo "$task_data" | jq -r '.content')
-
-  # Filter out empty labels and join them
-  labels=$(echo "$task_data" | jq -r '.labels | map(select(length > 0)) | join(", ")')
+  labels=$(echo "$task_data" | jq -r '.labels')
 
   # Skip scheduling if the task name contains "Google-kalenterin tapahtuma"
   if [[ "$task_name" == *"Google-kalenterin tapahtuma"* ]]; then
@@ -46,14 +44,14 @@ schedule_task() {
       --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
       --header "Content-Type: application/json" \
       --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-      --data "{\"due_datetime\": \"$datetime_with_timezone\", \"due_string\": \"$due_string\", \"duration\": \"$duration\", \"duration_unit\": \"minute\", \"labels\": \"$labels\"}")
+      --data "{\"due_datetime\": \"$datetime_with_timezone\", \"due_string\": \"$due_string\", \"duration\": \"$duration\", \"duration_unit\": \"minute\", \"labels\": $labels}")
   else
     # Update the task's details
     update_response=$(curl -s --request POST \
       --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
       --header "Content-Type: application/json" \
       --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-      --data "{\"due_datetime\": \"$datetime_with_timezone\", \"duration\": \"$duration\", \"duration_unit\": \"minute\", \"labels\": \"$labels\"}")
+      --data "{\"due_datetime\": \"$datetime_with_timezone\", \"duration\": \"$duration\", \"duration_unit\": \"minute\", \"labels\": $labels}")
   fi
 
   # Check if there was an error during the update
