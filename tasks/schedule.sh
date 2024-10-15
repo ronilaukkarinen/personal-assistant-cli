@@ -9,11 +9,6 @@ schedule_task() {
     return
   fi
 
-  # Check if local time is UTC, if not, convert to UTC
-  if [[ "$(date +%Z)" != "UTC" ]]; then
-    datetime=$(date -u -d "$datetime" "+%Y-%m-%dT%H:%M:%SZ")
-  fi
-
   echo -e "${YELLOW}Scheduling task with ID: $task_id (Duration: $duration minutes, Datetime: $datetime)...${RESET}"
 
   # Get task data

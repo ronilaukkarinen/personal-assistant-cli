@@ -13,10 +13,10 @@ export TODOIST_API_KEY=${TODOIST_API_KEY}
 
 # Tester function to schedule task directly
 test_schedule_task() {
-  local task_id="8489972326"  # Testing with this ID
-  local duration="60"  # Set duration for 60 minutes
-  local datetime="2024-10-15T21:15:00.000000Z"  # Set test datetime
-  local current_day=$(date +%Y-%m-%d)  # Use today's date
+  local task_id="8489972326" # Testing with this ID
+  local duration="60" # Set duration for 60 minutes
+  local datetime="2024-10-15T16:30:00" # Set test datetime
+  local current_day=$(date +%Y-%m-%d) # Use today's date
 
   # Call the schedule_task function
   schedule_task "$task_id" "$duration" "$datetime" "$current_day"
@@ -53,12 +53,6 @@ schedule_task() {
 
   # Get task duration, handle cases where duration is null or missing
   task_duration=$(echo "$task_data" | jq -r '.duration.amount // empty')
-
-  # Skip tasks that already have a duration
-  if [ -n "$task_duration" ]; then
-    echo -e "${YELLOW}Skipping scheduling task that has a duration set: $task_name (ID: $task_id)${RESET}"
-    return 0
-  fi
 
   # Skip if the task name contains "Google-kalenterin tapahtuma"
   if [[ "$task_name" == *"Google-kalenterin tapahtuma"* ]]; then
