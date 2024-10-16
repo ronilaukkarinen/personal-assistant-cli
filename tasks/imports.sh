@@ -10,9 +10,6 @@ source ${SCRIPTS_LOCATION}/tasks/variables.sh
 # Print header
 source ${SCRIPTS_LOCATION}/tasks/header.sh
 
-# Rate limiter
-source ${SCRIPTS_LOCATION}/tasks/rate-limiter.sh
-
 # Check dependencies
 source ${SCRIPTS_LOCATION}/tasks/dependencies.sh
 

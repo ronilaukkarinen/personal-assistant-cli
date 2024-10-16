@@ -1,3 +1,8 @@
+# 1.1.3: 2024-10-16
+
+* Disable rate-limiter
+* Fix CHANGELOG location
+
 # 1.1.2: 2024-10-15
 
 * Remove labeling tasks for now when postponed

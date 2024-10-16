@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script version
-SCRIPT_VERSION="1.1.2"
+SCRIPT_VERSION="1.1.3"
 
 # Vars needed for this file to function globally
 SCRIPTS_LOCATION="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
