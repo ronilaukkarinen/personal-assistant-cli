@@ -1,33 +1,24 @@
 
+# Usage
+usage() {
+  echo "Usage: $0 [--days <number>] [--debug]"
+  echo "  --days <number>  Process the next <number> of days"
+  echo "  --debug          Enable debug mode"
+  echo "  --killswitch     Exit immediately in the defined position for debugging"
+  echo "  --force          Force the script to run even if the schedule has already been made for the day"
+  echo "  --start-day      Start processing tasks from a specific day (format: YYYY-MM-DD)"
+  echo "  --one-batch      Process all days in one batch, requires --days and --start-day"
+  exit 1
+}
+
 # Main function
 main() {
   local mode="today"  # Default to processing today's tasks
   local days_to_process=1  # Default to 1 day
   local start_day=$(date +%Y-%m-%d)
 
-  # Parse command-line arguments
-  while [[ "$#" -gt 0 ]]; do
-    case "$1" in
-      --days)
-        shift
-        if [[ "$1" =~ ^[0-9]+$ ]]; then
-          days_to_process="$1"
-          mode="days" # Switch mode to process multiple days
-        else
-          echo "Error: --days argument requires a valid number."
-          exit 1
-        fi
-        ;;
-      --debug)
-        DEBUG=true
-        ;;
-      *)
-        echo "Unknown argument: $1"
-        exit 1
-        ;;
-    esac
-    shift
-  done
+  # Parse command line arguments
+  source "${SCRIPTS_LOCATION}/tasks/arguments.sh"
 
   # Process based on mode
   if [ "$mode" = "days" ] && [ "$days_to_process" -gt 0 ]; then

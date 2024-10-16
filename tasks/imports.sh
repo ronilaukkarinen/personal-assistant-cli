@@ -7,6 +7,9 @@ source ${SCRIPTS_LOCATION}/tasks/calculate-remaining-hours.sh
 # Import required variables
 source ${SCRIPTS_LOCATION}/tasks/variables.sh
 
+# Command line arguments
+source ${SCRIPTS_LOCATION}/tasks/arguments.sh
+
 # Print header
 source ${SCRIPTS_LOCATION}/tasks/header.sh
 

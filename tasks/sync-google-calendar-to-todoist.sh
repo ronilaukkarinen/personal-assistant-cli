@@ -1,21 +1,3 @@
-# Parse command-line arguments
-for arg in "$@"; do
-  case $arg in
-    --days)
-      shift
-      days_to_process="$1"
-      shift
-      ;;
-    --debug)
-      DEBUG=true
-      shift
-      ;;
-    *)
-      usage
-      ;;
-  esac
-done
-
 # If we're using macOS and homebrew not found, install it
 if [[ "$(uname)" == "Darwin" && ! -x "$(command -v brew)" ]]; then
   echo -e "${BOLD}${YELLOW}Homebrew not found, installing...${RESET}"
