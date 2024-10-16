@@ -2,6 +2,7 @@
 
 * Disable rate-limiter
 * Fix CHANGELOG location
+* Change filename to YYYY-MM-DD.md
 
 # 1.1.2: 2024-10-15
 

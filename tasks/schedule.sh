@@ -10,8 +10,11 @@ schedule_task() {
   fi
 
   # Ensure duration and datetime are valid by using only the first match
-  duration=$(echo "$duration" | head -n 1)  # Ensures only the first duration is used
-  datetime=$(echo "$datetime" | head -n 1)  # Ensures only the first datetime is used
+  # Ensures only the first duration is used
+  duration=$(echo "$duration" | head -n 1)
+
+  # Ensures only the first datetime is used
+  datetime=$(echo "$datetime" | head -n 1)
 
   # Get task data
   task_data=$(curl -s --request GET \

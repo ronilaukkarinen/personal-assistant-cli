@@ -54,8 +54,8 @@ main() {
   current_time=$(TZ="$current_timezone" date "+%H:%M")
   remaining_hours=$(calculate_remaining_hours)
 
-  # Filename format: YYYY-MM-DD_HH-MM.md
-  filename=$(date "+%Y-%m-%d_%H-%M")
+  # Filename format: YYYY-MM-DD.md
+  filename=$(date "+%Y-%m-%d")
   date_header=$(date "+%d.%m.%Y")
 
   # Get the current date in the format "Oct 13 2024", in English
