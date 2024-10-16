@@ -1,11 +1,16 @@
 # Get absolute path of the script
 script_path=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
-# Eliminate possible /tasks from the path
+# Eliminate possible /tasks from the path if running from the tasks directory
 script_path=${script_path%/tasks}
 
-# Get .env
-source "$script_path/.env"
+# Load the .env file dynamically, regardless of where the script is run from
+if [ -f "${script_path}/.env" ]; then
+  source "${script_path}/.env"
+else
+  echo "Error: .env file not found!"
+  exit 1
+fi
 
 # .env
 TODOIST_API_KEY=${TODOIST_API_KEY}
