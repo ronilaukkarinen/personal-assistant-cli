@@ -13,8 +13,8 @@ while [[ "$#" -gt 0 ]]; do
       ;;
     --one-batch)
       shift
-      ## Check if --days and --start-day are provided
-      if [[ "$1" =~ "--days" ]] && [[ "$1" =~ "--start-day" ]]; then
+      ## Check if $contains --days and --start-day
+
         days_to_process="$1"
         mode="batch"
       else
