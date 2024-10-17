@@ -41,8 +41,7 @@ main() {
   echo -e "${BOLD}${GREEN}Prioritization ready:${RESET}\n$priorities\n"
 
   # Get the current local time with timezone
-  current_timezone=$(get_timezone)
-  current_time=$(TZ="$current_timezone" date "+%H:%M")
+  current_time=$(date "+%H:%M")
   remaining_hours=$(calculate_remaining_hours)
 
   # Filename format: YYYY-MM-DD.md

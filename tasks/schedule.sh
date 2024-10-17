@@ -30,6 +30,12 @@ schedule_task() {
     return 0
   fi
 
+  # Skip scheduling if the task name contains "Rutiinit"
+  if [[ "$task_name" == *"Rutiinit"* ]]; then
+    echo -e "${YELLOW}Skipping scheduling task: $task_name (ID: $task_id)${RESET}"
+    return 0
+  fi
+
   # Handle recurring tasks
   recurring=$(echo "$task_data" | jq -r '.due.is_recurring')
   due_string=$(echo "$task_data" | jq -r '.due.string')

@@ -35,7 +35,8 @@ task_exists_in_todoist() {
     return 0
   fi
 
-  return 1  # Task does not exist
+  # Task does not exist
+  return 1
 }
 
 # Function to refresh the access token
@@ -274,6 +275,12 @@ sync_google_calendar_to_todoist() {
 
           # Check if a task with the same title already exists in Todoist
           if task_exists_in_todoist "$personal_project_id" "$event_title"; then
+            echo -e "${BOLD}${RED}Task \"$event_title\" already exists in Todoist.${RESET}"
+            continue
+          fi
+
+          # Also check if the task exists in the work project
+          if task_exists_in_todoist "$work_project_id" "$event_title"; then
             echo -e "${BOLD}${RED}Task \"$event_title\" already exists in Todoist.${RESET}"
             continue
           fi
