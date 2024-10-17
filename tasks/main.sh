@@ -64,11 +64,6 @@ main() {
   # Change back to Finnish
   export LC_TIME=fi_FI.UTF-8
 
-  # Killswitch for debugging
-  if [ "$KILLSWITH" = true ]; then
-    exit 1
-  fi
-
   # Save output to Obsidian vault with the current time and remaining hours in the header
   echo -e "# $date_header\n\n## Todoist\n\n$todoist_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
 

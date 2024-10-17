@@ -1,6 +1,5 @@
 # Parse command-line arguments
 while [[ "$#" -gt 0 ]]; do
-  echo $1
   case "$1" in
     --start-day)
       shift
@@ -13,9 +12,8 @@ while [[ "$#" -gt 0 ]]; do
       ;;
     --one-batch)
       shift
-      ## Check if $contains --days and --start-day
-
-        days_to_process="$1"
+      # Check if $days_to_process and $start_day are set correctly
+      if [[ -n "$days_to_process" && -n "$start_day" ]]; then
         mode="batch"
       else
         echo "Error: --one-batch argument requires --days and --start-day."
@@ -52,9 +50,6 @@ while [[ "$#" -gt 0 ]]; do
   esac
   shift
 done
-
-echo $mode
-exit 1
 
 # If mode is batch, process only these functions and skip the rest
 if [ "$mode" = "batch" ]; then

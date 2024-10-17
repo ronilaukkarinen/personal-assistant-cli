@@ -88,11 +88,6 @@ get_priorities() {
     echo -e "${BOLD}${CYAN}combined_message:${RESET}\n$combined_message"
   fi
 
-  # Killswitch for debugging
-  if [ "$KILLSWITH" = true ]; then
-    exit 1
-  fi
-
   # Create the JSON payload - no debug info is included in the payload
   json_payload=$(jq -n --arg combined_message "$combined_message" '{
       "model": "gpt-4o-mini",

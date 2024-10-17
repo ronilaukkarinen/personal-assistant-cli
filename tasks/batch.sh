@@ -8,3 +8,5 @@ function batch() {
     exit 1
   fi
 }
+
+batch

@@ -6,11 +6,6 @@ if [ "$DEBUG" = true ]; then
   return
 fi
 
-# Skip this file if the script is run with --killswitch
-if [ "$KILLSWITH" = true ]; then
-  return
-fi
-
 TIME_LIMIT_MINUTES=1
 TIME_LIMIT_SECONDS=$((TIME_LIMIT_MINUTES * 60))
 
