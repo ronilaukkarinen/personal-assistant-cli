@@ -30,9 +30,9 @@ postpone_task() {
   echo "Current task data:"
   echo "Task name: $task_name, Labels: $labels"
 
-  # Skip postponing if task contains "Google-kalenterin tapahtuma"
-  if [[ "$task_name" == *"Google-kalenterin tapahtuma"* ]]; then
-    echo -e "${YELLOW}Skipping postponing task: $task_name (ID: $task_id)${RESET}"
+  # Check if task has a label with name "Google-kalenterin tapahtuma"
+  if echo "$task_data" | jq -r '.labels[]' | grep -q "Google-kalenterin tapahtuma"; then
+    echo -e "${YELLOW}Skipping postponing task, because it has the calendar label: $task_name (ID: $task_id)${RESET}"
     return 0
   fi
 

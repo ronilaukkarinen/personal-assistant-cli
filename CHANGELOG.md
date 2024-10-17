@@ -1,3 +1,9 @@
+# 1.1.4: 2024-10-17
+
+* Batch scheduling feature
+* Add arguments to its own function
+* Improve syncing calendar events, add a label instead of a prefix
+
 # 1.1.3: 2024-10-16
 
 * Disable rate-limiter

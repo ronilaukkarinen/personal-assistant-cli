@@ -7,6 +7,18 @@ DEBUG=false
 KILLSWITCH=false
 FORCE=false
 
+# Usage
+usage() {
+  echo "Usage: $0 [--days <number>] [--debug]"
+  echo "  --days <number>  Process the next <number> of days"
+  echo "  --debug          Enable debug mode"
+  echo "  --killswitch     Exit immediately in the defined position for debugging"
+  echo "  --force          Force the script to run even if the schedule has already been made for the day"
+  echo "  --start-day      Start processing tasks from a specific day (format: YYYY-MM-DD)"
+  echo "  --one-batch      Process all days in one batch, requires --days and --start-day"
+  exit 1
+}
+
 # Parse command-line arguments
 while [[ "$#" -gt 0 ]]; do
   case "$1" in

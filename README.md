@@ -19,6 +19,8 @@ Usage: app.sh [--days <number>] [--debug]
   --debug          Enable debug mode
   --killswitch     Exit immediately in the defined position for debugging
   --force          Force the script to run even if the schedule has already been made for the day
+  --start-day      Start processing tasks from a specific day (format: YYYY-MM-DD)
+  --one-batch      Process all days in one batch, requires --days and --start-day
 ```
 
 ## Cronjob

@@ -23,15 +23,17 @@ task_exists_in_todoist() {
   completed_tasks=$(curl -s -X GET "https://api.todoist.com/sync/v9/completed/get_all?project_id=${project_id}" \
     -H "Authorization: Bearer ${TODOIST_API_KEY}")
 
-  # Check if any active task matches the event title
-  if echo "$active_tasks" | jq -r '.[].content' | grep -qi "$event_title"; then
+  # Check if any active task matches the event title and was created the same day (using UTC date)
+  if echo "$active_tasks" | jq -r --arg event_title "$event_title" --arg current_day "$current_day" \
+    '.[] | select(.content | contains($event_title)) | select(.created_at != null and (.created_at | startswith($current_day)))'; then
     # Active task exists
     return 0
   fi
 
-  # Check if any completed task matches the event title
-  if echo "$completed_tasks" | jq -r '.items[].content' | grep -qi "$event_title"; then
-    # Completed task exists
+  # Check if completed task exists and was created the same day (using UTC date)
+  if echo "$completed_tasks" | jq -r --arg event_title "$event_title" --arg current_day "$current_day" \
+    '.items[] | select(.created_at != null and (.created_at | startswith($current_day))) | select(.content | contains($event_title))'; then
+    # Completed task exists and was created today
     return 0
   fi
 
@@ -171,7 +173,7 @@ sync_google_calendar_to_todoist() {
           fi
         fi
 
-        event_title="Google-kalenterin tapahtuma: $(echo "$event" | jq -r '.summary')"
+        event_title="$(echo "$event" | jq -r '.summary')"
 
         # Cut +03:00 from the end of the timestamp
         event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date' | awk '{print substr($0, 1, 19)}')
@@ -232,7 +234,8 @@ sync_google_calendar_to_todoist() {
           \"due_datetime\": \"$event_start\",
           \"project_id\": \"$work_project_id\",
           \"duration\": $event_duration,
-          \"duration_unit\": \"minute\"
+          \"duration_unit\": \"minute\",
+          \"labels\": [\"Google-kalenterin tapahtuma\"]
         }")
 
         # Debug
@@ -273,7 +276,7 @@ sync_google_calendar_to_todoist() {
             fi
           fi
 
-          event_title="Google-kalenterin tapahtuma: $(echo "$event" | jq -r '.summary')"
+          event_title="$(echo "$event" | jq -r '.summary')"
 
           # Cut +03:00 from the end of the timestamp
           event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date' | awk '{print substr($0, 1, 19)}')
@@ -334,7 +337,8 @@ sync_google_calendar_to_todoist() {
             \"due_datetime\": \"$event_start\",
             \"project_id\": \"$personal_project_id\",
             \"duration\": $event_duration,
-            \"duration_unit\": \"minute\"
+            \"duration_unit\": \"minute\",
+            \"labels\": [\"Google-kalenterin tapahtuma\"]
           }")
 
           # Debug
