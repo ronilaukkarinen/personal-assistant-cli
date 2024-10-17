@@ -1,6 +1,27 @@
+# Defaults
+DEBUG=false
+KILLSWITCH=false
+FORCE=false
+
+DEBUG=false
+KILLSWITCH=false
+FORCE=false
+
 # Parse command-line arguments
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
+    --debug)
+      DEBUG=true
+      ;;
+    --killswitch)
+      KILLSWITCH=true
+      ;;
+    --force)
+      FORCE=true
+      ;;
+    --help)
+      usage
+      ;;
     --start-day)
       shift
       if [[ "$1" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
@@ -12,7 +33,6 @@ while [[ "$#" -gt 0 ]]; do
       ;;
     --one-batch)
       shift
-      # Check if $days_to_process and $start_day are set correctly
       if [[ -n "$days_to_process" && -n "$start_day" ]]; then
         mode="batch"
       else
@@ -30,18 +50,6 @@ while [[ "$#" -gt 0 ]]; do
         exit 1
       fi
       ;;
-    --debug)
-      DEBUG=true
-      ;;
-    --killswitch)
-      KILLSWITH=true
-      ;;
-    --force)
-      FORCE=true
-      ;;
-    --help)
-      usage
-      ;;
     *)
       echo "Unknown argument: $1"
       usage
@@ -50,6 +58,19 @@ while [[ "$#" -gt 0 ]]; do
   esac
   shift
 done
+
+# Debug modes set
+if [ "$DEBUG" = true ]; then
+  echo -e "${BOLD}${CYAN}Debug: $DEBUG.${RESET}"
+  echo -e "${BOLD}${CYAN}Killswitch: $KILLSWITCH${RESET}"
+  echo -e "${BOLD}${CYAN}Force: $FORCE${RESET}"
+  echo -e "${BOLD}${CYAN}Mode: $mode${RESET}"
+fi
+
+if [ "$KILLSWITCH" = true ]; then
+  echo -e "${BOLD}${RED}Killswitch enabled, exiting immediately...${RESET}"
+  exit 1
+fi
 
 # If mode is batch, process only these functions and skip the rest
 if [ "$mode" = "batch" ]; then

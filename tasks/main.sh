@@ -117,7 +117,7 @@ main() {
   fi
 
   echo -e "${BOLD}${YELLOW}Postponing tasks to the next day...${RESET}"
-  # macOS and Linux compatible version of grep
+  # macOS and Linux compatible version
   if [[ "$(uname)" == "Darwin" ]]; then
     task_ids_to_postpone=$(echo "$priorities" | ggrep -oP '\b\d{5,}\b(?=.*siirretty seuraavalle päivälle)')
   else

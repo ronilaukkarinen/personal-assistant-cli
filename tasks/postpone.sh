@@ -10,6 +10,8 @@ postpone_task() {
     next_day=$(date -d "$current_day + 1 day" "+%Y-%m-%d")
   fi
 
+  # Debug, post pone to a specific day
+
   # Get task data
   task_data=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
@@ -24,8 +26,8 @@ postpone_task() {
   # Get task date
   task_date=$(echo "$task_data" | jq -r '.due.date')
 
-  # If task date is not today, skip postponing
-  if [ "$task_date" != "$current_day" ]; then
+  # If task date is not today, skip postponing, but only if mode is not batch
+  if [ "$task_date" != "$current_day" ] && [ "$mode" != "batch" ]; then
     echo -e "${YELLOW}Skipping postponing task that is not due today: $task_name (ID: $task_id)${RESET}"
     return 0
   fi

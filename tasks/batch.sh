@@ -1,12 +1,182 @@
-# Batch process tasks
+# Get dependencies
+source ${SCRIPTS_LOCATION}/tasks/schedule.sh
+source ${SCRIPTS_LOCATION}/tasks/postpone.sh
+
+# Batch process tasks and sync Google Calendar events to Todoist
 function batch() {
   echo -e "${BOLD}${YELLOW}Processing tasks from $start_day for the next $days_to_process days...${RESET}"
 
-  # Killswitch for debugging
-  if [ "$KILLSWITH" = true ]; then
-    echo -e "${BOLD}${RED}Killswitch enabled, exiting immediately...${RESET}"
+  # Calculate end date
+  start_day=$(date -d "$start_day" "+%Y-%m-%d")
+  end_day=$(date -d "$start_day + $days_to_process days" "+%Y-%m-%d")
+
+  # Sync Google Calendar events to Todoist
+  echo -e "${BOLD}${YELLOW}Syncing Google Calendar events to Todoist...${RESET}"
+
+  # Run sync first
+  source ${SCRIPTS_LOCATION}/tasks/sync-google-calendar-to-todoist.sh
+
+  # Fetch tasks from Todoist API
+  tasks=$(curl -s --request GET \
+    --url "https://api.todoist.com/rest/v2/tasks" \
+    --header "Authorization: Bearer ${TODOIST_API_KEY}")
+
+  # Fetch projects from Todoist API
+  projects=$(curl -s --request GET \
+    --url "https://api.todoist.com/rest/v2/projects" \
+    --header "Authorization: Bearer ${TODOIST_API_KEY}")
+
+  # Create a map of project_id -> project_name
+  project_map=$(echo "$projects" | jq -r 'map({(.id | tostring): .name}) | add')
+
+  # Count the number of subtasks for each task in Bash
+  subtask_counts=$(echo "$tasks" | jq -r '[.[] | select(.parent_id != null) | .parent_id] | group_by(.) | map({(.[0]): length}) | add')
+
+  # Filter and format tasks between start_day and end_day
+  days_tasks=$(echo "$tasks" | jq -r --arg start_day "$start_day" --arg end_day "$end_day" --argjson project_map "$project_map" --argjson subtask_counts "$subtask_counts" '
+    .[] | select(.due.date >= $start_day and .due.date <= $end_day) |
+    select(.parent_id == null) |
+    .project_name = ($project_map[.project_id | tostring] // "Muu projekti") |
+    .project_name = (if .project_name == "Todo" then "Työasiat" else .project_name end) |
+    .subtask_count = ($subtask_counts[.id] // 0) |
+    "- ID: \(.id) - \(.content) (\(.project_name))" +
+    (if (.labels | length > 0) then " (Labels: " + (.labels | join(", ")) + ")" else "" end) +
+    " (Alatehtäviä: \(.subtask_count))" +
+    (if (.duration != null and .duration.amount != null) then " (Ennalta määritetty kesto: \(.duration.amount) \(.duration.unit))" else "" end) +
+    (if (.due.datetime != null) then " (Ennalta määritetty ajankohta: \(.due.datetime))" else "" end)
+  ')
+
+  # Debug
+  if [ "$DEBUG" = true ]; then
+    echo -e "${BOLD}${CYAN}Tasks between $start_day and $end_day:\n$days_tasks${RESET}"
+  fi
+
+  # Instruct AI to prioritize tasks
+  # Note instructions prompt
+  note_instructions='Ohjeistus muistiipanolle, johon kirjoitat priorisoinnit (noudata tarkkaan!):\n
+    - Älä jätä yhtään tehtävää pois alkuperäisestä listasta!\n
+    - Jos päiviin mahtuu, voit ehdottaa lisääkin tekemistä. Mutta vain jos on aikaa näille ja tehtävälistassa on löysää.\n
+    - Muotoile listat markdown-muodossa. Muista rivinvaihto otsikon jälkeen.\n
+    - Ensimmäinen lista, h2-otsikko: "Tärkeimmät tehtävät päivien '$start_day' - '$end_day' välillä" (Top X)", arvioi itse määrä. Ole hyvä ja arvioi, miksi tehtävä on tärkeä, milloin minun tulisi suorittaa kukin tehtävä ja kuinka kauan ne kestävät, kerro selkokielisessä muodossa eli erottele tunnit ja minuutit. Tehtävän nimi listan ensimmäiselle riville, perustelu toiselle riville ja metadata kolmannelle riville. Perustele huolellisesti. Tehtävän nimessä ei tarvitse olla ID:tä, mutta metadata ja ID on oltava viimeisenä tehtävän tietojen jälkeen omalla rivillään, kaikki samalla rivillä.\n
+    - Toinen lista, h2-otsikko: "Tehtävät, jotka voidaan lykätä myöhempään". Laita tähän listaan ne tehtävät, jotka eivät mahdu realistisesti näiden päivien aikaikkunaan, älä jätä yhtään tehtävää listaamatta. Tehtävän nimi listan ensimmäiselle riville, perustelu toiselle riville ja metadata ja ID kolmannelle riville. Perustele huolellisesti.\n
+    - Huom, tärkeä: Jokaisen tehtävän perään Metadata tässä muodossa, omalle rivilleen, huom. "siirretty myöhemmälle" VAIN jos kyseessä on lykättävä tehtävä, ei muutoin. Nämä ovat ehdottoman tärkeitä tietoja, jotta muu koodini osaa parseroida listaa. Esimerkki metadatatiedosta, jollaisessa muodossa metadata on sisällytettävä tehtävään listassa, Metadata aina sulkuihin ja ID aina sulkuihin: (Metadata: "duration": 60, "datetime": "YYYY-MM-DDTHH:MM:SS") (12345678901, siirretty myöhemmälle).\n
+    - Kerro listojen lopuksi omat huomiosi. Älä unohda, että olen iltavirkku, heräisin mielelläni klo 9-10, minun on nukuttava vähintään 8 tuntia 15 minuuttia, ajoita tehtäviä sen mukaan. Älä ajoita tehtäviä välille 00-10.\n'
+
+  combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\nTässä ovat päivien '$start_day' - '$end_day' väliset tehtävät (mukana ID:t):\n$days_tasks\n\n$note_instructions\n\nOle hyvä ja arvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve."
+
+  # Create the JSON payload - no debug info is included in the payload
+  json_payload=$(jq -n --arg combined_message "$combined_message" '{
+      "model": "gpt-4o-mini",
+      "messages": [
+          {"role": "system", "content": "Sinä olet tehtävien priorisoija."},
+          {"role": "user", "content": $combined_message}
+      ],
+      "max_tokens": 11000,
+      "temperature": 0.5
+  }')
+
+  # Make API call to OpenAI with the given message structure
+  response=$(curl -s --request POST \
+    --url "https://api.openai.com/v1/chat/completions" \
+    --header "Content-Type: application/json" \
+    --header "Authorization: Bearer ${OPENAI_API_KEY}" \
+    --data "$json_payload")
+
+  # Print the response anyway if there's an error
+  if [[ "$response" == *"error"* ]]; then
+    echo -e "${BOLD}${RED}Error: OpenAI-priorization failed.${RESET}"
+
+    # Message
+    echo -e "${BOLD}${RED}Message:${RESET}\n$response"
     exit 1
+  fi
+
+  # Parse response
+  priorities=$(echo "$response" | jq -r '.choices[0].message.content // "Ei tuloksia"')
+
+  echo -e "${BOLD}${GREEN}Prioritization ready:${RESET}\n$priorities\n"
+
+  # Date header for notes
+  date_header='Päivien '$start_day' - '$end_day' tehtävien priorisointi'
+
+  # Save output to Obsidian vault with the start and end date in the header
+  echo -e "# $date_header\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/${start_day}-${end_day} (useampi päivä).md"
+
+  echo -e "${BOLD}${GREEN}Prioritization is ready and saved to Obsidian.${RESET}"
+
+
+  # Debug: Print the full content of tasks to see what's being parsed
+  if [ "$DEBUG" = true ]; then
+    echo -e "${BOLD}${CYAN}Content of tasks that are being parsed:${RESET}\n$priorities\n"
+  fi
+
+  # If macOS and no ggrep found, install ggrep directly
+  if [[ "$(uname)" == "Darwin" ]] && ! command -v ggrep &> /dev/null; then
+    echo -e "${BOLD}${YELLOW}Installing ggrep for macOS...${RESET}"
+    brew install grep
+  fi
+
+  # macOS and Linux compatible version of grep
+  if [[ "$(uname)" == "Darwin" ]]; then
+    # Extract all numbers with more than 5 digits, which we assume to be task IDs
+    task_ids_to_schedule=$(echo "$priorities" | ggrep -oP '\b[0-9]{6,}\b')
+  else
+    # Extract all numbers with more than 5 digits, which we assume to be task IDs
+    task_ids_to_schedule=$(echo "$priorities" | grep -oP '\b[0-9]{6,}\b')
+  fi
+
+  if [[ -n "$task_ids_to_schedule" ]]; then
+    echo -e "${BOLD}${YELLOW}Scheduling tasks based on metadata...${RESET}"
+
+    for task_id in $task_ids_to_schedule; do
+      if [[ "$(uname)" == "Darwin" ]]; then
+        metadata_line=$(echo "$priorities" | ggrep -P "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
+      else
+        metadata_line=$(echo "$priorities" | grep -P "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
+      fi
+
+      if [[ -n "$metadata_line" ]]; then
+        task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration":\s)[0-9]+')
+        task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime":\s")[^"]+')
+
+        if [[ -n "$task_duration" && -n "$task_datetime" ]]; then
+          schedule_task "$task_id" "$task_duration" "$task_datetime"
+        else
+          echo -e "${RED}Error: Missing duration or datetime for task ID $task_id${RESET}"
+        fi
+      else
+        echo -e "${RED}Error: No metadata found for task ID $task_id${RESET}"
+      fi
+    done
+  else
+    echo -e "${BOLD}${CYAN}AI did not suggest scheduling any tasks or task IDs were not found.${RESET}"
+  fi
+
+  echo -e "${BOLD}${YELLOW}Postponing tasks to the possible day (a day after end day of the batch)...${RESET}"
+
+  # macOS and Linux compatible version
+  if [[ "$(uname)" == "Darwin" ]]; then
+    task_ids_to_postpone=$(echo "$priorities" | ggrep -oP '\b\d{5,}\b(?=.*siirretty myöhemmälle)')
+  else
+    task_ids_to_postpone=$(echo "$priorities" | grep -oP '\b\d{5,}\b(?=.*siirretty myöhemmälle)')
+  fi
+
+  # Debugging to see the extracted task IDs
+  if [ "$DEBUG" = true ]; then
+    echo -e "${BOLD}${CYAN}Postponed task IDs:${RESET} $task_ids_to_postpone"
+  fi
+
+  # Moving those tasks to the next day that AI suggested
+  if [[ -n "$task_ids_to_postpone" ]]; then
+    echo -e "${BOLD}${YELLOW}Postponing tasks suggested by AI to the next possible day...${RESET}"
+
+    for postpone_task_id in $task_ids_to_postpone; do
+      postpone_task "$postpone_task_id" "$end_day"
+    done
+  else
+    echo -e "${BOLD}${CYAN}AI did not suggest postponing any tasks or task IDs were not found.${RESET}"
   fi
 }
 
+# Run the batch function
 batch

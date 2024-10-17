@@ -80,7 +80,18 @@ get_todoist_project_id() {
 # Function: Fetch events from multiple Google Calendars and add them as Todoist tasks
 sync_google_calendar_to_todoist() {
   local days_to_process=1
-  local start_day=$(date -I)
+
+  # If there's --start-day argument, set the start day
+  if [[ -n "$start_day" ]]; then
+    start_day="$start_day"
+  else
+    # Set the start day to today
+    if [[ "$(uname)" == "Darwin" ]]; then
+      start_day=$(gdate -I)
+    else
+      start_day=$(date -I)
+    fi
+  fi
 
   # If there's --days argument, set the number of days to process
   if [[ -n "$1" ]]; then
