@@ -23,16 +23,16 @@ task_exists_in_todoist() {
   completed_tasks=$(curl -s -X GET "https://api.todoist.com/sync/v9/completed/get_all?project_id=${project_id}" \
     -H "Authorization: Bearer ${TODOIST_API_KEY}")
 
-  # Check if any active task matches the event title and was created the same day (using UTC date)
+  # Check if any active task matches the event title exactly and was created the same day (using UTC date)
   if echo "$active_tasks" | jq -r --arg event_title "$event_title" --arg current_day "$current_day" \
-    '.[] | select(.content | contains($event_title)) | select(.created_at != null and (.created_at | startswith($current_day)))'; then
+    '.[] | select(.content == $event_title) | select(.created_at != null and (.created_at | startswith($current_day)))' | grep -qi "$event_title"; then
     # Active task exists
     return 0
   fi
 
   # Check if completed task exists and was created the same day (using UTC date)
   if echo "$completed_tasks" | jq -r --arg event_title "$event_title" --arg current_day "$current_day" \
-    '.items[] | select(.created_at != null and (.created_at | startswith($current_day))) | select(.content | contains($event_title))'; then
+    '.items[] | select(.created_at != null and (.created_at | startswith($current_day))) | select(.content == $event_title)' | grep -qi "$event_title"; then
     # Completed task exists and was created today
     return 0
   fi
