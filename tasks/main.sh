@@ -34,7 +34,6 @@ main() {
 
   # Filename format: YYYY-MM-DD.md
   filename=$(date "+%Y-%m-%d")
-  date_header=$(date "+%d.%m.%Y")
 
   # Get the current date in the format "Oct 13 2024", in English
   # Change to English
@@ -49,11 +48,20 @@ main() {
   - description
   ```'
 
+  # Date of today
+  today=$(date "+%Y-%m-%d")
+
+  # Lowercase month
+  month=$(date "+%B" | tr '[:upper:]' '[:lower:]')
+
+  # Header for the note in Finnish (e. g. Tiistai, 15. lokakuuta 2024)
+  header="$(date "+%A, %-d"). ${month}ta $(date "+%Y")"
+
   # Change back to Finnish
   export LC_TIME=fi_FI.UTF-8
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
-  echo -e "# $date_header\n\n## Todoist\n\n$todoist_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
+  echo -e "# $header\n\n## Todoist\n\n$todoist_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
 
   echo -e "${BOLD}${GREEN}Prioritization is ready and saved to Obsidian.${RESET}"
 
