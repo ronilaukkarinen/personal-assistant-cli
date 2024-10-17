@@ -3,8 +3,11 @@ is_leisure_time() {
   local current_day
   local current_hour
 
-  current_day=$(date +%u)  # Get the current day of the week (1 = Monday, ..., 7 = Sunday)
-  current_hour=$(date +%H)  # Get the current hour (24-hour format)
+  # Get the current day of the week (1 = Monday, ..., 7 = Sunday)
+  current_day=$(date +%u)
+
+  # Get the current hour (24-hour format)
+  current_hour=$(date +%H)
 
   # Determine if it's leisure time:
   # - Weekdays (Monday to Friday) after 18:00
@@ -13,9 +16,11 @@ is_leisure_time() {
      ((current_day == 5 && current_hour >= 18)) || \
      ((current_day == 6)) || \
      ((current_day == 7 && current_hour < 24)); then
-    return 0  # It's leisure time
+    # Zero in bash means true
+    return 0
   else
-    return 1  # It's work time
+    # Non-zero in bash means false
+    return 1
   fi
 }
 
@@ -26,8 +31,10 @@ is_weekend() {
 
   # If it's Saturday or Sunday, return true
   if ((current_day == 6)) || ((current_day == 7)); then
+    # Zero in bash means true
     return 0
   else
+    # Non-zero in bash means false
     return 1
   fi
 }
@@ -37,12 +44,16 @@ is_holiday() {
   local today
   today=$(date +%Y-%m-%d)
 
-  # If gcal shows "loma" or "joulu" or "vapaa" in the calendar event, return true
-  if [[ $(gcalcli --nocolor --calendar "Roni Laukkarinen (Rollen työkalenteri)" agenda "$today" "$today 23:00" 2>&1) == *"loma"* ]] || \
-     [[ $(gcalcli --nocolor --calendar "Roni Laukkarinen (Rollen työkalenteri)" agenda "$today" "$today 23:00" 2>&1) == *"joulu"* ]] || \
-     [[ $(gcalcli --nocolor --calendar "Roni Laukkarinen (Rollen työkalenteri)" agenda "$today" "$today 23:00" 2>&1) == *"vapaa"* ]]; then
+  # Get calendar events for today
+  local events
+  events=$(gcalcli --nocolor --calendar "Roni Laukkarinen (Rollen työkalenteri)" agenda "$today" "$today 23:59" 2>&1)
+
+  # Check if the events contain keywords for holidays
+  if [[ "$events" == *"loma"* || "$events" == *"joulu"* || "$events" == *"vapaa"* ]]; then
+    # Zero in bash means true
     return 0
   else
+    # Non-zero in bash means false
     return 1
   fi
 }
