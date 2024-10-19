@@ -25,15 +25,8 @@ task_exists_in_todoist() {
 
   # Check if any active task matches the event title exactly and was created the same day (using UTC date)
   if echo "$active_tasks" | jq -r --arg event_title "$event_title" --arg current_day "$current_day" \
-    '.[] | select(.content == $event_title) | select(.created_at != null and (.created_at | startswith($current_day)))' | grep -qi "$event_title"; then
+    '.[] | select(.content == $event_title) | select(.created_at != null and (.created_at | startswith($current_day)))'; then
     # Active task exists
-    return 0
-  fi
-
-  # Check if completed task exists and was created the same day (using UTC date)
-  if echo "$completed_tasks" | jq -r --arg event_title "$event_title" --arg current_day "$current_day" \
-    '.items[] | select(.created_at != null and (.created_at | startswith($current_day))) | select(.content == $event_title)' | grep -qi "$event_title"; then
-    # Completed task exists and was created today
     return 0
   fi
 

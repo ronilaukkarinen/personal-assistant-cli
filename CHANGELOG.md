@@ -1,3 +1,9 @@
+# 1.1.5: 2024-10-19
+
+* Fix remaining hours not being calculated correctly
+* Fix completed tasks being ignored when syncinc calendar events
+* Fix Finnish locale for header dates
+
 # 1.1.4: 2024-10-17
 
 * Batch scheduling feature

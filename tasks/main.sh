@@ -30,7 +30,6 @@ main() {
 
   # Get the current local time with timezone
   current_time=$(date "+%H:%M")
-  remaining_hours=$(calculate_remaining_hours)
 
   # Filename format: YYYY-MM-DD.md
   filename=$(date "+%Y-%m-%d")
