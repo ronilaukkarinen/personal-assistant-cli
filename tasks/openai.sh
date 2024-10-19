@@ -14,6 +14,11 @@ get_priorities() {
       file=$(find "$HOME/Documents/Brain dump/Päivän suunnittelu" -name "$(date -d "$start_day + $i days" "+%Y-%m-%d")*.md")
     fi
 
+    # Debug remaining hours
+    if [ "$DEBUG" = true ]; then
+      echo -e "${BOLD}${CYAN}remaining_hours:${RESET} $remaining_hours"
+    fi
+
     if [ -n "$file" ] && [ "$FORCE" = false ]; then
       echo -e "${BOLD}${RED}Error: The schedule has already been made for this day (file: $file).${RESET}"
       exit 1
@@ -27,8 +32,6 @@ get_priorities() {
       current_day=$(date -d "$start_day + $i days" "+%Y-%m-%d")
       current_time=$(date "+%H:%M")
     fi
-
-    remaining_hours=$(calculate_remaining_hours "$current_time")
 
     # Day of the week in Finnish for the current day
     # Check if macOS is used

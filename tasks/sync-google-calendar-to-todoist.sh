@@ -107,6 +107,7 @@ sync_google_calendar_to_todoist() {
   # Automatically fetch Todoist project IDs by name
   local work_project_id=$(get_todoist_project_id "Todo")
   local personal_project_id=$(get_todoist_project_id "Kotiasiat")
+  remaining_hours=$(calculate_remaining_hours "$current_time")
 
   # Debug
   if [ "$DEBUG" = true ]; then
@@ -116,6 +117,7 @@ sync_google_calendar_to_todoist() {
     echo -e "${CYAN}Debug: personal_calendars = ${personal_calendars[*]}${RESET}"
     echo -e "${CYAN}Debug: days_to_process = $days_to_process${RESET}"
     echo -e "${CYAN}Debug: start_day = $start_day${RESET}"
+    echo -e "${CYAN}Debug: remaining_hours = $remaining_hours${RESET}"
   fi
 
   # Loop through each day
