@@ -14,6 +14,9 @@ daily_log() {
   source "$script_path/tasks/check-leisure.sh"
   source "$script_path/tasks/variables.sh"
 
+  # Use Finnish locale for the date
+  export LC_TIME=fi_FI.UTF-8
+
   # Date of today
   today=$(date "+%Y-%m-%d")
 

@@ -48,6 +48,9 @@ main() {
   - description
   ```'
 
+  # Change back to Finnish
+  export LC_TIME=fi_FI.UTF-8
+
   # Date of today
   today=$(date "+%Y-%m-%d")
 
@@ -56,9 +59,6 @@ main() {
 
   # Header for the note in Finnish (e. g. Tiistai, 15. lokakuuta 2024)
   header="$(date "+%A, %-d"). ${month}ta $(date "+%Y")"
-
-  # Change back to Finnish
-  export LC_TIME=fi_FI.UTF-8
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
   echo -e "# $header\n\n## Todoist\n\n$todoist_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
