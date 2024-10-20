@@ -10,10 +10,11 @@ if [[ "$(uname)" == "Darwin" && ! -x "$(command -v gdate)" ]]; then
   brew install coreutils
 fi
 
-# Function: Check if a task with the same title already exists in Todoist, including completed tasks
+# Function: Check if a task with the same title already exists in Todoist, including completed tasks for the same day
 task_exists_in_todoist() {
   local project_id="$1"
   local event_title="$2"
+  local current_day=$(date -I)
 
   # Fetch active tasks from Todoist for the specific project
   active_tasks=$(curl -s -X GET "https://api.todoist.com/rest/v2/tasks?project_id=${project_id}" \
@@ -23,14 +24,34 @@ task_exists_in_todoist() {
   completed_tasks=$(curl -s -X GET "https://api.todoist.com/sync/v9/completed/get_all?project_id=${project_id}" \
     -H "Authorization: Bearer ${TODOIST_API_KEY}")
 
-  # Check if any active task matches the event title exactly and was created the same day (using UTC date)
-  if echo "$active_tasks" | jq -r --arg event_title "$event_title" --arg current_day "$current_day" \
-    '.[] | select(.content == $event_title) | select(.created_at != null and (.created_at | startswith($current_day)))'; then
-    # Active task exists
+  # Debug: Print the full responses for both active and completed tasks
+  if [ "$DEBUG" = true ]; then
+    echo -e "${CYAN}Debug: Full active_tasks response:${RESET}"
+    echo "$active_tasks" | jq .
+
+    echo -e "${CYAN}Debug: Full completed_tasks response:${RESET}"
+    echo "$completed_tasks" | jq .
+  fi
+
+  # Check if any active task matches the event title and is due today
+  active_task_found=$(echo "$active_tasks" | jq -r --arg event_title "$event_title" --arg current_day "$current_day" \
+    '.[] | select(.content == $event_title) | select(.due.date == $current_day)')
+
+  if [[ -n "$active_task_found" ]]; then
+    echo "Active task \"$event_title\" exists in Todoist for today."
     return 0
   fi
 
-  # Task does not exist
+  # Check if any completed task matches the event title and was completed today
+  completed_task_found=$(echo "$completed_tasks" | jq -r --arg event_title "$event_title" --arg current_day "$current_day" \
+    '.items[] | select(.content == $event_title) | select(.completed_at | startswith($current_day))')
+
+  if [[ -n "$completed_task_found" ]]; then
+    echo "Completed task \"$event_title\" exists in Todoist for today."
+    return 0
+  fi
+
+  echo "Task \"$event_title\" does not exist in Todoist for today."
   return 1
 }
 
