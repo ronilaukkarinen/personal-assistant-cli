@@ -106,7 +106,6 @@ function batch() {
 
   echo -e "${BOLD}${GREEN}Prioritization is ready and saved to Obsidian.${RESET}"
 
-
   # Debug: Print the full content of tasks to see what's being parsed
   if [ "$DEBUG" = true ]; then
     echo -e "${BOLD}${CYAN}Content of tasks that are being parsed:${RESET}\n$priorities\n"
@@ -183,6 +182,10 @@ function batch() {
   else
     echo -e "${BOLD}${CYAN}AI did not suggest postponing any tasks or task IDs were not found.${RESET}"
   fi
+
+  # Clean up metadata from notes
+  source ${SCRIPTS_LOCATION}/tasks/cleanup-notes.sh
+  cleanup_notes "$HOME/Documents/Brain dump/Päivän suunnittelu/${start_day}-${end_day} (useampi päivä).md"
 }
 
 # Run the batch function
