@@ -121,7 +121,7 @@ function batch() {
   # macOS and Linux compatible version of grep
   if [[ "$(uname)" == "Darwin" ]]; then
     # Extract all numbers with more than 5 digits, which we assume to be task IDs
-    task_ids_to_schedule=$(echo "$priorities" | ggrep -oP '\b[0-9]{6,}\b')
+    task_ids_to_schedule=$(echo "$priorities" | ggrep -oE '\b[0-9]{6,}\b')
   else
     # Extract all numbers with more than 5 digits, which we assume to be task IDs
     task_ids_to_schedule=$(echo "$priorities" | grep -oP '\b[0-9]{6,}\b')
@@ -132,7 +132,7 @@ function batch() {
 
     for task_id in $task_ids_to_schedule; do
       if [[ "$(uname)" == "Darwin" ]]; then
-        metadata_line=$(echo "$priorities" | ggrep -P "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
+        metadata_line=$(echo "$priorities" | ggrep -E "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
       else
         metadata_line=$(echo "$priorities" | grep -P "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
       fi
