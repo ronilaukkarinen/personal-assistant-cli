@@ -57,7 +57,8 @@ main() {
   month=$(date "+%B" | tr '[:upper:]' '[:lower:]')
 
   # Header for the note in Finnish (e. g. Tiistai, 15. lokakuuta 2024)
-  header="$(date "+%A, %-d"). ${month}ta $(date "+%Y")"
+  weekday=$(date "+%A" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
+  header="$weekday, $(date "+%-d"). ${month}ta $(date "+%Y")"
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
   echo -e "# $header\n\n## Todoist\n\n$todoist_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"

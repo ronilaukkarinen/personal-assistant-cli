@@ -24,7 +24,8 @@ daily_log() {
   month=$(date "+%B" | tr '[:upper:]' '[:lower:]')
 
   # Header for the note in Finnish (e. g. Tiistai, 15. lokakuuta 2024)
-  header="$(date "+%A, %-d"). ${month}ta $(date "+%Y")"
+  weekday=$(date "+%A" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
+  header="$weekday, $(date "+%-d"). ${month}ta $(date "+%Y")"
 
   # Log file path (use your preferred location)
   log_file="$HOME/Documents/Brain dump/Päivittäinen reflektointi/$today.md"
