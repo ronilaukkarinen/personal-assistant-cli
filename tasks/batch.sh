@@ -73,7 +73,7 @@ function batch() {
           {"role": "system", "content": "Sinä olet tehtävien priorisoija."},
           {"role": "user", "content": $combined_message}
       ],
-      "max_tokens": 11000,
+      "max_tokens": 16000,
       "temperature": 0.5
   }')
 
@@ -121,7 +121,7 @@ function batch() {
   # macOS and Linux compatible version of grep
   if [[ "$(uname)" == "Darwin" ]]; then
     # Extract all numbers with more than 5 digits, which we assume to be task IDs
-    task_ids_to_schedule=$(echo "$priorities" | ggrep -oE '\b[0-9]{6,}\b')
+    task_ids_to_schedule=$(echo "$priorities" | ggrep -oP '\b[0-9]{6,}\b')
   else
     # Extract all numbers with more than 5 digits, which we assume to be task IDs
     task_ids_to_schedule=$(echo "$priorities" | grep -oP '\b[0-9]{6,}\b')
@@ -132,14 +132,19 @@ function batch() {
 
     for task_id in $task_ids_to_schedule; do
       if [[ "$(uname)" == "Darwin" ]]; then
-        metadata_line=$(echo "$priorities" | ggrep -E "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
+        metadata_line=$(echo "$priorities" | ggrep -P "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
       else
         metadata_line=$(echo "$priorities" | grep -P "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
       fi
 
       if [[ -n "$metadata_line" ]]; then
-        task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration":\s)[0-9]+')
-        task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime":\s")[^"]+')
+        if [[ "$(uname)" == "Darwin" ]]; then
+          task_duration=$(echo "$metadata_line" | ggrep -oP '(?<=duration":\s)[0-9]+')
+          task_datetime=$(echo "$metadata_line" | ggrep -oP '(?<=datetime":\s")[^"]+')
+        else
+          task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration":\s)[0-9]+')
+          task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime":\s")[^"]+')
+        fi
 
         if [[ -n "$task_duration" && -n "$task_datetime" ]]; then
           schedule_task "$task_id" "$task_duration" "$task_datetime"
