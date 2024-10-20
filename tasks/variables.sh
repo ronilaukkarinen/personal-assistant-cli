@@ -1,3 +1,8 @@
+# Ensure cron stuff
+SHELL=/bin/bash
+export TZ=Europe/Helsinki
+export LANG=fi_FI.UTF-8
+
 # Get absolute path of the script
 script_path=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
