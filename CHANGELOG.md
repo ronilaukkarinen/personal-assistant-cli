@@ -1,3 +1,7 @@
+# 1.1.6: 2024-10-20
+
+* Fix regression: Completed tasks being ignored when syncing calendar events to Todoist
+
 # 1.1.5: 2024-10-19
 
 * Fix remaining hours not being calculated correctly

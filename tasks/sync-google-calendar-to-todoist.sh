@@ -14,7 +14,7 @@ fi
 task_exists_in_todoist() {
   local project_id="$1"
   local event_title="$2"
-  local current_day=$(date -I)
+  local current_day="$3"
 
   # Fetch active tasks from Todoist for the specific project
   active_tasks=$(curl -s -X GET "https://api.todoist.com/rest/v2/tasks?project_id=${project_id}" \
@@ -24,34 +24,21 @@ task_exists_in_todoist() {
   completed_tasks=$(curl -s -X GET "https://api.todoist.com/sync/v9/completed/get_all?project_id=${project_id}" \
     -H "Authorization: Bearer ${TODOIST_API_KEY}")
 
-  # Debug: Print the full responses for both active and completed tasks
-  if [ "$DEBUG" = true ]; then
-    echo -e "${CYAN}Debug: Full active_tasks response:${RESET}"
-    echo "$active_tasks" | jq .
-
-    echo -e "${CYAN}Debug: Full completed_tasks response:${RESET}"
-    echo "$completed_tasks" | jq .
-  fi
-
-  # Check if any active task matches the event title and is due today
-  active_task_found=$(echo "$active_tasks" | jq -r --arg event_title "$event_title" --arg current_day "$current_day" \
-    '.[] | select(.content == $event_title) | select(.due.date == $current_day)')
-
-  if [[ -n "$active_task_found" ]]; then
-    echo "Active task \"$event_title\" exists in Todoist for today."
+  # Check if any active task matches the event title exactly and was created the same day (using UTC date)
+  if echo "$active_tasks" | jq -r --arg event_title "$event_title" --arg current_day "$current_day" \
+    '.[] | select(.content == $event_title) | select(.due.date == $current_day)' | grep -qi "$event_title"; then
+    # Active task exists
     return 0
   fi
 
-  # Check if any completed task matches the event title and was completed today
-  completed_task_found=$(echo "$completed_tasks" | jq -r --arg event_title "$event_title" --arg current_day "$current_day" \
-    '.items[] | select(.content == $event_title) | select(.completed_at | startswith($current_day))')
-
-  if [[ -n "$completed_task_found" ]]; then
-    echo "Completed task \"$event_title\" exists in Todoist for today."
+  # Check if any completed task matches the event title and was completed today (using only the date part)
+  if echo "$completed_tasks" | jq -r --arg event_title "$event_title" --arg current_day "$current_day" \
+    '.items[] | select(.content | startswith($event_title)) | select(.completed_at | split("T")[0] == $current_day)' | grep -qi "$event_title"; then
+    # Completed task exists
     return 0
   fi
 
-  echo "Task \"$event_title\" does not exist in Todoist for today."
+  # Task does not exist
   return 1
 }
 
@@ -207,7 +194,7 @@ sync_google_calendar_to_todoist() {
         fi
 
         # Check if a task with the same title already exists in Todoist
-        if task_exists_in_todoist "$work_project_id" "$event_title"; then
+        if task_exists_in_todoist "$work_project_id" "$event_title" "$current_day"; then
           echo -e "${BOLD}${RED}Task \"$event_title\" already exists in Todoist.${RESET}"
           continue
         fi
@@ -304,13 +291,13 @@ sync_google_calendar_to_todoist() {
           fi
 
           # Check if a task with the same title already exists in Todoist
-          if task_exists_in_todoist "$personal_project_id" "$event_title"; then
+          if task_exists_in_todoist "$personal_project_id" "$event_title" "$current_day"; then
             echo -e "${BOLD}${RED}Task \"$event_title\" already exists in Todoist.${RESET}"
             continue
           fi
 
           # Also check if the task exists in the work project
-          if task_exists_in_todoist "$work_project_id" "$event_title"; then
+          if task_exists_in_todoist "$work_project_id" "$event_title" "$current_day"; then
             echo -e "${BOLD}${RED}Task \"$event_title\" already exists in Todoist.${RESET}"
             continue
           fi
