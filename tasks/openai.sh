@@ -87,7 +87,7 @@ get_priorities() {
           {"role": "system", "content": "Sinä olet tehtävien priorisoija."},
           {"role": "user", "content": $combined_message}
       ],
-      "max_tokens": 11000,
+      "max_tokens": 16000,
       "temperature": 0.5
   }')
 

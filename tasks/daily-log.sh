@@ -75,7 +75,7 @@ daily_log() {
       {"role": "system", "content": "Olet avulias assistentti."},
       {"role": "user", "content": $combined_message}
     ],
-    "max_tokens": 8000,
+    "max_tokens": 16000,
     "temperature": 1
   }')
 
