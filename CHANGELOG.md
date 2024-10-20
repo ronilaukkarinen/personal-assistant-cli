@@ -2,6 +2,7 @@
 
 * Fix regression: Completed tasks being ignored when syncing calendar events to Todoist
 * Capitalize the first letter in the Finnish weekday on note header
+* Add GENERAL_PROMPT to the prompt
 
 # 1.1.5: 2024-10-19
 

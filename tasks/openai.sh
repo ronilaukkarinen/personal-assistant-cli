@@ -59,6 +59,9 @@ get_priorities() {
       - Huom, tärkeä: Jokaisen tehtävän perään Metadata tässä muodossa, omalle rivilleen, huom. "siirretty seuraavalle päivälle" VAIN jos kyseessä on lykättävä tehtävä, ei muutoin. Nämä ovat ehdottoman tärkeitä tietoja, jotta muu koodini osaa parseroida listaa. Esimerkki metadatatiedosta, jollaisessa muodossa metadata on sisällytettävä tehtävään listassa, Metadata aina sulkuihin ja ID aina sulkuihin: (Metadata: "duration": 60, "datetime": "YYYY-MM-DDTHH:MM:SS") (12345678901, siirretty seuraavalle päivälle).\n
       - Kerro listojen lopuksi omat huomiosi, tehtävien suorittamiseen kuluva kokonaisaika selkokielisessä muodossa (esim: 1 tunti, 30 minuuttia) ja mahdolliset muut huomiot. Älä unohda, että olen iltavirkku, heräisin mielelläni klo 9-10, minun on nukuttava vähintään 8 tuntia 15 minuuttia, joten kerro myös, milloin minun tulisi aloittaa iltarauhoittuminen ja milloin minun ei pitäisi tehdä vireyttä lisäävää tekemistä. Älä ajoita tehtäviä välille 00-10.\n'
 
+    # Add general prompt
+    combined_message+="\n${GENERAL_PROMPT}\n\n"
+
     # If day is today
     if [ "$current_day" == "$compare_day" ]; then
       combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\nTässä ovat tämänpäiväiset tapahtumat ja tehtävät (mukana ID:t):\n${tasks}\n\n$note_instructions\n\nOle hyvä ja arvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia."
