@@ -37,14 +37,15 @@ daily_log() {
 
   # Check if the response is valid JSON
   if echo "$completed_tasks" | jq empty 2>/dev/null; then
-    # Extract task names
-    task_names=$(echo "$completed_tasks" | jq -r '.items[] | "\(.content)"')
-
-    # Extract task names without labels and ensure the task is completed today
+    # Extract task names without labels, ensure the task is completed today, and reverse the order
     task_info=$(echo "$completed_tasks" | jq -r --arg today "$today" '
       .items[] | select(.completed_at | startswith($today)) |
       "- [x] \(.content | sub(" @.*"; "") ) (valmis \(.completed_at | split("T")[1] | split(".")[0]))"
-    ')
+    ' | while read -r line; do
+      completed_time=$(echo "$line" | grep -oP '(?<=valmis )[0-9:]+')
+      local_time=$(date -d "$completed_time UTC" +'%H:%M')
+      echo "$line" | sed "s/$completed_time/$local_time/"
+    done | tac)
 
     # Add header to the log file
     echo -e "# $header\n" > "$log_file"
@@ -90,7 +91,6 @@ daily_log() {
   ai_notes=$(echo "$response" | jq -r '.choices[0].message.content')
 
   # Append AI-generated notes to the log file
-  #echo -e "\n## Päivän yhteenveto\n
   echo -e "\n$ai_notes" >> "$log_file"
 
   echo "Completed tasks and notes have been logged to $log_file"
