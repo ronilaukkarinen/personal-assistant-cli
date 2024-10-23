@@ -2,6 +2,7 @@
 
 * Fix remaining time not saving to the markdown file
 * Numerous other fixes
+* Ensure no tasks are scheduled prior to 10:00 or during any meetings
 
 # 1.1.6: 2024-10-20
 
