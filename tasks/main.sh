@@ -60,6 +60,9 @@ main() {
   weekday=$(date "+%A" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
   header="$weekday, $(date "+%-d"). ${month}ta $(date "+%Y")"
 
+  # Add remaining hours
+  remaining_hours=$(calculate_remaining_hours "$current_time")
+
   # Save output to Obsidian vault with the current time and remaining hours in the header
   echo -e "# $header\n\n## Todoist\n\n$todoist_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
 

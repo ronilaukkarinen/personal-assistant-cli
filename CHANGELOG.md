@@ -1,3 +1,8 @@
+# 1.1.7: 2024-10-23
+
+* Fix remaining time not saving to the markdown file
+* Numerous other fixes
+
 # 1.1.6: 2024-10-20
 
 * Fix regression: Completed tasks being ignored when syncing calendar events to Todoist
