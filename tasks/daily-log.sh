@@ -47,9 +47,20 @@ daily_log() {
       echo "$line" | sed "s/$completed_time/$local_time/"
     done | tac)
 
-    # Add header to the log file
+    # Count the number of completed tasks
+    task_count=$(echo "$completed_tasks" | jq --arg today "$today" '[.items[] | select(.completed_at | startswith($today))] | length')
+
+    # If $task count is 1, print "tehtävä", otherwise print "tehtävää"
+    if [ "$task_count" -eq 1 ]; then
+      task_label="tehtävä"
+    else
+      task_label="tehtävää"
+    fi
+
+    # Add header to the log file with the task count
     echo -e "# $header\n" > "$log_file"
     echo -e "## Tänään tehdyt asiat\n\n$task_info" >> "$log_file"
+    echo -e "\n\nYhteensä $task_count $task_label." >> "$log_file"
     echo "Log saved to $log_file"
 
     # Debug
