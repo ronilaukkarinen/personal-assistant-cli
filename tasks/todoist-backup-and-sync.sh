@@ -69,34 +69,24 @@ todoist_backup_and_sync() {
       fi
     }
 
-    # Check work file for completed tasks and sync to Todoist
-    if [ -f "$log_file_work" ]; then
-      $grep_command -P "^- \[X\] " "$log_file_work" | while read -r line; do
-        task_id=$(echo "$line" | $grep_command -oP '(?<=https://todoist.com/showTask?id=)\d+')
-        due_string=$(echo "$tasks" | jq -r --arg task_id "$task_id" '.[] | select(.id == ($task_id | tonumber)) | .due.string')
-        mark_task_completed "$task_id" "$due_string"
-      done
-    fi
+    # Sync completed tasks before writing files
+    sync_completed_tasks() {
+      file=$1
+      if [ -f "$file" ]; then
+        $grep_command -P "^- \[X\] " "$file" | while read -r line; do
+          task_id=$(echo "$line" | $grep_command -oP '(?<=https://todoist.com/showTask?id=)\d+')
+          due_string=$(echo "$tasks" | jq -r --arg task_id "$task_id" '.[] | select(.id == ($task_id | tonumber)) | .due.string')
+          mark_task_completed "$task_id" "$due_string"
+        done
+      fi
+    }
 
-    # Check personal file for completed tasks and sync to Todoist
-    if [ -f "$log_file_personal" ]; then
-      $grep_command -P "^- \[X\] " "$log_file_personal" | while read -r line; do
-        task_id=$(echo "$line" | $grep_command -oP '(?<=https://todoist.com/showTask?id=)\d+')
-        due_string=$(echo "$tasks" | jq -r --arg task_id "$task_id" '.[] | select(.id == ($task_id | tonumber)) | .due.string')
-        mark_task_completed "$task_id" "$due_string"
-      done
-    fi
+    # Sync completed tasks for work, personal, and watchlist
+    sync_completed_tasks "$log_file_work"
+    sync_completed_tasks "$log_file_personal"
+    sync_completed_tasks "$log_file_watchlist"
 
-    # Check Watchlist file for completed tasks and sync to Todoist
-    if [ -f "$log_file_watchlist" ]; then
-      $grep_command -P "^- \[X\] " "$log_file_watchlist" | while read -r line; do
-        task_id=$(echo "$line" | $grep_command -oP '(?<=https://todoist.com/showTask?id=)\d+')
-        due_string=$(echo "$tasks" | jq -r --arg task_id "$task_id" '.[] | select(.id == ($task_id | tonumber)) | .due.string')
-        mark_task_completed "$task_id" "$due_string"
-      done
-    fi
-
-    # Generate lists for tasks
+    # Now generate the new lists after syncing
     work_tasks=$(echo "$tasks" | jq -r --argjson project_map "$project_map" '
       .[] | select($project_map[.project_id | tostring] == "Todo") |
       "- [ ] \(.content | sub(" @.*"; "") ) (Due: \(.due.date // "No due date"))\(.url | " ([Katso tehtävä](\(.)))")"
