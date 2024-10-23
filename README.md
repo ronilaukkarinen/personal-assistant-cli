@@ -37,6 +37,12 @@ The cron job for daily summary to Obsidian:
 58 23 * * * bash /path/to/personal-assistant-cli/personal-assistant-cli/tasks/daily-log.sh >/dev/null 2>&1
 ```
 
+Todoist backup and sync every 10 minutes:
+
+```bash
+*/10 * * * * bash /path/to/personal-assistant-cli/personal-assistant-cli/tasks/todoist-backup-and-sync.sh >/dev/null 2>&1
+```
+
 ## Features
 
 - Support for macOS and Linux.
