@@ -40,7 +40,7 @@ daily_log() {
     # Extract task names without labels, ensure the task is completed today, and reverse the order
     task_info=$(echo "$completed_tasks" | jq -r --arg today "$today" '
       .items[] | select(.completed_at | startswith($today)) |
-      "- [x] \(.content | sub(" @.*"; "") ) (valmis \(.completed_at | split("T")[1] | split(".")[0]))"
+      "- [x] \(.content | sub(" @.*"; "") ) (\(.labels | join(", "))) (valmis \(.completed_at | split("T")[1] | split(".")[0]))"
     ' | while read -r line; do
       completed_time=$(echo "$line" | grep -oP '(?<=valmis )[0-9:]+')
       local_time=$(date -d "$completed_time UTC" +'%H:%M')
