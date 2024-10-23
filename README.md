@@ -31,6 +31,12 @@ It is recommended to run this script as a cronjob. Here is an example cronjob th
 0 8 * * * bash /path/to/personal-assistant-cli/app.sh >/dev/null 2>&1
 ```
 
+The cron job for daily summary to Obsidian:
+
+```bash
+58 23 * * * bash /path/to/personal-assistant-cli/personal-assistant-cli/tasks/daily-log.sh >/dev/null 2>&1
+```
+
 ## Features
 
 - Support for macOS and Linux.
