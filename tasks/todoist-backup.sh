@@ -45,13 +45,27 @@ todoist_backup() {
     # Extract work tasks (by project name matching "Todo")
     work_tasks=$(echo "$tasks" | jq -r --argjson project_map "$project_map" '
       .[] | select($project_map[.project_id | tostring] == "Todo") |
-      "- [ ] \(.content | sub(" @.*"; "") ) (Labels: \(.labels | join(", ")))"
+      {id: .id, content: .content, parent_id: .parent_id, labels: .labels, due: .due, url: .url} |
+      if .parent_id == null then
+        "- [ ] \(.content | sub(" @.*"; "") ) (Aikataulutettu: \(.due.date // "No due date"))\(.url | " ([Katso tehtävä](\(.)))")" +
+        (if (.labels | length > 0) then " (\(.labels | join(", ")))" else "" end)
+      else
+        "    - [ ] \(.content | sub(" @.*"; "") ) (Aikataulutettu: \(.due.date // "No due date"))\(.url | " ([Katso tehtävä](\(.)))")" +
+        (if (.labels | length > 0) then " (\(.labels | join(", ")))" else "" end)
+      end
     ')
 
     # Extract personal tasks (by project name matching "Kotiasiat")
     personal_tasks=$(echo "$tasks" | jq -r --argjson project_map "$project_map" '
       .[] | select($project_map[.project_id | tostring] == "Kotiasiat") |
-      "- [ ] \(.content | sub(" @.*"; "") ) (Labels: \(.labels | join(", ")))"
+      {id: .id, content: .content, parent_id: .parent_id, labels: .labels, due: .due, url: .url} |
+      if .parent_id == null then
+        "- [ ] \(.content | sub(" @.*"; "") ) (Due: \(.due.date // "No due date"))\(.url | " ([Katso tehtävä](\(.)))")" +
+        (if (.labels | length > 0) then " (Labels: \(.labels | join(", ")))" else "" end)
+      else
+        "    - [ ] \(.content | sub(" @.*"; "") ) (Due: \(.due.date // "No due date"))\(.url | " ([Katso tehtävä](\(.)))")" +
+        (if (.labels | length > 0) then " (Labels: \(.labels | join(", ")))" else "" end)
+      end
     ')
 
     # Count the number of work tasks
