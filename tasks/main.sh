@@ -39,14 +39,6 @@ main() {
   export LC_TIME=en_US.UTF-8
   todoist_tasklist_date_header=$(date "+%b %d %Y")
 
-  # Add Todoist plugin header to the first part of the note
-  todoist_header='```todoist
-  filter: "#Todo & '"$todoist_tasklist_date_header"'"
-  autorefresh: 120
-  show:
-  - description
-  ```'
-
   # Change back to Finnish
   export LC_TIME=fi_FI.UTF-8
 
@@ -64,7 +56,7 @@ main() {
   remaining_hours=$(calculate_remaining_hours "$current_time")
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
-  echo -e "# $header\n\n## Todoist\n\n$todoist_header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
+  echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
 
   echo -e "${BOLD}${GREEN}Prioritization is ready and saved to Obsidian.${RESET}"
 

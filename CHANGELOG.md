@@ -4,6 +4,7 @@
 * Numerous other fixes
 * Ensure no tasks are scheduled prior to 10:00 or during any meetings
 * Add the amount of tasks to the daily log output
+* Add labels to daily log task list
 
 # 1.1.6: 2024-10-20
 
