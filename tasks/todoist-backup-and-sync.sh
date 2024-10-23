@@ -135,17 +135,23 @@ todoist_backup_and_sync() {
   # Now generate the new lists after syncing
   work_tasks=$(echo "$tasks" | jq -r --argjson project_map "$project_map" '
     .[] | select($project_map[.project_id | tostring] == "Todo") |
-    "- [ ] \(.content | sub(" @.*"; "") ) (Due: \(.due.date // "No due date"))\(.url | " ([Katso tehtävä](\(.)))")"
+    "- [ ] \(.content | sub(" @.*"; "") ) \(.url | "([Katso tehtävä](\(.)))" )" +
+    (if .due.date then " (Aikataulutettu: \(.due.date))" else "" end) +
+    (if .labels | length > 0 then " (\(.labels | join(", ")))" else "" end)
   ')
 
   personal_tasks=$(echo "$tasks" | jq -r --argjson project_map "$project_map" '
     .[] | select($project_map[.project_id | tostring] == "Kotiasiat") |
-    "- [ ] \(.content | sub(" @.*"; "") ) (Due: \(.due.date // "No due date"))\(.url | " ([Katso tehtävä](\(.)))")"
+    "- [ ] \(.content | sub(" @.*"; "") ) \(.url | "([Katso tehtävä](\(.)))" )" +
+    (if .due.date then " (Aikataulutettu: \(.due.date))" else "" end) +
+    (if .labels | length > 0 then " (\(.labels | join(", ")))" else "" end)
   ')
 
   watchlist_tasks=$(echo "$tasks" | jq -r '
     .[] | select(.labels | index("Watchlist")) |
-    "- [ ] \(.content | sub(" @.*"; "") ) (Due: \(.due.date // "No due date"))\(.url | " ([Katso tehtävä](\(.)))")"
+    "- [ ] \(.content | sub(" @.*"; "") ) \(.url | "([Katso tehtävä](\(.)))" )" +
+    (if .due.date then " (Aikataulutettu: \(.due.date))" else "" end) +
+    (if .labels | length > 0 then " (\(.labels | join(", ")))" else "" end)
   ')
 
   # Count tasks
