@@ -55,6 +55,8 @@ Todoist backup and sync every 10 minutes:
 - **Schedules task times and durations** based on AI recommendations.
 - **Supports multiple days** with the `--days` option, you can pre-schedule the whole week.
 - **Gets energy levels** from Oura.
+- **Daily log!** - Lists and summarizes completed Todoist tasks to Obsidian with AI feedback
+- **Todoist backup and sync to Obsidian** - Syncs all tasks to Obsidian as markdown and completed tasks back to Todoist
 
 ## Software and hardware requirements
 
