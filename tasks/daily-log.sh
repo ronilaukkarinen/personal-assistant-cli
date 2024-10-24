@@ -25,8 +25,8 @@ daily_log() {
   fi
 
 
-  #today=$($date_cmd "+%Y-%m-%d")
-  today="2024-10-23"
+  today=$($date_cmd "+%Y-%m-%d")
+  #today="2024-10-24"
 
   echo "Processing daily log for $today..."
 
