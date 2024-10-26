@@ -1,3 +1,7 @@
+# 1.1.8: 2024-10-26
+
+* Fixes and improvements
+
 # 1.1.7: 2024-10-23
 
 * Fix remaining time not saving to the markdown file
