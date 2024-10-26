@@ -53,7 +53,7 @@ main() {
   header="$weekday, $(date "+%-d"). ${month}ta $(date "+%Y")"
 
   # Add remaining hours
-  remaining_hours=$(calculate_remaining_hours "$current_time")
+  remaining_hours=$(calculate_remaining_hours)
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
   echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
