@@ -1,3 +1,10 @@
+# 1.1.9: 2024-10-29
+
+* Add task metadata template, improve prompt to take account all tasks
+* Add tests for Todoist and listing events
+* Deprecate gcalcli and use direct Google Calendar API call instead
+* Remove postpone function and combine with the schedule function
+
 # 1.1.8: 2024-10-26
 
 * Fixes and improvements
