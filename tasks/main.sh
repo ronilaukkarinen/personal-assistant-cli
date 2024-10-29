@@ -63,7 +63,7 @@ main() {
     month=$(date -d "$start_day" "+%B" | tr '[:upper:]' '[:lower:]')
     weekday=$(date -d "$start_day" "+%A" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
     header="$weekday, $(date -d "$start_day" "+%-d"). ${month}ta $(date -d "$start_day" "+%Y")"
-    fielname=$(date -d "$start_day" "+%Y-%m-%d")
+    filename=$(date -d "$start_day" "+%Y-%m-%d")
   fi
 
   # Add remaining hours

@@ -20,7 +20,7 @@ cleanup_notes() {
 if [[ "$(uname)" == "Darwin" ]]; then
   notefile_format="$HOME/Documents/Brain dump/Päivän suunnittelu/$current_day.md"
 else
-  notefile_format="$HOME/Documents/Brain dump/Päivän suunnittelu/$(date "+%Y-%m-%d")"
+  notefile_format="$HOME/Documents/Brain dump/Päivän suunnittelu/$(date "+%Y-%m-%d").md"
 fi
 
 # Loop through all files that match the pattern and clean them up
