@@ -10,10 +10,7 @@ schedule_task() {
   fi
 
   # Ensure duration and datetime are valid by using only the first match
-  # Ensures only the first duration is used
   duration=$(echo "$duration" | head -n 1)
-
-  # Ensures only the first datetime is used
   datetime=$(echo "$datetime" | head -n 1)
 
   # Get task data
@@ -42,6 +39,9 @@ schedule_task() {
 
   # Debugging output to check the variables
   echo "Task name: $task_name, Task ID: $task_id, Duration: $duration, Datetime: $datetime, Recurring: $recurring"
+
+  # Comment to be added to the scheduled task
+  comment="Rollen tekoälyavustaja lykkäsi tätä eteenpäin $current_day ajalle $datetime ja kestolle $duration minuuttia."
 
   if [ "$recurring" == "true" ]; then
     if [ "$duration" -gt 0 ]; then
@@ -77,15 +77,23 @@ schedule_task() {
     fi
   fi
 
+  # Add a comment to the task after scheduling
+  comment_response=$(curl -s --request POST \
+    --url "https://api.todoist.com/rest/v2/comments" \
+    --header "Content-Type: application/json" \
+    --header "Authorization: Bearer ${TODOIST_API_KEY}" \
+    --data "{\"task_id\": \"$task_id\", \"content\": \"$comment\"}")
+
   # Check if there was an error during the update
   if echo "$update_response" | grep -q '"error"'; then
     echo -e "${RED}Error scheduling task with ID $task_id: $update_response${RESET}"
   else
-    echo -e "${GREEN}Task with ID $task_id successfully scheduled.${RESET}"
+    echo -e "${GREEN}Task with ID $task_id successfully scheduled with comment.${RESET}"
   fi
 
   # Debug response
   if [ "$DEBUG" = true ]; then
     echo -e "${CYAN}Update response:${RESET}\n$update_response\n"
+    echo -e "${CYAN}Comment response:${RESET}\n$comment_response\n"
   fi
 }

@@ -111,8 +111,8 @@ list_today_events() {
 
     # Output formatted events and total summary
     echo -e "${BOLD}${CYAN}Tämän päivän tapahtumat:${RESET}\n$all_events"
-    echo -e "Yhteensä tapaamisia tänään $total_event_duration tuntia."
-    echo -e "Päivää jäljellä $remaining_work_hours tuntia."
+    echo -e "Yhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas)."
+    echo -e "Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä $remaining_work_hours tuntia."
 
   done
 }
