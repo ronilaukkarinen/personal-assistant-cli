@@ -16,7 +16,12 @@ cleanup_notes() {
 }
 
 # Get today's notes and clean them up
-notefile_format="$HOME/Documents/Brain dump/Päivän suunnittelu/$(date "+%Y-%m-%d")"
+# If current day is defined, use it in the file name
+if [[ "$(uname)" == "Darwin" ]]; then
+  notefile_format="$HOME/Documents/Brain dump/Päivän suunnittelu/$current_day.md"
+else
+  notefile_format="$HOME/Documents/Brain dump/Päivän suunnittelu/$(date "+%Y-%m-%d")"
+fi
 
 # Loop through all files that match the pattern and clean them up
 find "$notefile_format"* -type f | while IFS= read -r file; do

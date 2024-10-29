@@ -6,7 +6,7 @@ get_priorities() {
   # If we enable debugging, the debug messages print out to the notes and prompts
   local DEBUG=false
 
-  combined_message=""
+  the_prompt=""
 
   for i in $(seq 0 $((days_to_process-1))); do
 
@@ -36,15 +36,6 @@ get_priorities() {
       date_today=$(date -d "$current_day" "+%d.%m.%Y")
     fi
 
-    # Check for weekend or holiday
-    if is_weekend "$current_day"; then
-      combined_message+="Ota myös huomioon että nyt on viikonloppu, eikä silloin tehdä työasioita.\n"
-    fi
-
-    if is_holiday "$current_day"; then
-      combined_message+="Ota myös huomioon että nyt on loma, eikä silloin tehdä työasioita.\n"
-    fi
-
     # macOS version and Linux version of date +%Y-%m-%d
     if [[ "$(uname)" == "Darwin" ]]; then
       compare_day=$(gdate "+%Y-%m-%d")
@@ -52,11 +43,29 @@ get_priorities() {
       compare_day=$(date "+%Y-%m-%d")
     fi
 
-    # Note instructions prompt
-    note_instructions='Tehtävät eivät ole tärkeysjärjestyksessä. Sinun tulee priorisoida nämä tehtävät ja päivitettävä uusi aikataulu metadataan. Käy jokainen tehtävä yksitellen läpi, älä jätä yhtäkään tehtävää pois. Esitysmuoto on seuraava (jokaisella tehtävällä on metadata, joka tulee täydentää):\n\n1. Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: "1234567890", priority: "1-4", duration: "0-999", datetime: "YYYY-MM-DDTHH:MM:SS")\n\n*JOKAISEN tehtävän metadataan on päivitettävä* "duration" ja "datetime" kentät. Muokkaa jokaiselle tehtävälle kesto, jos se on 0 tai puuttuu. Muokkaa jokaiselle tehtävälle datetime, jos tälle päivälle on liikaa tekemistä. Jaksan tehdä max 1-2 isoa tehtävää per päivä, useamman pienemmän. HUOM! Jos tehtävässä mainitaan "Backlog" tai "Lowprio" tai "Ei tärkeä", lykkää nämä aina eteenpäin.\n\nAikataulut: Älä ajoita tehtäviä välille 00-10. Työaikani on 10-18. Ne tehtävät, joissa on mainittu "(Kotiasiat)" voin tehdä 18-22, mutta muuten ÄLÄ aikatauluta tehtäviä 18-00 välille. Tänään on $day_of_week, $date_today ja kello on $current_time, älä aikatauluta mitään menneisyyteen.\n\nAnna tehtävälista yhtenä kokonaisuutena, varmistaen että kaikki tehtävät ovat mukana muuttamattomina, lukuun ottamatta pyydettyjä muutoksia metadatariveillä. Ne tehtävät, jotka eivät mahdu päivän aikatauluun, vaihda metadatan "datetime" vähintään seuraavalle päivälle.\n\nKun olet valmis, tee muistiinpanot priorisointisi perusteista ja aikataulutusstrategiastasi. Voit korostaa tehtäviin kuluvia aikoja, tärkeimpiä tehtäviä, niiden perusteluja sekä syitä priorisoinnille. Käytä isoja alkukirjaimia vain otsikoiden alussa, suomen kielen tyylin mukaan joka sana EI tule isolla alkukirjaimella. Markdown-h2-otsikot voisivat olla "Tärkeimmät tehtävät tänään", "Lykätyt tehtävät" ja "Yhteenveto".\n'
+    # THE PROMPT
+    the_prompt="\
+    Tässä lista tehtävistä:\n\n${tasks}\n\nTässä lista kalenteritapahtumista:\n\n${all_events}\n\n
+    Taustatiedot: Olen teknologiayrittäjä ja perustaja 15 henkilön yrityksessä. Yrityksessä priorisoimme asiat, joista saa rahaa nopeasti, seuraavaksi asiat, joista saa rahaa tulevaisuudessa ja vasta sitten kaikki muu. Vapaa-ajalla arvostan rentoutumista.\n\n
 
-    # The actual prompt
-    combined_message+="${PROMPT_BGINFO}\n\nTässä lista tehtävistä:\n\n${tasks}\n\nTässä lista kalenteritapahtumista:\n\n${all_events}${PROMPT}\n\n$note_instructions"
+    Pyydän, että priorisoit ja aikataulutat nämä tehtävät seuraavasti:
+    1. Kaikille tehtäville lisätään tai päivitetään metadatariville \"duration\" ja \"datetime\" kentät.\n
+    2. Kunkin tehtävän muoto on: Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: \"1234567890\", priority: \"1-4\", duration: \"0-999\", datetime: \"YYYY-MM-DDTHH:MM:SS\").\n\n
+    3. Älä aikatauluta tehtäviä klo 00-10 tai 18-00 välille (paitsi \"(Kotiasiat)\" tehtävät klo 18-22).\n
+    4. Pidä tehtävät, joissa mainitaan \"Backlog\", \"Lowprio\" tai \"Ei tärkeä\", tulevaisuudessa ja siirrä ne vähintään seuraavalle päivälle.\n
+    5. Jos tälle päivälle on liikaa tekemistä, lykkää loput tehtävistä seuraaville päiville.\n
+    6. Tehtävälistan tulee olla yhtenäinen, ja kaikki tehtävät tulee sisällyttää, vaikka aikataulua muokataan.
+
+    Anna aikataululista yhtenä kokonaisuutena ja lisää lopuksi muistiinpanot valinnoista. Käytä vain pieniä kirjaimia paitsi otsikoissa. Käytä seuraavia otsikoita: \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\" ja \"Yhteenveto\"."
+
+    # Check for weekend or holiday
+    if is_weekend "$current_day"; then
+      the_prompt+="\n\nMuista, että nyt on viikonloppu, joten vältä työasioiden ajoittamista.\n"
+    fi
+
+    if is_holiday "$current_day"; then
+      the_prompt+="\n\nOta huomioon, että tänään on loma, eikä työasioita tulisi tehdä.\n"
+    fi
   done
 
   # Debug
@@ -69,15 +78,15 @@ get_priorities() {
     echo -e "${BOLD}${CYAN}day_of_week:${RESET} $day_of_week"
     echo -e "${BOLD}${CYAN}date_today:${RESET} $date_today"
     echo -e "${BOLD}${CYAN}compare_day:${RESET} $compare_day"
-    echo -e "${BOLD}${CYAN}combined_message (the prompt):${RESET}\n$combined_message"
+    echo -e "${BOLD}${CYAN}the_prompt:${RESET}\n$the_prompt"
   fi
 
   # Create the JSON payload - no debug info is included in the payload
-  json_payload=$(jq -n --arg combined_message "$combined_message" '{
+  json_payload=$(jq -n --arg the_prompt "$the_prompt" '{
       "model": "gpt-4o-mini",
       "messages": [
           {"role": "system", "content": "Sinä olet tehtävien priorisoija."},
-          {"role": "user", "content": $combined_message}
+          {"role": "user", "content": $the_prompt}
       ],
       "max_tokens": 16000,
       "temperature": 0.5

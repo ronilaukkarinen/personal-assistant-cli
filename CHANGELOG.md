@@ -9,6 +9,7 @@
 * Do not sync focus events back to Todoist
 * Add meeting count to note
 * Fix filename if scheduling the future
+* Fix: Do not schedule anything in the past
 
 # 1.1.8: 2024-10-26
 

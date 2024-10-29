@@ -5,8 +5,13 @@ main() {
   local days_to_process=1  # Default to 1 day
   local start_day
 
-  # Start date
-  start_day=$current_day
+  # If command line argument start day is defined
+  if [[ "$1" == "--start-day" ]]; then
+    # Start date
+    start_day=$current_day
+  else
+    start_day=$(date "+%Y-%m-%d")
+  fi
 
   # Process based on mode
   if [ "$mode" = "days" ] && [ "$days_to_process" -gt 0 ]; then
@@ -68,12 +73,12 @@ main() {
   file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
-  echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\nYhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas). Palaverien määrä tänään: **$event_count**. Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä **$remaining_work_hours tuntia**.\n\n## Päivän tapahtumat\n\n$all_events\n$priorities" > "$file_path"
+  echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\nYhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas). Palaverien määrä tänään: **${event_count}**. Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä **${remaining_work_hours} tuntia**.\n\n## Päivän tapahtumat\n\n$all_events\n$priorities" > "$file_path"
 
   # Add TASKS_TO_BE_SCHEDULED at the end of the file
   echo -e "\n## Aikataulutetut tehtävät\n\n$TASKS_TO_BE_SCHEDULED" >> "$file_path"
 
-  echo -e "${BOLD}${GREEN}Prioritization is ready and saved to Obsidian, file: $file_path.md${RESET}"
+  echo -e "${BOLD}${GREEN}Prioritization is ready and saved to Obsidian, file: "$file_path"${RESET}"
 
   # Debug: Print the full content of tasks to see what's being parsed
   if [ "$DEBUG" = true ]; then
