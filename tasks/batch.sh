@@ -38,18 +38,26 @@ function batch() {
   # Count the number of subtasks for each task in Bash
   subtask_counts=$(echo "$tasks" | jq -r '[.[] | select(.parent_id != null) | .parent_id] | group_by(.) | map({(.[0]): length}) | add')
 
-  # Filter and format tasks between start_day and end_day
-  days_tasks=$(echo "$tasks" | jq -r --arg start_day "$start_day" --arg end_day "$end_day" --argjson project_map "$project_map" --argjson subtask_counts "$subtask_counts" '
+  # Initialize the counter
+  counter=1
+
+  # Process each task and format it with the counter for a numbered list
+  days_tasks=""
+  while IFS= read -r line; do
+    # Add the counter to each task
+    days_tasks+="$counter. $line\n"
+    # Increment the counter
+    counter=$((counter + 1))
+  done < <(echo "$tasks" | jq -r --arg start_day "$start_day" --arg end_day "$end_day" --argjson project_map "$project_map" --argjson subtask_counts "$subtask_counts" '
     .[] | select(.due.date >= $start_day and .due.date <= $end_day) |
     select(.parent_id == null) |
     .project_name = ($project_map[.project_id | tostring] // "Muu projekti") |
     .project_name = (if .project_name == "Todo" then "Työasiat" else .project_name end) |
     .subtask_count = ($subtask_counts[.id] // 0) |
-    "- ID: \(.id) - \(.content) (\(.project_name))" +
-    (if (.labels | length > 0) then " (Labels: " + (.labels | join(", ")) + ")" else "" end) +
-    " (Alatehtäviä: \(.subtask_count))" +
-    (if (.duration != null and .duration.amount != null) then " (Ennalta määritetty kesto: \(.duration.amount) \(.duration.unit))" else "" end) +
-    (if (.due.datetime != null) then " (Ennalta määritetty ajankohta: \(.due.datetime))" else "" end)
+    "\(.content) (\(.project_name))" +
+    (if (.labels | length > 0) then " (\(.labels | join(", ")))" else "" end) +
+    (if (.subtask_count > 0) then " (Alatehtäviä: \(.subtask_count))" else "" end) +
+    " (Metadata: id: \"\(.id)\", priority: \"\(.priority // "none")\", duration: \"\(.duration.amount // "undefined")\", datetime: \"\(.due.datetime // "undefined")\")"
   ')
 
   # Debug
