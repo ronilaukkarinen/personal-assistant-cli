@@ -34,37 +34,85 @@ list_today_events() {
     start_day=$2
   fi
 
-  timeMin="${current_day}T00:00:00Z"
-  timeMax="${current_day}T23:59:59Z"
+  # Define current day
+  # Check if macOS is used
+  if [[ "$(uname)" == "Darwin" ]]; then
+    current_day=$(gdate -d "$start_day + $i days" "+%Y-%m-%d")
+  else
+    current_day=$(date -d "$start_day + $i days" "+%Y-%m-%d")
+  fi
 
   for i in $(seq 0 $((days_to_process-1))); do
-    # Check if macOS is used
-    if [[ "$(uname)" == "Darwin" ]]; then
-      current_day=$(gdate -d "$start_day + $i days" "+%Y-%m-%d")
-      current_time=$(gdate "+%H:%M")
-    else
-      current_day=$(date -d "$start_day + $i days" "+%Y-%m-%d")
-      current_time=$(date "+%H:%M")
-    fi
+
+    timeMin="${current_day}T00:00:00Z"
+    timeMax="${current_day}T23:59:59Z"
 
     # Replace with your Google Calendar ID(s)
     calendar_ids=("${WORK_CALENDAR_ID}" "${FAMILY_CALENDAR_ID}" "${TRAINING_CALENDAR_ID}")
 
+    # Initialize an empty variable to store all events and total duration
+    all_events=""
+    total_event_duration=0
+
     # Loop through each calendar to fetch and list events
     for calendar_id in "${calendar_ids[@]}"; do
-      echo -e "\n${BOLD}${CYAN}Listing events for calendar: $calendar_id\n\n${RESET}"
-
       # Fetch events from the Google Calendar API
-      events=$(curl -s -X GET "https://www.googleapis.com/calendar/v3/calendars/${calendar_id}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime" \
+      calendar_events=$(curl -s -X GET "https://www.googleapis.com/calendar/v3/calendars/${calendar_id}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime" \
         -H "Authorization: Bearer ${GOOGLE_API_TOKEN}")
 
       # Check if the response contains an error
-      if echo "$events" | grep -q '"error"'; then
-        echo "Error fetching events for calendar: $(echo "$events" | jq -r '.error.message')"
+      if echo "$calendar_events" | grep -q '"error"'; then
+        echo "Error fetching events for calendar: $(echo "$calendar_events" | jq -r '.error.message')"
       else
-        # Print out each event's summary and start time
-        echo "$events" | jq -r '.items[] | "\(.summary) (\(.start.dateTime // .start.date))"'
+        # Process each event to format and calculate duration
+        while IFS= read -r event; do
+          # Extract event summary, start, and end details
+          event_name=$(echo "$event" | jq -r '.summary')
+
+          # Skip events with "Focus" in the name or empty event names
+          if [[ -z "$event_name" || "$event_name" == *"Focus"* ]]; then
+            continue
+          fi
+
+          event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
+          event_end=$(echo "$event" | jq -r '.end.dateTime // .end.date')
+
+          if [[ "$event_start" == *"T"* ]]; then
+            # Timed event: Extract and format times
+            if [[ "$(uname)" == "Darwin" ]]; then
+              event_start_time=$(gdate -d "$event_start" +"%H:%M")
+              event_end_time=$(gdate -d "$event_end" +"%H:%M")
+              start_epoch=$(gdate -d "$event_start" +%s)
+              end_epoch=$(gdate -d "$event_end" +%s)
+            else
+              event_start_time=$(date -d "$event_start" +"%H:%M")
+              event_end_time=$(date -d "$event_end" +"%H:%M")
+              start_epoch=$(date -d "$event_start" +%s)
+              end_epoch=$(date -d "$event_end" +%s)
+            fi
+
+            # Calculate duration in hours
+            event_duration=$(( (end_epoch - start_epoch) / 3600 ))
+            total_event_duration=$((total_event_duration + event_duration))
+
+            # Add to events list with time details
+            all_events+="- $event_name (klo $event_start_time-$event_end_time, kesto $event_duration tunti)\n"
+          else
+            # All-day event
+            all_events+="- $event_name (koko päivän)\n"
+          fi
+        done <<< "$(echo "$calendar_events" | jq -c '.items[]')"
       fi
     done
+
+    # Calculate remaining work hours (assuming an 8-hour workday)
+    total_work_hours=8
+    remaining_work_hours=$((total_work_hours - total_event_duration))
+
+    # Output formatted events and total summary
+    echo -e "${BOLD}${CYAN}Tämän päivän tapahtumat:${RESET}\n$all_events"
+    echo -e "Yhteensä tapaamisia tänään $total_event_duration tuntia."
+    echo -e "Päivää jäljellä $remaining_work_hours tuntia."
+
   done
 }

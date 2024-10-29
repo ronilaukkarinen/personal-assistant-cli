@@ -61,7 +61,7 @@ get_priorities() {
     Älä unohda, että olen iltavirkku, heräisin mielelläni klo 9-10, minun on nukuttava vähintään 8 tuntia 15 minuuttia, joten kerro myös, milloin minun tulisi aloittaa iltarauhoittuminen ja milloin minun ei pitäisi tehdä vireyttä lisäävää tekemistä. Älä ajoita tehtäviä välille 00-10. ÄLÄ aikatauluta mitään tehtävää ennen klo 10 aamulle, aloitan aktiivisen tekemisen klo 10 ja lopetan klo 18. Ota huomioon ennalta aikataulutetut Google-kalenterin palaverit, älä siirrä tai aikatauluta niiden päälle mitään.\n'
 
     # The actual prompt
-    combined_message+="${PROMPT_BGINFO}\n\nTässä lista tehtävistä:\n\n${tasks}\n\n${PROMPT}\n\n$note_instructions"
+    combined_message+="${PROMPT_BGINFO}\n\nTässä lista tehtävistä:\n\n${tasks}\n\nTässä lista kalenteritapahtumista:\n\n${all_events}${PROMPT}\n\n$note_instructions"
   done
 
   # Debug
@@ -73,7 +73,7 @@ get_priorities() {
     echo -e "${BOLD}${CYAN}day_of_week:${RESET} $day_of_week"
     echo -e "${BOLD}${CYAN}date_today:${RESET} $date_today"
     echo -e "${BOLD}${CYAN}compare_day:${RESET} $compare_day"
-    echo -e "${BOLD}${CYAN}combined_message:${RESET}\n$combined_message"
+    echo -e "${BOLD}${CYAN}combined_message (the prompt):${RESET}\n$combined_message"
   fi
 
   # Create the JSON payload - no debug info is included in the payload

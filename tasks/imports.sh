@@ -22,6 +22,9 @@ source ${SCRIPTS_LOCATION}/tasks/sync-google-calendar-to-todoist.sh
 # Fetch tasks from Todoist
 source ${SCRIPTS_LOCATION}/tasks/todoist.sh
 
+# Get events from Google Calendar API
+source ${SCRIPTS_LOCATION}/tasks/list-events.sh
+
 # Schedule tasks
 source ${SCRIPTS_LOCATION}/tasks/schedule.sh
 
