@@ -16,33 +16,26 @@ refresh_access_token
 
 # Function: Fetch and display today's events from Google Calendar
 list_today_events() {
-  # Get --days to process
-  if [ -z "$1" ]; then
+  local start_day="$1"
+  local days_to_process="$2"
+
+  # If there is no days_to_process argument, default to 1 day
+  if [ -z "$days_to_process" ]; then
     days_to_process=1
+    offset=$((days_to_process - 0))
   else
-    days_to_process=$1
+    offset=$((days_to_process - 1))
   fi
 
-  # Get --start_day
-  if [ -z "$2" ]; then
-    if [[ "$(uname)" == "Darwin" ]]; then
-      start_day=$(gdate "+%Y-%m-%d")
-    else
-      start_day=$(date "+%Y-%m-%d")
-    fi
+  # If command line argument start day is defined
+  if [[ "$1" == "--start-day" ]]; then
+    # Start date
+    start_day=$current_day
   else
-    start_day=$2
+    start_day=$(date "+%Y-%m-%d")
   fi
 
-  # Define current day
-  # Check if macOS is used
-  if [[ "$(uname)" == "Darwin" ]]; then
-    current_day=$(gdate -d "$start_day + $i days" "+%Y-%m-%d")
-  else
-    current_day=$(date -d "$start_day + $i days" "+%Y-%m-%d")
-  fi
-
-  for i in $(seq 0 $((days_to_process-1))); do
+  for i in $(seq 0 $((offset))); do
 
     timeMin="${current_day}T00:00:00Z"
     timeMax="${current_day}T23:59:59Z"
@@ -115,10 +108,10 @@ list_today_events() {
     export remaining_work_hours=$((total_work_hours - total_event_duration))
 
     # Output formatted events and total summary
-    # echo -e "${BOLD}${CYAN}Tämän päivän tapahtumat:${RESET}\n$all_events"
-    # echo -e "Yhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas)."
-    # echo -e "Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä $remaining_work_hours tuntia."
-    # echo -e "Palaverien määrä tänään: $event_count."
+    echo -e "${BOLD}${CYAN}Tämän päivän tapahtumat:${RESET}\n$all_events"
+    echo -e "Yhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas)."
+    echo -e "Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä $remaining_work_hours tuntia."
+    echo -e "Palaverien määrä tänään: $event_count."
 
   done
 }
