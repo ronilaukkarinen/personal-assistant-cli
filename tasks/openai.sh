@@ -3,6 +3,13 @@ get_priorities() {
   local days_to_process="$2"
   local start_day="$3"
 
+  # Get --debug argument from command line reliably, grep
+  if echo "$@" | grep -q "\-\-debug"; then
+    DEBUG=true
+  else
+    DEBUG=false
+  fi
+
   combined_message=""
 
   for i in $(seq 0 $((days_to_process-1))); do

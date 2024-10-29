@@ -56,9 +56,6 @@ fetch_tasks() {
     ')
   done
 
-  # Export tasks to be scheduled to a variable used later in other script
-  export TASKS_TO_SCHEDULE="$tasks"
-
   # Print tasks
   echo -e "${BOLD}${GREEN}Tasks fetched:${RESET}\n$day_tasks"
 
@@ -88,5 +85,5 @@ fetch_tasks() {
   ')
 
   # Export variable to be used in other part of the program
-  export TASKS_TO_BE_SCHEDULED
+  export TASKS_TO_BE_SCHEDULED="$TASKS_TO_BE_SCHEDULED"
 }
