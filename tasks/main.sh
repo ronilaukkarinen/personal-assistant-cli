@@ -49,15 +49,18 @@ main() {
   # Change back to Finnish
   export LC_TIME=fi_FI.UTF-8
 
-  # Date of today
-  today=$(date "+%Y-%m-%d")
-
-  # Lowercase month
-  month=$(date "+%B" | tr '[:upper:]' '[:lower:]')
-
-  # Header for the note in Finnish (e. g. Tiistai, 15. lokakuuta 2024)
-  weekday=$(date "+%A" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
-  header="$weekday, $(date "+%-d"). ${month}ta $(date "+%Y")"
+  # macOS and Linux compatible version of date
+  if [[ "$(uname)" == "Darwin" ]]; then
+    today=$(gdate -d "$start_day" "+%Y-%m-%d")
+    month=$(gdate -d "$start_day" "+%B" | tr '[:upper:]' '[:lower:]')
+    weekday=$(gdate -d "$start_day" "+%A" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
+    header="$weekday, $(gdate -d "$start_day" "+%-d"). ${month}ta $(gdate -d "$start_day" "+%Y")"
+  else
+    today=$(date -d "$start_day" "+%Y-%m-%d")
+    month=$(date -d "$start_day" "+%B" | tr '[:upper:]' '[:lower:]')
+    weekday=$(date -d "$start_day" "+%A" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
+    header="$weekday, $(date -d "$start_day" "+%-d"). ${month}ta $(date -d "$start_day" "+%Y")"
+  fi
 
   # Add remaining hours
   remaining_hours=$(calculate_remaining_hours)
@@ -66,10 +69,10 @@ main() {
   file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
-  echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Yhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas). Palaverien määrä tänään: $event_count. Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä $remaining_work_hours tuntia.\n\n## Päivän tapahtumat\n\n$all_events\n$priorities" > "$file_path"
+  echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\nYhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas). Palaverien määrä tänään: **$event_count**. Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä **$remaining_work_hours tuntia**.\n\n## Päivän tapahtumat\n\n$all_events\n$priorities" > "$file_path"
 
   # Add TASKS_TO_BE_SCHEDULED at the end of the file
-  echo -e "\n\n## Aikataulutetut tehtävät\n\n$TASKS_TO_BE_SCHEDULED" >> "$file_path"
+  echo -e "\n## Aikataulutetut tehtävät\n\n$TASKS_TO_BE_SCHEDULED" >> "$file_path"
 
   echo -e "${BOLD}${GREEN}Prioritization is ready and saved to Obsidian, file: $file_path.md${RESET}"
 

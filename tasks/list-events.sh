@@ -96,7 +96,7 @@ list_today_events() {
             export total_event_duration=$((total_event_duration + event_duration))
 
             # Count all events except "Lounas" or events that contain "Focus"
-            if [[ "$event_name" != "Lounas" && "$event_name" != *"Focus"* ]]; then
+            if [[ "$event_name" != *"Lounas"* && "$event_name" != *"Focus"* ]]; then
               event_count=$((event_count + 1))
             fi
 

@@ -59,7 +59,7 @@ function batch() {
     "\(.content) (\(.project_name))" +
     (if (.labels | length > 0) then " (\(.labels | join(", ")))" else "" end) +
     (if (.subtask_count > 0) then " (Alatehtäviä: \(.subtask_count))" else "" end) +
-    " (Metadata: id: \"\(.id)\", priority: \"\(.priority // "none")\", duration: \"\(.duration.amount // "undefined")\", datetime: \"\(.due.datetime // "undefined")\")"
+    " (Metadata: id: \"\(.id)\", priority: \"\(.priority // "none")\", duration: \"\(.duration.amount // "0")\", datetime: \"\(.due.datetime // "undefined")\")"
   ')
 
   # Debug

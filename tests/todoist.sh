@@ -24,7 +24,24 @@ export TODOIST_API_KEY=${TODOIST_API_KEY}
 # Function: Fetch tasks from Todoist for a range of days, excluding subtasks but calculating subtask count
 fetch_tasks() {
   local start_day="$1"
-  local days_to_process="$2"
+  local days_to_process=1
+
+  # If there's --start-day argument, set the start day
+  if [[ -n "$start_day" ]]; then
+    start_day="$start_day"
+  else
+    # Set the start day to today
+    if [[ "$(uname)" == "Darwin" ]]; then
+      start_day=$(gdate -I)
+    else
+      start_day=$(date -I)
+    fi
+  fi
+
+  # If there's --days argument, set the number of days to process
+  if [[ -n "$1" ]]; then
+    days_to_process="$2"
+  fi
 
   # Use today
   if [ -z "$start_day" ]; then
@@ -89,7 +106,7 @@ fetch_tasks() {
       "\(.content) (\(.project_name))" +
       (if (.labels | length > 0) then " (\(.labels | join(", ")))" else "" end) +
       (if (.subtask_count > 0) then " (Alatehtäviä: \(.subtask_count))" else "" end) +
-      " (Metadata: id: \"\(.id)\", priority: \"\(.priority // "none")\", duration: \"\(.duration.amount // "undefined")\", datetime: \"\(.due.datetime // "undefined")\")"
+      " (Metadata: id: \"\(.id)\", priority: \"\(.priority // "none")\", duration: \"\(.duration.amount // "0")\", datetime: \"\(.due.datetime // "undefined")\")"
     ')
   done
 

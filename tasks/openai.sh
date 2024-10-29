@@ -2,7 +2,9 @@ get_priorities() {
   local tasks="$1"
   local days_to_process="$2"
   local start_day="$3"
-  local DEBUG=true
+
+  # If we enable debugging, the debug messages print out to the notes and prompts
+  local DEBUG=false
 
   combined_message=""
 
@@ -51,19 +53,7 @@ get_priorities() {
     fi
 
     # Note instructions prompt
-    note_instructions='Tehtävät eivät ole tärkeysjärjestyksessä. Sinun tulee priorisoida nämä tehtävät ja päivitettävä uusi aikataulu metadataan. Käy jokainen tehtävä yksitellen läpi, älä jätä yhtäkään tehtävää pois. Esitysmuoto on seuraava (jokaisella tehtävällä on metadata, joka tulee täydentää):\n\n
-
-    1. Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: "1234567890", priority: "1-4", duration: "0-999", datetime: "YYYY-MM-DDTHH:MM:SS")\n\n
-
-    *Jokaisen tehtävän metadataan on päivitettävä* "duration" ja "datetime" kentät. Anna lista yhtenä kokonaisuutena, varmistaen että kaikki tehtävät ovat mukana muuttamattomina, lukuun ottamatta pyydettyjä muutoksia metadatariveillä.\n\n
-
-    Kun olet valmis, tee muistiinpanot priorisointisi perusteista ja aikataulutusstrategiastasi. Voit korostaa tehtäviin kuluvia aikoja, tärkeimpiä tehtäviä, niiden perusteluja sekä syitä priorisoinnille. Käytä isoja alkukirjaimia vain otsikoiden alussa. Otsikot voisivat olla "Tärkeimmät tehtävät tänään", "Lykätyt tehtävät" ja "Yhteenveto".\n\n
-
-    HUOM! Jos tehtävässä mainitaan "Backlog" tai "Lowprio" tai "Ei tärkeä", pidä näitä prioriteetilla -100 ja lykkää aina eteenpäin.\n\n
-
-    Älä unohda, että olen iltavirkku, heräisin mielelläni klo 9-10, minun on nukuttava vähintään 8 tuntia 15 minuuttia, joten kerro myös, milloin minun tulisi aloittaa iltarauhoittuminen ja milloin minun ei pitäisi tehdä vireyttä lisäävää tekemistä.\n\n
-
-    Aikataulut: Älä ajoita tehtäviä välille 00-10. ÄLÄ aikatauluta mitään tehtävää ennen klo 10 aamulle, aloitan aktiivisen tekemisen klo 10 ja lopetan klo 18. Ota huomioon ennalta aikataulutetut Google-kalenterin palaverit, älä siirrä tai aikatauluta niiden päälle mitään.\n'
+    note_instructions='Tehtävät eivät ole tärkeysjärjestyksessä. Sinun tulee priorisoida nämä tehtävät ja päivitettävä uusi aikataulu metadataan. Käy jokainen tehtävä yksitellen läpi, älä jätä yhtäkään tehtävää pois. Esitysmuoto on seuraava (jokaisella tehtävällä on metadata, joka tulee täydentää):\n\n1. Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: "1234567890", priority: "1-4", duration: "0-999", datetime: "YYYY-MM-DDTHH:MM:SS")\n\n*JOKAISEN tehtävän metadataan on päivitettävä* "duration" ja "datetime" kentät. Muokkaa jokaiselle tehtävälle kesto, jos se on 0 tai puuttuu. Muokkaa jokaiselle tehtävälle datetime, jos tälle päivälle on liikaa tekemistä. Jaksan tehdä max 1-2 isoa tehtävää per päivä, useamman pienemmän. HUOM! Jos tehtävässä mainitaan "Backlog" tai "Lowprio" tai "Ei tärkeä", lykkää nämä aina eteenpäin.\n\nAikataulut: Älä ajoita tehtäviä välille 00-10. Työaikani on 10-18. Ne tehtävät, joissa on mainittu "(Kotiasiat)" voin tehdä 18-22, mutta muuten ÄLÄ aikatauluta tehtäviä 18-00 välille, kiitos.\n\nAnna tehtävälista yhtenä kokonaisuutena, varmistaen että kaikki tehtävät ovat mukana muuttamattomina, lukuun ottamatta pyydettyjä muutoksia metadatariveillä. Ne tehtävät, jotka eivät mahdu päivän aikatauluun, vaihda metadatan "datetime" vähintään seuraavalle päivälle.\n\nKun olet valmis, tee muistiinpanot priorisointisi perusteista ja aikataulutusstrategiastasi. Voit korostaa tehtäviin kuluvia aikoja, tärkeimpiä tehtäviä, niiden perusteluja sekä syitä priorisoinnille. Käytä isoja alkukirjaimia vain otsikoiden alussa, suomen kielen tyylin mukaan joka sana EI tule isolla alkukirjaimella. Markdown-h2-otsikot voisivat olla "Tärkeimmät tehtävät tänään", "Lykätyt tehtävät" ja "Yhteenveto".\n'
 
     # The actual prompt
     combined_message+="${PROMPT_BGINFO}\n\nTässä lista tehtävistä:\n\n${tasks}\n\nTässä lista kalenteritapahtumista:\n\n${all_events}${PROMPT}\n\n$note_instructions"
