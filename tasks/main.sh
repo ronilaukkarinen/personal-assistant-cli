@@ -38,9 +38,6 @@ main() {
   # Get the current local time with timezone
   current_time=$(date "+%H:%M")
 
-  # Filename format: YYYY-MM-DD.md
-  filename=$(date "+%Y-%m-%d")
-
   # Get the current date in the format "Oct 13 2024", in English
   # Change to English
   export LC_TIME=en_US.UTF-8
@@ -55,11 +52,13 @@ main() {
     month=$(gdate -d "$start_day" "+%B" | tr '[:upper:]' '[:lower:]')
     weekday=$(gdate -d "$start_day" "+%A" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
     header="$weekday, $(gdate -d "$start_day" "+%-d"). ${month}ta $(gdate -d "$start_day" "+%Y")"
+    filename=$(gdate -d "$start_day" "+%Y-%m-%d")
   else
     today=$(date -d "$start_day" "+%Y-%m-%d")
     month=$(date -d "$start_day" "+%B" | tr '[:upper:]' '[:lower:]')
     weekday=$(date -d "$start_day" "+%A" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
     header="$weekday, $(date -d "$start_day" "+%-d"). ${month}ta $(date -d "$start_day" "+%Y")"
+    fielname=$(date -d "$start_day" "+%Y-%m-%d")
   fi
 
   # Add remaining hours
