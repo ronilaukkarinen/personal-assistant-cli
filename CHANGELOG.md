@@ -8,6 +8,7 @@
 * Deprecate GENERAL_PROMPT
 * Do not sync focus events back to Todoist
 * Add meeting count to note
+* Fix filename if scheduling the future
 
 # 1.1.8: 2024-10-26
 
