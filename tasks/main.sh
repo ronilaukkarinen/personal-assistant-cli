@@ -55,10 +55,11 @@ main() {
   # Add remaining hours
   remaining_hours=$(calculate_remaining_hours)
 
-  $file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
+  # File path
+  file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
-  echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Yhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas). Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä $remaining_work_hours tuntia.\n\n## Päivän eventit$all_events\n\n$priorities" > $file_path
+  echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Yhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas). Palaverien määrä tänään: $event_count. Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä $remaining_work_hours tuntia.\n\n## Päivän eventit$all_events\n\n$priorities" > $file_path
 
   # Add TASKS_TO_BE_SCHEDULED at the end of the file
   echo -e "\n\n---\n\n## Aikataulutetut tehtävät\n\n\`\`\`\n$TASKS_TO_SCHEDULE\n\`\`\`" >> $file_path

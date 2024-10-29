@@ -39,9 +39,10 @@ list_today_events() {
   # Replace with your Google Calendar ID(s)
   calendar_ids=("${WORK_CALENDAR_ID}" "${FAMILY_CALENDAR_ID}" "${TRAINING_CALENDAR_ID}")
 
-  # Initialize an empty variable to store all events and total duration
+  # Initialize an empty variable to store all events, total duration, and event count
   all_events=""
   total_event_duration=0
+  event_count=0
 
   # Loop through each calendar to fetch and list events
   for calendar_id in "${calendar_ids[@]}"; do
@@ -82,13 +83,19 @@ list_today_events() {
 
           # Calculate duration in hours
           event_duration=$(( (end_epoch - start_epoch) / 3600 ))
-          total_event_duration=$((total_event_duration + event_duration))
+
+          # Only count event duration if it's not "Lounas"
+          if [[ "$event_name" != "Lounas" ]]; then
+            total_event_duration=$((total_event_duration + event_duration))
+            event_count=$((event_count + 1))
+          fi
 
           # Add to events list with time details
           all_events+="- $event_name (klo $event_start_time-$event_end_time, kesto $event_duration tunti)\n"
         else
           # All-day event
           all_events+="- $event_name (koko päivän)\n"
+          event_count=$((event_count + 1))
         fi
       done <<< "$(echo "$calendar_events" | jq -c '.items[]')"
     fi
@@ -100,8 +107,9 @@ list_today_events() {
 
   # Output formatted events and total summary
   echo -e "${BOLD}${CYAN}Tämän päivän tapahtumat:${RESET}\n$all_events"
-  echo -e "Yhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas)."
+  echo -e "Yhteensä tapaamisia tänään $total_event_duration tuntia (ilman lounasta)."
   echo -e "Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä $remaining_work_hours tuntia."
+  echo -e "Palaverien määrä tänään: $event_count."
 }
 
 # Run the function

@@ -93,10 +93,17 @@ list_today_events() {
 
             # Calculate duration in hours
             event_duration=$(( (end_epoch - start_epoch) / 3600 ))
-            total_event_duration=$((total_event_duration + event_duration))
+            export total_event_duration=$((total_event_duration + event_duration))
+
+            # Count all events except "Lounas" or events that contain "Focus"
+            if [[ "$event_name" != "Lounas" && "$event_name" != *"Focus"* ]]; then
+              event_count=$((event_count + 1))
+            fi
 
             # Add to events list with time details
             all_events+="- $event_name (klo $event_start_time-$event_end_time, kesto $event_duration tunti)\n"
+            event_count=$((event_count + 1))
+            export event_count=$((event_count + 1))
           else
             # All-day event
             all_events+="- $event_name (koko päivän)\n"
@@ -106,13 +113,16 @@ list_today_events() {
     done
 
     # Calculate remaining work hours (assuming an 8-hour workday)
-    total_work_hours=8
-    remaining_work_hours=$((total_work_hours - total_event_duration))
+    export total_work_hours=8
+    export remaining_work_hours=$((total_work_hours - total_event_duration))
 
     # Output formatted events and total summary
-    echo -e "${BOLD}${CYAN}Tämän päivän tapahtumat:${RESET}\n$all_events"
-    echo -e "Yhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas)."
-    echo -e "Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä $remaining_work_hours tuntia."
+    # echo -e "${BOLD}${CYAN}Tämän päivän tapahtumat:${RESET}\n$all_events"
+    # echo -e "Yhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas)."
+    # echo -e "Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä $remaining_work_hours tuntia."
+    # echo -e "Palaverien määrä tänään: $event_count."
 
   done
 }
+
+list_today_events
