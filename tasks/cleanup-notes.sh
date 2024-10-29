@@ -1,17 +1,17 @@
-# Function: Cleanup notes by removing only (Metadata: ...) lines, while preserving the original text
+# Function: Cleanup notes by removing only the (Metadata: ...) part from each line, preserving the original text
 cleanup_notes() {
   local notes="$1"
   local cleaned_notes=""
 
-  # Remove the entire line containing "(Metadata: ...)"
-  cleaned_notes=$(echo "$notes" | sed '/(Metadata:.*)/d')
+  # Use sed to remove only the "(Metadata: ...)" part from each line, leaving the rest of the line intact
+  cleaned_notes=$(echo "$notes" | sed 's/(Metadata:.*)//g')
 
   # Debugging: Print the cleaned version of notes before saving
   if [ "$DEBUG" = true ]; then
     echo -e "${GREEN}Cleaned notes:${RESET}\n$cleaned_notes"
   fi
 
-  # Overwrite the original
+  # Overwrite the original file with cleaned notes
   echo "$cleaned_notes" > "$file"
 }
 

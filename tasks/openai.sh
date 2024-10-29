@@ -2,14 +2,7 @@ get_priorities() {
   local tasks="$1"
   local days_to_process="$2"
   local start_day="$3"
-  local DEBUG="$4"
-
-  # Get --debug argument
-  if [[ " $* " == *" --debug "* ]]; then
-    DEBUG=true
-  else
-    DEBUG=false
-  fi
+  local DEBUG=true
 
   combined_message=""
 
@@ -79,6 +72,7 @@ get_priorities() {
   # Debug
   if [ "$DEBUG" = true ]; then
     # Print all data
+    echo -e "${BOLD}${CYAN}all_events:${RESET}\n$all_events"
     echo -e "${BOLD}${CYAN}current_day:${RESET} $current_day"
     echo -e "${BOLD}${CYAN}current_time:${RESET} $current_time"
     echo -e "${BOLD}${CYAN}remaining_hours:${RESET} $remaining_hours"
