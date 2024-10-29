@@ -71,6 +71,15 @@ fetch_tasks() {
     # Initialize the counter
     counter=1
 
+    # Set excluded labels
+    excluded_labels=("Google-kalenterin tapahtuma" "Nobot")
+
+    # Construct the jq filter for excluded labels
+    jq_exclude_labels=$(printf 'select(.labels | contains(["%s"]) | not)' "${excluded_labels[@]}" | sed 's/ / and /g')
+
+    # Initialize the counter
+    counter=1
+
     # Process each task and format it with the counter for a numbered list
     day_tasks=""
     while IFS= read -r line; do
@@ -79,8 +88,10 @@ fetch_tasks() {
       # Increment the counter
       counter=$((counter + 1))
     done < <(echo "$tasks" | jq -r --arg current_day "$current_day" --argjson project_map "$project_map" --argjson subtask_counts "$subtask_counts" '
-      .[] | select(.due.date <= $current_day) |
+      .[] |
+      select(.due.date and .due.date <= $current_day) |
       select(.parent_id == null) |
+      select((.labels | index("Google-kalenterin tapahtuma") | not) and (.labels | index("Nobot") | not)) |
       .project_name = ($project_map[.project_id | tostring] // "Muu projekti") |
       .project_name = (if .project_name == "Todo" then "Työasiat" else .project_name end) |
       .subtask_count = ($subtask_counts[.id] // 0) |
@@ -95,7 +106,7 @@ fetch_tasks() {
   echo -e "${BOLD}${GREEN}Tasks:${RESET}\n$day_tasks"
 
   # Print task total amount for testing and remove empty spaces before the amount
-  echo -e "${BOLD}${GREEN}Total tasks fetched: $(echo -e "$day_tasks" | wc -l | xargs)${RESET}"
+  echo -e "${BOLD}${GREEN}Total tasks fetched: $(echo -e "$day_tasks" | grep -c '^.')${RESET}"
 
   # Debug
   if [ "$DEBUG" = true ]; then

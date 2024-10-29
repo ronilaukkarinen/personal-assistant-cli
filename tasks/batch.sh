@@ -48,9 +48,11 @@ function batch() {
     days_tasks+="$counter. $line\n"
     # Increment the counter
     counter=$((counter + 1))
-  done < <(echo "$tasks" | jq -r --arg start_day "$start_day" --arg end_day "$end_day" --argjson project_map "$project_map" --argjson subtask_counts "$subtask_counts" '
-    .[] | select(.due.date >= $start_day and .due.date <= $end_day) |
+  done < <(echo "$tasks" | jq -r --arg current_day "$current_day" --argjson project_map "$project_map" --argjson subtask_counts "$subtask_counts" '
+    .[] |
+    select(.due.date and .due.date <= $current_day) |
     select(.parent_id == null) |
+    select((.labels | index("Google-kalenterin tapahtuma") | not) and (.labels | index("Nobot") | not)) |
     .project_name = ($project_map[.project_id | tostring] // "Muu projekti") |
     .project_name = (if .project_name == "Todo" then "Työasiat" else .project_name end) |
     .subtask_count = ($subtask_counts[.id] // 0) |

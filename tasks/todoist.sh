@@ -42,8 +42,10 @@ fetch_tasks() {
       # Increment the counter
       counter=$((counter + 1))
     done < <(echo "$tasks" | jq -r --arg current_day "$current_day" --argjson project_map "$project_map" --argjson subtask_counts "$subtask_counts" '
-      .[] | select(.due.date <= $current_day) |
+      .[] |
+      select(.due.date and .due.date <= $current_day) |
       select(.parent_id == null) |
+      select((.labels | index("Google-kalenterin tapahtuma") | not) and (.labels | index("Nobot") | not)) |
       .project_name = ($project_map[.project_id | tostring] // "Muu projekti") |
       .project_name = (if .project_name == "Todo" then "Työasiat" else .project_name end) |
       .subtask_count = ($subtask_counts[.id] // 0) |
