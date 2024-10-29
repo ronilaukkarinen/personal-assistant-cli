@@ -160,6 +160,12 @@ sync_google_calendar_to_todoist() {
     else
       echo "$events" | jq -c '.items[]' | while read -r event; do
 
+        # Skip events that contain "Focus" in the title
+        if [[ "$(echo "$event" | jq -r '.summary')" == *"Focus"* ]]; then
+          echo -e "${BOLD}${RED}Skipping Focus event: $(echo "$event" | jq -r '.summary')${RESET}"
+          continue
+        fi
+
         # If attendees is not null
         if [[ "$(echo "$event" | jq -r '.attendees')" != "null" ]]; then
           # Check if the event is declined
@@ -262,6 +268,12 @@ sync_google_calendar_to_todoist() {
         echo -e "${BOLD}${RED}Error fetching events for personal calendar: $(echo "$events" | jq '.error.message')${RESET}"
       else
         echo "$events" | jq -c '.items[]' | while read -r event; do
+
+          # Skip events that contain "Focus" in the title
+          if [[ "$(echo "$event" | jq -r '.summary')" == *"Focus"* ]]; then
+            echo -e "${BOLD}${RED}Skipping Focus event: $(echo "$event" | jq -r '.summary')${RESET}"
+            continue
+          fi
 
           # If attendees is not null
           if [[ "$(echo "$event" | jq -r '.attendees')" != "null" ]]; then
