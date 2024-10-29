@@ -27,18 +27,18 @@ priorities='28. personal-assistant-cli: Ota huomioon montako tuntia työpäivä�
 30. personal-assistant-cli: Obsidian-muistiinpanoon taskin linkki (Kotiasiat) (Vapaa-ajan projektit / Personal) (Metadata: id: "8538082022", priority: "1", duration: "45", datetime: "2024-10-31T12:00:00")
 31. personal-assistant-cli: Poista gcalcli-dependenssi (Kotiasiat) (Vapaa-ajan projektit / Personal) (Metadata: id: "8538113818", priority: "1", duration: "undefined", datetime: "undefined")'
 
-# Extract the full line that includes the specific task ID
+# Extract the full line that includes the specific task ID, duration, and datetime
 if [[ "$(uname)" == "Darwin" ]]; then
-  metadata_line=$(echo "$priorities" | ggrep -P ".*Metadata: id: \"$task_id\".*")
-  task_duration=$(echo "$metadata_line" | ggrep -oP '(?<=duration:\s")\d+')
-  task_datetime=$(echo "$metadata_line" | ggrep -oP '(?<=datetime:\s")[^"]+')
+  metadata_line=$(echo "$priorities" | ggrep -P "Metadata:.*id:\s*\"$task_id\".*priority:\s*\"[0-9]+\".*duration:\s*\"[0-9a-zA-Z]+\".*datetime:\s*\"[0-9T:.Z-]+\"")
+  task_duration=$(echo "$metadata_line" | ggrep -oP '(?<=duration: ")[0-9a-zA-Z]+')
+  task_datetime=$(echo "$metadata_line" | ggrep -oP '(?<=datetime: ")[^"]+')
 else
-  metadata_line=$(echo "$priorities" | grep -P ".*Metadata: id: \"$task_id\".*")
-  task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration:\s")\d+')
-  task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime:\s")[^"]+')
+  metadata_line=$(echo "$priorities" | grep -P "Metadata:.*id:\s*\"$task_id\".*priority:\s*\"[0-9]+\".*duration:\s*\"[0-9a-zA-Z]+\".*datetime:\s*\"[0-9T:.Z-]+\"")
+  task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration: ")[0-9a-zA-Z]+')
+  task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime: ")[^"]+')
 fi
 
-# Print the matched line
+# Print the matched line and extracted values
 echo "metadata_line: $metadata_line"
 echo "task_duration: $task_duration"
 echo "task_datetime: $task_datetime"
