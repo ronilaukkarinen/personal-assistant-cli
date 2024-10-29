@@ -16,6 +16,7 @@ source "$root_path/.env"
 # Imports
 source "$root_path/tasks/check-leisure.sh"
 source "$root_path/tasks/variables.sh"
+source "$root_path/tasks/calculate-remaining-hours.sh"
 
 # Todoist API Key (replace with your own key)
 export TODOIST_API_KEY=${TODOIST_API_KEY}
@@ -100,6 +101,8 @@ fetch_tasks() {
   if [ "$DEBUG" = true ]; then
     echo -e "${BOLD}${CYAN}Tasks:\n$day_tasks${RESET}"
   fi
+
+  echo -e "Päivää on jäljellä $(calculate_remaining_hours) tuntia."
 
   # Exit
   exit 0
