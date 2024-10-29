@@ -17,6 +17,7 @@ source "$root_path/tests/list-events.sh"
 list_today_events
 
 # List events
+events=$all_events
 echo "events: $events"
 
 # Function: Determine whether it's work time or leisure time
