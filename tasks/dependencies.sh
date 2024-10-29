@@ -25,14 +25,3 @@ if ! command -v curl &> /dev/null; then
     sudo apt-get install curl
   fi
 fi
-
-# Check if gcalcli is installed, install it for the user if not
-if ! command -v gcalcli &> /dev/null; then
-  # If macOS
-  if [ "$(uname)" == "Darwin" ]; then
-    brew install gcalcli
-  else
-    # If Linux
-    sudo apt-get install gcalcli
-  fi
-fi

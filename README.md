@@ -73,21 +73,20 @@ These packages are auto-installed by the script.
 
 - `curl`
 - `jq`
-- `gcalcli` (for Google Calendar integration)
 - `ggrep` (for macOS users)
 - `homebrew` (for macOS users)
 - `coreutils` (for macOS users)
 
 ## Setup
 
-### Step 1: Clone the Repository
+### Clone the Repository
 
 ```bash
 git clone https://github.com/ronilaukkarinen/personal-assistant-cli.git
 cd personal-assistant-cli
 ```
 
-### Step 2: Create a `.env` File
+### Create a `.env` File
 
 Copy .env.example to .env:
 
@@ -154,19 +153,7 @@ You will need this Calendar ID when making API calls to Google Calendar.
 
 Add these to your .env.
 
-### Step 3: Authenticate Google Calendar (`gcalcli`)
-
-Run the following command to authenticate Google Calendar using `gcalcli`:
-
-```bash
-gcalcli --client_id $GOOGLE_CLIENT_ID --client_secret $GOOGLE_CLIENT_SECRET init
-```
-
-This will open a browser window asking for your Google account credentials and permissions to access your calendar. Once authenticated, `gcalcli` will store your credentials locally.
-
-**Please note**: For me this needed lxterminal and surf on an headless Linux desktop environment to get working on a VPS server. Please see: [Setting up a headless Obsidian instance for syncing](https://rolle.design/setting-up-a-headless-obsidian-instance-for-syncing).
-
-### Step 4: Set up hardcoded prompts in openai.sh
+### Set up hardcoded prompts in openai.sh
 
 You need to set up your own hardcoded prompts in openai.sh. This is the most important part of the script. The more accurate the prompts are, the better the results will be. The prompt will clarify metadata format of the tasks and events that the AI will use to prioritize your day.
 
@@ -176,7 +163,7 @@ Metadata needs to be in the following format:
 (Metadata: "duration": 60, "datetime": "YYYY-MM-DDTHH:MM:SS") (12345678901, siirretty seuraavalle päivälle)
 ```
 
-### Step 5: Run the Script
+### Run the Script
 
 You can run the script using the following command:
 
@@ -184,7 +171,7 @@ You can run the script using the following command:
 bash app.sh
 ```
 
-### Step 6: Debugging (Optional)
+### Debugging (Optional)
 
 To view detailed raw responses from OpenAI, use the `--debug` flag:
 

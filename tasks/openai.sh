@@ -60,15 +60,8 @@ get_priorities() {
 
     Älä unohda, että olen iltavirkku, heräisin mielelläni klo 9-10, minun on nukuttava vähintään 8 tuntia 15 minuuttia, joten kerro myös, milloin minun tulisi aloittaa iltarauhoittuminen ja milloin minun ei pitäisi tehdä vireyttä lisäävää tekemistä. Älä ajoita tehtäviä välille 00-10. ÄLÄ aikatauluta mitään tehtävää ennen klo 10 aamulle, aloitan aktiivisen tekemisen klo 10 ja lopetan klo 18. Ota huomioon ennalta aikataulutetut Google-kalenterin palaverit, älä siirrä tai aikatauluta niiden päälle mitään.\n'
 
-    # Add general prompt
-    combined_message+="\n${GENERAL_PROMPT}\n\n"
-
-    # If day is today
-    if [ "$current_day" == "$compare_day" ]; then
-      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\nTässä ovat tämänpäiväiset tapahtumat ja tehtävät:\n${tasks}\n\n$note_instructions\n\nTänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia."
-    else
-      combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\n$note_instructions\n\nTässä ovat $date_today päivän tapahtumat ja tehtävät (mukana ID:t):\n${tasks}\n\n$note_instructions\n\nOle hyvä ja arvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Tänään on $date_today, $day_of_week. Kello on $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Ota mukaan kaikki alkuperäisen listan tehtävät, älä tiivistä niin että tehtäviä jää pois. Jokainen on tärkeä mainita ja huomioida."
-    fi
+    # The actual prompt
+    combined_message+="${PROMPT_BGINFO}\n\nTässä lista tehtävistä:\n\n${tasks}\n\n${PROMPT}\n\n$note_instructions"
   done
 
   # Debug

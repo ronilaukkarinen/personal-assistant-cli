@@ -4,6 +4,8 @@
 * Add tests for Todoist and listing events
 * Deprecate gcalcli and use direct Google Calendar API call instead
 * Remove postpone function and combine with the schedule function
+* Add the list of tasks to be sheculed and links to tasks at the end of the note
+* Deprecate GENERAL_PROMPT
 
 # 1.1.8: 2024-10-26
 
