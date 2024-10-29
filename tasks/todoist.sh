@@ -3,6 +3,14 @@ fetch_tasks() {
   local start_day="$1"
   local days_to_process="$2"
 
+  # If there is no days_to_process argument, default to 1 day
+  if [ -z "$days_to_process" ]; then
+    days_to_process=1
+    offset=$((days_to_process - 0))
+  else
+    offset=$((days_to_process - 1))
+  fi
+
   # Fetch tasks from Todoist API
   tasks=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/tasks" \
@@ -20,7 +28,7 @@ fetch_tasks() {
   subtask_counts=$(echo "$tasks" | jq -r '[.[] | select(.parent_id != null) | .parent_id] | group_by(.) | map({(.[0]): length}) | add')
 
   # Loop through the days to process
-  for i in $(seq 0 $((days_to_process - 1))); do
+  for i in $(seq 0 $((offset))); do
 
     # Calculate current day
     if [[ "$(uname)" == "Darwin" ]]; then

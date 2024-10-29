@@ -3,17 +3,17 @@
 main() {
   local mode="today"  # Default to processing today's tasks
   local days_to_process=1  # Default to 1 day
-  local start_day=$(date +%Y-%m-%d)
+  local start_day
 
-  # Parse command line arguments
-  source "${SCRIPTS_LOCATION}/tasks/arguments.sh"
+  # Start date
+  start_day=$current_day
 
   # Process based on mode
   if [ "$mode" = "days" ] && [ "$days_to_process" -gt 0 ]; then
     echo -e "${BOLD}${YELLOW}Processing tasks for the next $days_to_process days...${RESET}"
     fetch_tasks "$start_day" "$days_to_process"
   else
-    echo -e "${BOLD}${YELLOW}Processing today's tasks...${RESET}"
+    echo -e "${BOLD}${YELLOW}Processing tasks for $start_day...${RESET}"
     fetch_tasks "$start_day" 1
   fi
 
