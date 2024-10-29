@@ -57,6 +57,12 @@ list_today_events() {
       while IFS= read -r event; do
         # Extract event summary, start, and end details
         event_name=$(echo "$event" | jq -r '.summary')
+
+        # Skip events with "Focus" in the name or empty event names
+        if [[ -z "$event_name" || "$event_name" == *"Focus"* ]]; then
+          continue
+        fi
+
         event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date')
         event_end=$(echo "$event" | jq -r '.end.dateTime // .end.date')
 
