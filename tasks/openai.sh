@@ -2,9 +2,10 @@ get_priorities() {
   local tasks="$1"
   local days_to_process="$2"
   local start_day="$3"
+  local DEBUG="$4"
 
-  # Get --debug argument from command line reliably, grep
-  if echo "$@" | grep -q "\-\-debug"; then
+  # Get --debug argument
+  if [[ " $* " == *" --debug "* ]]; then
     DEBUG=true
   else
     DEBUG=false
@@ -63,7 +64,7 @@ get_priorities() {
 
     *Jokaisen tehtävän metadataan on päivitettävä* "duration" ja "datetime" kentät. Anna lista yhtenä kokonaisuutena, varmistaen että kaikki tehtävät ovat mukana muuttamattomina, lukuun ottamatta pyydettyjä muutoksia metadatariveillä.\n\n
 
-    Kun olet valmis, tee muistiinpanot priorisointisi perusteista ja aikataulutusstrategiastasi. Voit korostaa tehtäviin kuluvia aikoja, tärkeimpiä tehtäviä, niiden perusteluja sekä syitä priorisoinnille.\n\n
+    Kun olet valmis, tee muistiinpanot priorisointisi perusteista ja aikataulutusstrategiastasi. Voit korostaa tehtäviin kuluvia aikoja, tärkeimpiä tehtäviä, niiden perusteluja sekä syitä priorisoinnille. Käytä isoja alkukirjaimia vain otsikoiden alussa. Otsikot voisivat olla "Tärkeimmät tehtävät tänään", "Lykätyt tehtävät" ja "Yhteenveto".\n\n
 
     Älä unohda, että olen iltavirkku, heräisin mielelläni klo 9-10, minun on nukuttava vähintään 8 tuntia 15 minuuttia, joten kerro myös, milloin minun tulisi aloittaa iltarauhoittuminen ja milloin minun ei pitäisi tehdä vireyttä lisäävää tekemistä. Älä ajoita tehtäviä välille 00-10. ÄLÄ aikatauluta mitään tehtävää ennen klo 10 aamulle, aloitan aktiivisen tekemisen klo 10 ja lopetan klo 18. Ota huomioon ennalta aikataulutetut Google-kalenterin palaverit, älä siirrä tai aikatauluta niiden päälle mitään.\n'
 

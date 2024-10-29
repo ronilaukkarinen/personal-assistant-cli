@@ -102,8 +102,6 @@ list_today_events() {
 
             # Add to events list with time details
             all_events+="- $event_name (klo $event_start_time-$event_end_time, kesto $event_duration tunti)\n"
-            event_count=$((event_count + 1))
-            export event_count=$((event_count + 1))
           else
             # All-day event
             all_events+="- $event_name (koko päivän)\n"

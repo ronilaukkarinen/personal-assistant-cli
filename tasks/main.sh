@@ -17,6 +17,13 @@ main() {
     fetch_tasks "$start_day" 1
   fi
 
+  # Get --debug argument
+  if [[ " $* " == *" --debug "* ]]; then
+    DEBUG=true
+  else
+    DEBUG=false
+  fi
+
   if [ "$mode" = "days" ] && [ "$days_to_process" -gt 0 ]; then
     echo -e "${BOLD}${YELLOW}Prioritizing tasks with OpenAI for the next $days_to_process days...${RESET}"
     priorities=$(get_priorities "$day_tasks" "$days_to_process" "$start_day")
@@ -59,10 +66,10 @@ main() {
   file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
-  echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Yhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas). Palaverien määrä tänään: $event_count. Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä $remaining_work_hours tuntia.\n\n## Päivän eventit$all_events\n\n$priorities" > $file_path
+  echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia. Yhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas). Palaverien määrä tänään: $event_count. Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä $remaining_work_hours tuntia.\n\n## Päivän tapahtumat\n\n$all_events\n$priorities" > "$file_path"
 
   # Add TASKS_TO_BE_SCHEDULED at the end of the file
-  echo -e "\n\n---\n\n## Aikataulutetut tehtävät\n\n\`\`\`\n$TASKS_TO_SCHEDULE\n\`\`\`" >> $file_path
+  echo -e "\n\n## Aikataulutetut tehtävät\n\n$TASKS_TO_BE_SCHEDULED" >> "$file_path"
 
   echo -e "${BOLD}${GREEN}Prioritization is ready and saved to Obsidian, file: $file_path.md${RESET}"
 

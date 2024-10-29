@@ -7,6 +7,7 @@
 * Add the list of tasks to be sheculed and links to tasks at the end of the note
 * Deprecate GENERAL_PROMPT
 * Do not sync focus events back to Todoist
+* Add meeting count to note
 
 # 1.1.8: 2024-10-26
 
