@@ -71,15 +71,6 @@ fetch_tasks() {
     # Initialize the counter
     counter=1
 
-    # Set excluded labels
-    excluded_labels=("Google-kalenterin tapahtuma" "Nobot")
-
-    # Construct the jq filter for excluded labels
-    jq_exclude_labels=$(printf 'select(.labels | contains(["%s"]) | not)' "${excluded_labels[@]}" | sed 's/ / and /g')
-
-    # Initialize the counter
-    counter=1
-
     # Process each task and format it with the counter for a numbered list
     day_tasks=""
     while IFS= read -r line; do
@@ -102,6 +93,26 @@ fetch_tasks() {
     ')
   done
 
+  # Clear text version
+  TASKS_TO_BE_SCHEDULED=""
+
+  # Process each task and format it as a Todoist markdown link
+  while IFS= read -r line; do
+    # Extract task name and ID for link creation
+    task_name=$(echo "$line" | jq -r '.content')
+    task_id=$(echo "$line" | jq -r '.id')
+
+    # Format each task with a link
+    TASKS_TO_BE_SCHEDULED+="- [ ] [$task_name](https://app.todoist.com/showTask?id=$task_id)\n"
+  done < <(echo "$tasks" | jq -c --arg current_day "$current_day" --argjson project_map "$project_map" --argjson subtask_counts "$subtask_counts" '
+    .[] |
+    select(.due.date <= $current_day) |
+    select(.parent_id == null) |
+    select((.labels | index("Google-kalenterin tapahtuma") | not) and (.labels | index("Nobot") | not)) |
+    .project_name = ($project_map[.project_id | tostring] // "Muu projekti") |
+    {content: .content, id: .id}
+  ')
+
   # Print tasks
   echo -e "${BOLD}${GREEN}Tasks:${RESET}\n$day_tasks"
 
@@ -114,6 +125,8 @@ fetch_tasks() {
   fi
 
   echo -e "Päivää on jäljellä $(calculate_remaining_hours) tuntia."
+
+  echo -e "\n${BOLD}${GREEN}TASKS_TO_BE_SCHEDULED:${RESET}\n$TASKS_TO_BE_SCHEDULED"
 
   # Exit
   exit 0

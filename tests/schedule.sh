@@ -13,9 +13,9 @@ export TODOIST_API_KEY=${TODOIST_API_KEY}
 
 # Tester function to schedule task directly
 test_schedule_task() {
-  local task_id="8489972326" # Testing with this ID
+  local task_id="8538172256" # Testing with this ID
   local duration="60" # Set duration for 60 minutes
-  local datetime="2024-10-15T16:30:00" # Set test datetime
+  local datetime="2024-10-29T22:30:00" # Set test datetime
   local current_day=$(date +%Y-%m-%d) # Use today's date
 
   # Call the schedule_task function

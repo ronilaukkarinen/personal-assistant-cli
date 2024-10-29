@@ -56,6 +56,9 @@ fetch_tasks() {
     ')
   done
 
+  # Export tasks to be scheduled to a variable used later in other script
+  export TASKS_TO_SCHEDULE="$tasks"
+
   # Print tasks
   echo -e "${BOLD}${GREEN}Tasks fetched:${RESET}\n$day_tasks"
 
@@ -63,4 +66,27 @@ fetch_tasks() {
   if [ "$DEBUG" = true ]; then
     echo -e "${BOLD}${CYAN}Tasks:\n$day_tasks${RESET}"
   fi
+
+  # Clear text version
+  TASKS_TO_BE_SCHEDULED=""
+
+  # Process each task and format it as a Todoist markdown link
+  while IFS= read -r line; do
+    # Extract task name and ID for link creation
+    task_name=$(echo "$line" | jq -r '.content')
+    task_id=$(echo "$line" | jq -r '.id')
+
+    # Format each task with a link
+    TASKS_TO_BE_SCHEDULED+="- [ ] [$task_name](https://app.todoist.com/showTask?id=$task_id)\n"
+  done < <(echo "$tasks" | jq -c --arg current_day "$current_day" --argjson project_map "$project_map" --argjson subtask_counts "$subtask_counts" '
+    .[] |
+    select(.due.date <= $current_day) |
+    select(.parent_id == null) |
+    select((.labels | index("Google-kalenterin tapahtuma") | not) and (.labels | index("Nobot") | not)) |
+    .project_name = ($project_map[.project_id | tostring] // "Muu projekti") |
+    {content: .content, id: .id}
+  ')
+
+  # Export variable to be used in other part of the program
+  export TASKS_TO_BE_SCHEDULED
 }

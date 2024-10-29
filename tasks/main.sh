@@ -58,6 +58,9 @@ main() {
   # Save output to Obsidian vault with the current time and remaining hours in the header
   echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
 
+  # Add TASKS_TO_BE_SCHEDULED at the end of the file
+  echo -e "\n\n---\n\n## Aikataulutetut tehtävät\n\n\`\`\`\n$TASKS_TO_SCHEDULE\n\`\`\`" >> "$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
+
   echo -e "${BOLD}${GREEN}Prioritization is ready and saved to Obsidian.${RESET}"
 
   # Debug: Print the full content of tasks to see what's being parsed
@@ -91,8 +94,13 @@ main() {
       fi
 
       if [[ -n "$metadata_line" ]]; then
-        task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration":\s)[0-9]+')
-        task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime":\s")[^"]+')
+        if [[ "$(uname)" == "Darwin" ]]; then
+          task_duration=$(echo "$metadata_line" | ggrep -oP '(?<=duration:\s")\d+')
+          task_datetime=$(echo "$metadata_line" | ggrep -oP '(?<=datetime:\s")[^"]+')
+        else
+          task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration:\s")\d+')
+          task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime:\s")[^"]+')
+        fi
 
         if [[ -n "$task_duration" && -n "$task_datetime" ]]; then
           schedule_task "$task_id" "$task_duration" "$task_datetime"
@@ -105,30 +113,6 @@ main() {
     done
   else
     echo -e "${BOLD}${CYAN}AI did not suggest scheduling any tasks or task IDs were not found.${RESET}"
-  fi
-
-  echo -e "${BOLD}${YELLOW}Postponing tasks to the next day...${RESET}"
-  # macOS and Linux compatible version
-  if [[ "$(uname)" == "Darwin" ]]; then
-    task_ids_to_postpone=$(echo "$priorities" | ggrep -oP '\b\d{5,}\b(?=.*siirretty seuraavalle päivälle)')
-  else
-    task_ids_to_postpone=$(echo "$priorities" | grep -oP '\b\d{5,}\b(?=.*siirretty seuraavalle päivälle)')
-  fi
-
-  # Debugging to see the extracted task IDs
-  if [ "$DEBUG" = true ]; then
-    echo -e "${BOLD}${CYAN}Postponed task IDs:${RESET} $task_ids_to_postpone"
-  fi
-
-  # Moving those tasks to the next day that AI suggested
-  if [[ -n "$task_ids_to_postpone" ]]; then
-    echo -e "${BOLD}${YELLOW}Postponing tasks suggested by AI to the next day...${RESET}"
-
-    for postpone_task_id in $task_ids_to_postpone; do
-      postpone_task "$postpone_task_id" "$current_day"
-    done
-  else
-    echo -e "${BOLD}${CYAN}AI did not suggest postponing any tasks or task IDs were not found.${RESET}"
   fi
 }
 
