@@ -2,7 +2,7 @@
 
 * Fix offset for event lists
 * Fix offset, fix past tasks being re-scheduled
-* *Fix cleanup
+* Fix cleanup
 * Postpone further the backlog tasks
 * If start day is set, use it as current_day
 * Fix start day not parsing properly
@@ -11,6 +11,9 @@
 * Fix right events not counted
 * Fix typos
 * Improve fetching events without argument
+* Improve prompt
+* Declare version
+* Add prettier message to scheduled task comment
 
 # 1.1.9: 2024-10-29
 

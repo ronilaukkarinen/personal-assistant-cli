@@ -40,8 +40,17 @@ schedule_task() {
   # Debugging output to check the variables
   echo "Task name: $task_name, Task ID: $task_id, Duration: $duration, Datetime: $datetime, Recurring: $recurring"
 
-  # Comment to be added to the scheduled task
-  comment="Rollen tekoälyavustaja v${SCRIPT_VERSION} lykkäsi tätä eteenpäin $current_day ajalle $datetime ja kestolle $duration minuuttia."
+  # Format datetime for prettier output
+  if [[ "$(uname)" == "Darwin" ]]; then
+    formatted_date=$(gdate -d "$datetime" "+%d. %B %Y")
+    formatted_time=$(gdate -d "$datetime" "+%H:%M")
+  else
+    formatted_date=$(date -d "$datetime" "+%d. %B %Y")
+    formatted_time=$(date -d "$datetime" "+%H:%M")
+  fi
+
+  # Prettified comment to be added to the scheduled task
+  comment="🤖 Rollen tekoälyavustaja v${SCRIPT_VERSION} lykkäsi tätä tehtävää eteenpäin ajalle $formatted_date, kello $formatted_time. Tehtävän kestoksi määriteltiin $duration minuuttia."
 
   if [ "$recurring" == "true" ]; then
     if [ "$duration" -gt 0 ]; then
