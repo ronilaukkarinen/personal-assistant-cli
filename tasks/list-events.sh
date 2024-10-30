@@ -16,8 +16,8 @@ refresh_access_token
 
 # If there is no days_to_process argument, default to 1 day
 if [ -z "$days_to_process" ]; then
-  days_to_process=1
-  offset=$((days_to_process - 0))
+  days_to_process=0
+  offset=0
 else
   offset=$((days_to_process - 1))
 fi

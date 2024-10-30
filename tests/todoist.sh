@@ -75,7 +75,7 @@ fetch_tasks() {
       counter=$((counter + 1))
     done < <(echo "$tasks" | jq -r --arg current_day "$current_day" --argjson project_map "$project_map" --argjson subtask_counts "$subtask_counts" '
       .[] |
-      select(.due.date <= $current_day) |
+      select(.due.date == $current_day) |
       select(.parent_id == null) |
       select((.labels | index("Google-kalenterin tapahtuma") | not) and (.labels | index("Nobot") | not)) |
       .project_name = ($project_map[.project_id | tostring] // "Muu projekti") |
@@ -101,7 +101,7 @@ fetch_tasks() {
     TASKS_TO_BE_SCHEDULED+="- [ ] [$task_name](https://app.todoist.com/showTask?id=$task_id)\n"
   done < <(echo "$tasks" | jq -c --arg current_day "$current_day" --argjson project_map "$project_map" --argjson subtask_counts "$subtask_counts" '
     .[] |
-    select(.due.date <= $current_day) |
+    select(.due.date == $current_day) |
     select(.parent_id == null) |
     select((.labels | index("Google-kalenterin tapahtuma") | not) and (.labels | index("Nobot") | not)) |
     .project_name = ($project_map[.project_id | tostring] // "Muu projekti") |
