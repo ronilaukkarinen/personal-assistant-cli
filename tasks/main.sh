@@ -1,17 +1,27 @@
+# Initialize start_day as empty
+start_day=""
+
+# Loop through all arguments
+for arg in "$@"; do
+  # If --start-day is found, set start_day to the next argument
+  if [[ "$arg" == "--start-day" ]]; then
+    start_day="true" # Set a flag to capture the next argument
+  elif [[ "$start_day" == "true" ]]; then
+    start_day="$arg"
+    break
+  fi
+done
+
+# If start day is not defined, used today
+if [[ -z "$start_day" ]]; then
+  start_day=$(date "+%Y-%m-%d")
+fi
 
 # Main function
 main() {
   local mode="today"  # Default to processing today's tasks
   local days_to_process=1  # Default to 1 day
   local start_day
-
-  # If command line argument start day is defined
-  if [[ "$1" == "--start-day" ]]; then
-    # Start date
-    start_day=$current_day
-  else
-    start_day=$(date "+%Y-%m-%d")
-  fi
 
   # Process based on mode
   if [ "$mode" = "days" ] && [ "$days_to_process" -gt 0 ]; then
