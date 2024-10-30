@@ -1,14 +1,28 @@
 # Function: Fetch tasks from Todoist for a range of days, excluding subtasks but calculating subtask count
-fetch_tasks() {
-  local start_day="$1"
-  local days_to_process="$2"
+# Initialize start_day as empty
+start_day=""
 
-  # If there is no days_to_process argument, default to 1 day
-  if [ -z "$days_to_process" ]; then
-    days_to_process=1
-    offset=$((days_to_process - 0))
-  else
+# Loop through all arguments
+for arg in "$@"; do
+  # If --start-day is found, set start_day to the next argument
+  if [[ "$arg" == "--start-day" ]]; then
+    start_day="true" # Set a flag to capture the next argument
+  elif [[ "$start_day" == "true" ]]; then
+    start_day="$arg"
+    break
+  fi
+done
+
+fetch_tasks() {
+  local days_to_process=1
+
+  # If there's --days argument, set the number of days to process
+  if [[ -n "$1" ]]; then
+    days_to_process="$1"
     offset=$((days_to_process - 1))
+  else
+    days_to_process=0
+    offset=$((days_to_process - 0))
   fi
 
   # Fetch tasks from Todoist API
@@ -29,13 +43,6 @@ fetch_tasks() {
 
   # Loop through the days to process
   for i in $(seq 0 $((offset))); do
-
-    # Calculate current day
-    if [[ "$(uname)" == "Darwin" ]]; then
-      current_day=$(gdate -d "$start_day + $i days" "+%Y-%m-%d")
-    else
-      current_day=$(date -d "$start_day + $i days" "+%Y-%m-%d")
-    fi
 
     echo -e "${BOLD}${YELLOW}Fetching tasks for: $current_day...${RESET}"
 

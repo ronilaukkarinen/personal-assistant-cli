@@ -21,40 +21,31 @@ source "$root_path/tasks/calculate-remaining-hours.sh"
 # Todoist API Key (replace with your own key)
 export TODOIST_API_KEY=${TODOIST_API_KEY}
 
+# Initialize start_day as empty
+start_day=""
+
+# Loop through all arguments
+for arg in "$@"; do
+  # If --start-day is found, set start_day to the next argument
+  if [[ "$arg" == "--start-day" ]]; then
+    start_day="true" # Set a flag to capture the next argument
+  elif [[ "$start_day" == "true" ]]; then
+    start_day="$arg"
+    break
+  fi
+done
+
 # Function: Fetch tasks from Todoist for a range of days, excluding subtasks but calculating subtask count
 fetch_tasks() {
-  local start_day="$1"
   local days_to_process=1
-
-  # If there's --start-day argument, set the start day
-  if [[ -n "$start_day" ]]; then
-    start_day="$start_day"
-  else
-    # Set the start day to today
-    if [[ "$(uname)" == "Darwin" ]]; then
-      start_day=$(gdate -I)
-    else
-      start_day=$(date -I)
-    fi
-  fi
 
   # If there's --days argument, set the number of days to process
   if [[ -n "$1" ]]; then
-    days_to_process="$2"
-  fi
-
-  # Use today
-  if [ -z "$start_day" ]; then
-    if [[ "$(uname)" == "Darwin" ]]; then
-      start_day=$(gdate "+%Y-%m-%d")
-    else
-      start_day=$(date "+%Y-%m-%d")
-    fi
-  fi
-
-  # Process 0 days
-  if [ -z "$days_to_process" ]; then
-    days_to_process=1
+    days_to_process="$1"
+    offset=$((days_to_process - 1))
+  else
+    days_to_process=0
+    offset=$((days_to_process - 0))
   fi
 
   # Fetch tasks from Todoist API
@@ -74,7 +65,7 @@ fetch_tasks() {
   subtask_counts=$(echo "$tasks" | jq -r '[.[] | select(.parent_id != null) | .parent_id] | group_by(.) | map({(.[0]): length}) | add')
 
   # Loop through the days to process
-  for i in $(seq 0 $((days_to_process - 1))); do
+  for i in $(seq 0 $((offset))); do
 
     # Calculate current day
     if [[ "$(uname)" == "Darwin" ]]; then
