@@ -24,16 +24,7 @@ fi
 
 # Function: Fetch and display today's events from Google Calendar
 list_today_events() {
-    # Define current day
-  # Check if macOS is used
-  if [[ "$(uname)" == "Darwin" ]]; then
-    current_day=$(gdate -d "$start_day + $i days" "+%Y-%m-%d")
-  else
-    current_day=$(date -d "$start_day + $i days" "+%Y-%m-%d")
-  fi
-
-  for i in $(seq 0 $((days_to_process-1))); do
-
+  for i in $(seq 0 $((offset))); do
     timeMin="${current_day}T00:00:00Z"
     timeMax="${current_day}T23:59:59Z"
 

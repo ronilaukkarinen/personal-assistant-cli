@@ -27,12 +27,6 @@ refresh_access_token
 
 # Function: Fetch and display today's events from Google Calendar
 list_today_events() {
-  # Define the start and end times for today in UTC
-  if [[ "$(uname)" == "Darwin" ]]; then
-    current_day=$(gdate -u +"%Y-%m-%d")
-  else
-    current_day=$(date -u +"%Y-%m-%d")
-  fi
   timeMin="${current_day}T00:00:00Z"
   timeMax="${current_day}T23:59:59Z"
 
