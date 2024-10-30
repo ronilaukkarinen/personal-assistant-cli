@@ -1,3 +1,17 @@
+# 1.2.0: 2024-10-30
+
+* Fix offset for event lists
+* Fix offset, fix past tasks being re-scheduled
+* *Fix cleanup
+* Postpone further the backlog tasks
+* If start day is set, use it as current_day
+* Fix start day not parsing properly
+* Fix fetching tasks for start day in the main script
+* Fix start day for tasks
+* Fix right events not counted
+* Fix typos
+* Improve fetching events without argument
+
 # 1.1.9: 2024-10-29
 
 * Add task metadata template, improve prompt to take account all tasks
