@@ -27,15 +27,15 @@ list_today_events() {
     offset=$((days_to_process - 1))
   fi
 
-  # If command line argument start day is defined
-  if [[ "$1" == "--start-day" ]]; then
-    # Start date
-    start_day=$current_day
+  # Define current day
+  # Check if macOS is used
+  if [[ "$(uname)" == "Darwin" ]]; then
+    current_day=$(gdate -d "$start_day + $i days" "+%Y-%m-%d")
   else
-    start_day=$(date "+%Y-%m-%d")
+    current_day=$(date -d "$start_day + $i days" "+%Y-%m-%d")
   fi
 
-  for i in $(seq 0 $((offset))); do
+  for i in $(seq 0 $((days_to_process-1))); do
 
     timeMin="${current_day}T00:00:00Z"
     timeMax="${current_day}T23:59:59Z"
@@ -89,7 +89,7 @@ list_today_events() {
             export total_event_duration=$((total_event_duration + event_duration))
 
             # Count all events except "Lounas" or events that contain "Focus"
-            if [[ "$event_name" != *"Lounas"* && "$event_name" != *"Focus"* ]]; then
+            if [[ "$event_name" != *"Lounas"* || "$event_name" != *"Focus"* ]]; then
               event_count=$((event_count + 1))
             fi
 

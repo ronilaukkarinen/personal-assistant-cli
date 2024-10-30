@@ -84,18 +84,6 @@ get_todoist_project_id() {
 sync_google_calendar_to_todoist() {
   local days_to_process=1
 
-  # If there's --start-day argument, set the start day
-  if [[ -n "$start_day" ]]; then
-    start_day="$start_day"
-  else
-    # Set the start day to today
-    if [[ "$(uname)" == "Darwin" ]]; then
-      start_day=$(gdate -I)
-    else
-      start_day=$(date -I)
-    fi
-  fi
-
   # If there's --days argument, set the number of days to process
   if [[ -n "$1" ]]; then
     days_to_process="$1"

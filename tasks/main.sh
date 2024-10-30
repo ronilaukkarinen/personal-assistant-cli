@@ -1,17 +1,7 @@
-
 # Main function
 main() {
   local mode="today"  # Default to processing today's tasks
   local days_to_process=1  # Default to 1 day
-  local start_day
-
-  # If command line argument start day is defined
-  if [[ "$1" == "--start-day" ]]; then
-    # Start date
-    start_day=$current_day
-  else
-    start_day=$(date "+%Y-%m-%d")
-  fi
 
   # Process based on mode
   if [ "$mode" = "days" ] && [ "$days_to_process" -gt 0 ]; then
