@@ -23,17 +23,6 @@ list_today_events() {
     days_to_process=$1
   fi
 
-  # Get --start_day
-  if [ -z "$2" ]; then
-    if [[ "$(uname)" == "Darwin" ]]; then
-      start_day=$(gdate "+%Y-%m-%d")
-    else
-      start_day=$(date "+%Y-%m-%d")
-    fi
-  else
-    start_day=$2
-  fi
-
   # Define current day
   # Check if macOS is used
   if [[ "$(uname)" == "Darwin" ]]; then

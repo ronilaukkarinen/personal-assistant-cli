@@ -1,18 +1,4 @@
 # Function: Fetch tasks from Todoist for a range of days, excluding subtasks but calculating subtask count
-# Initialize start_day as empty
-start_day=""
-
-# Loop through all arguments
-for arg in "$@"; do
-  # If --start-day is found, set start_day to the next argument
-  if [[ "$arg" == "--start-day" ]]; then
-    start_day="true" # Set a flag to capture the next argument
-  elif [[ "$start_day" == "true" ]]; then
-    start_day="$arg"
-    break
-  fi
-done
-
 fetch_tasks() {
   local days_to_process=1
 
