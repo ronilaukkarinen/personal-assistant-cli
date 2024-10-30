@@ -72,9 +72,24 @@ list_today_events() {
               end_epoch=$(date -d "$event_end" +%s)
             fi
 
-            # Calculate duration in hours
-            event_duration=$(( (end_epoch - start_epoch) / 3600 ))
-            export total_event_duration=$((total_event_duration + event_duration))
+            # Calculate duration in hours and minutes
+            duration_in_seconds=$(( end_epoch - start_epoch ))
+            event_duration_hours=$(( duration_in_seconds / 3600 ))
+            event_duration_minutes=$(( (duration_in_seconds % 3600) / 60 ))
+
+            # Add duration to total_event_duration (in hours)
+            export total_event_duration=$((total_event_duration + event_duration_hours))
+
+            # Format the duration string
+            if (( event_duration_hours > 0 )) && (( event_duration_minutes > 0 )); then
+                duration_text="$event_duration_hours tunti$( [ "$event_duration_hours" -gt 1 ] && echo "a" ) $event_duration_minutes minuuttia"
+            elif (( event_duration_hours > 0 )); then
+                duration_text="$event_duration_hours tunti$( [ "$event_duration_hours" -gt 1 ] && echo "a" )"
+            elif (( event_duration_minutes > 0 )); then
+                duration_text="$event_duration_minutes minuuttia"
+            else
+                duration_text="0 minuuttia"
+            fi
 
             # Count all events except "Lounas" or events that contain "Focus"
             if [[ "$event_name" != *"Lounas"* || "$event_name" != *"Focus"* ]]; then
@@ -82,7 +97,7 @@ list_today_events() {
             fi
 
             # Add to events list with time details
-            all_events+="- $event_name (klo $event_start_time-$event_end_time, kesto $event_duration tunti)\n"
+            all_events+="- $event_name (klo $event_start_time-$event_end_time, kesto $duration_text)\n"
           else
             # All-day event
             all_events+="- $event_name (koko päivän)\n"
