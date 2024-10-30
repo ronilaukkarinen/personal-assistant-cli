@@ -14,26 +14,13 @@ root_path=$(cd "$script_path/.." && pwd)
 source "$root_path/.env"
 
 # Imports
+source "$root_path/tasks/arguments.sh"
 source "$root_path/tasks/check-leisure.sh"
 source "$root_path/tasks/variables.sh"
 source "$root_path/tasks/calculate-remaining-hours.sh"
 
 # Todoist API Key (replace with your own key)
 export TODOIST_API_KEY=${TODOIST_API_KEY}
-
-# Initialize start_day as empty
-start_day=""
-
-# Loop through all arguments
-for arg in "$@"; do
-  # If --start-day is found, set start_day to the next argument
-  if [[ "$arg" == "--start-day" ]]; then
-    start_day="true" # Set a flag to capture the next argument
-  elif [[ "$start_day" == "true" ]]; then
-    start_day="$arg"
-    break
-  fi
-done
 
 # Function: Fetch tasks from Todoist for a range of days, excluding subtasks but calculating subtask count
 fetch_tasks() {
