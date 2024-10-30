@@ -1,4 +1,12 @@
 # Function: Cleanup notes by removing only the (Metadata: ...) part from each line, preserving the original text
+
+# If start day is set, use it as current_day
+if [ -n "$start_day" ]; then
+  current_day="$start_day"
+else
+  current_day=$(date "+%Y-%m-%d")
+fi
+
 cleanup_notes() {
   local notes="$1"
   local cleaned_notes=""
