@@ -1,5 +1,13 @@
 # Function: Cleanup notes by removing only the (Metadata: ...) part from each line, preserving the original text
 
+# If run directly, import arguments
+if [ "${1}" != "--source-only" ]; then
+  script_path=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+  script_path=${script_path%/tasks}
+  root_path=$(cd "$script_path/.." && pwd)
+  source "${script_path}/tasks/arguments.sh"
+fi
+
 # If start day is set, use it as current_day
 if [ -n "$start_day" ]; then
   current_day="$start_day"

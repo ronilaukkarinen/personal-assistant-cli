@@ -14,20 +14,17 @@ refresh_access_token() {
 # Call the function to refresh the access token before making API calls
 refresh_access_token
 
+# If there is no days_to_process argument, default to 1 day
+if [ -z "$days_to_process" ]; then
+  days_to_process=1
+  offset=$((days_to_process - 0))
+else
+  offset=$((days_to_process - 1))
+fi
+
 # Function: Fetch and display today's events from Google Calendar
 list_today_events() {
-  local start_day="$1"
-  local days_to_process="$2"
-
-  # If there is no days_to_process argument, default to 1 day
-  if [ -z "$days_to_process" ]; then
-    days_to_process=1
-    offset=$((days_to_process - 0))
-  else
-    offset=$((days_to_process - 1))
-  fi
-
-  # Define current day
+    # Define current day
   # Check if macOS is used
   if [[ "$(uname)" == "Darwin" ]]; then
     current_day=$(gdate -d "$start_day + $i days" "+%Y-%m-%d")
