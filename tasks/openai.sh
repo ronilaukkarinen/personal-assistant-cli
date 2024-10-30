@@ -52,7 +52,7 @@ get_priorities() {
     1. Kaikille tehtäville lisätään tai päivitetään metadatariville \"duration\" ja \"datetime\" kentät.\n
     2. Kunkin tehtävän muoto on: Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: \"1234567890\", priority: \"1-4\", duration: \"0-999\", datetime: \"YYYY-MM-DDTHH:MM:SS\").\n\n
     3. Älä aikatauluta tehtäviä klo 00-10 tai 18-00 välille (paitsi \"(Kotiasiat)\" tehtävät klo 18-22).\n
-    4. Pidä tehtävät, joissa mainitaan \"Backlog\", \"Lowprio\" tai \"Ei tärkeä\", tulevaisuudessa ja siirrä ne vähintään seuraavalle päivälle.\n
+    4. Lykkää jonnekin kuukauden päähän ne tehtävät, joissa mainitaan \"Backlog\", \"Lowprio\" tai \"Ei tärkeä\".\n
     5. Jos tälle päivälle on liikaa tekemistä, lykkää loput tehtävistä seuraaville päiville.\n
     6. Tehtävälistan tulee olla yhtenäinen, ja kaikki tehtävät tulee sisällyttää, vaikka aikataulua muokataan.
 
