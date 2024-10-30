@@ -41,7 +41,7 @@ schedule_task() {
   echo "Task name: $task_name, Task ID: $task_id, Duration: $duration, Datetime: $datetime, Recurring: $recurring"
 
   # Comment to be added to the scheduled task
-  comment="Rollen tekoälyavustaja lykkäsi tätä eteenpäin $current_day ajalle $datetime ja kestolle $duration minuuttia."
+  comment="Rollen tekoälyavustaja v${SCRIPT_VERSION} lykkäsi tätä eteenpäin $current_day ajalle $datetime ja kestolle $duration minuuttia."
 
   if [ "$recurring" == "true" ]; then
     if [ "$duration" -gt 0 ]; then

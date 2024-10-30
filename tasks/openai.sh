@@ -49,12 +49,11 @@ get_priorities() {
     Taustatiedot: Olen teknologiayrittäjä ja perustaja 15 henkilön yrityksessä. Yrityksessä priorisoimme asiat, joista saa rahaa nopeasti, seuraavaksi asiat, joista saa rahaa tulevaisuudessa ja vasta sitten kaikki muu. Vapaa-ajalla arvostan rentoutumista.\n\n
 
     Pyydän, että priorisoit ja aikataulutat nämä tehtävät seuraavasti:
-    1. Kaikille tehtäville lisätään tai päivitetään metadatariville \"duration\" ja \"datetime\" kentät.\n
-    2. Kunkin tehtävän muoto on: Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: \"1234567890\", priority: \"1-4\", duration: \"0-999\", datetime: \"YYYY-MM-DDTHH:MM:SS\").\n\n
-    3. Älä aikatauluta tehtäviä klo 00-10 tai 18-00 välille (paitsi \"(Kotiasiat)\" tehtävät klo 18-22).\n
-    4. Lykkää kuukauden päähän ne tehtävät, joissa mainitaan \"Backlog\", \"Lowprio\" tai \"Ei tärkeä\".\n
-    5. Jos tälle päivälle on liikaa tekemistä, lykkää loput tehtävistä seuraaville päiville.\n
-    6. Tehtävälistan tulee olla yhtenäinen, ja kaikki tehtävät tulee sisällyttää, vaikka aikataulua muokataan.
+    1. Kaikille tehtäville lisätään tai päivitetään metadatariville \"duration\" ja \"datetime\" kentät. Mikäli tehtävään on merkity \"Backlog / asiat, joita ei tarvitse tehdä heti\", voit lykätä tehtäviä vapaasti pidemmällekin, vaikka kuukauden päähän.\n
+    2. Kunkin tehtävän muoto on: Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: \"1234567890\", priority: \"1-4\", duration: \"0-999\", datetime: \"YYYY-MM-DDTHH:MM:SS\"). Lisää myös tehtävän perään selkokielinen päiväys siitä minne se on lykätty.\n
+    3. Älä koskaan aikatauluta tehtäviä yöajalle tai ennen kello 10:00.\n
+    4. Jos tälle päivälle on liikaa tekemistä, lykkää loput tehtävistä seuraaville päiville ja viikoille, poislukien 1 ja 2 prioriteetin tehtävät.\n
+    5. Tehtävälistan tulee olla yhtenäinen, ja kaikki tehtävät tulee sisällyttää, vaikka aikataulua muokataan!!! Tämä on tärkeää.
 
     Anna aikataululista yhtenä kokonaisuutena ja lisää lopuksi muistiinpanot valinnoista. Käytä vain pieniä kirjaimia paitsi otsikoissa. Käytä seuraavia otsikoita: \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\" ja \"Yhteenveto\"."
 
