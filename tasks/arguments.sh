@@ -25,11 +25,6 @@ if [ "$DEBUG" = true ]; then
   echo "All arguments: $@"
 fi
 
-# Exit early if no arguments are passed
-if [ "$#" -eq 0 ]; then
-  usage
-fi
-
 # Parse command-line arguments
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
@@ -89,6 +84,11 @@ while [[ "$#" -gt 0 ]]; do
   esac
 done
 
+# Set start_day to today if not provided
+if [[ -z "$start_day" ]]; then
+  start_day=$(date "+%Y-%m-%d")
+fi
+
 # Debug output if debug mode is enabled
 if [ "$DEBUG" = true ]; then
   echo "Debug Mode: $DEBUG"
@@ -105,8 +105,12 @@ if [ "$KILLSWITCH" = true ]; then
   exit 1
 fi
 
-# Batch processing check
+# Ensure required arguments are set when in batch mode
 if [ "$mode" = "batch" ]; then
+  if [[ -z "$days_to_process" || -z "$start_day" ]]; then
+    echo "Error: --one-batch requires both --days and --start-day."
+    usage
+  fi
   source "${SCRIPTS_LOCATION}/tasks/batch.sh"
   exit 0
 fi
