@@ -1,3 +1,8 @@
+# 1.2.1: 2024-11-01
+
+* Improve postponed task comment date formatting
+* Fix extra spacing in daily log
+
 # 1.2.0: 2024-10-30
 
 * Fix offset for event lists

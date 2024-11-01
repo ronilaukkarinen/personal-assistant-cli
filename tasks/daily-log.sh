@@ -72,8 +72,8 @@ daily_log() {
 
     # Add header to the log file
     echo -e "# $header\n" > "$log_file"
-    echo -e "## Tänään tehdyt asiat\n\n" >> "$log_file"
-    echo -e "Yhteensä $task_count $task_label.\n\n" >> "$log_file"
+    echo -e "## Tänään tehdyt asiat\n" >> "$log_file"
+    echo -e "Yhteensä $task_count $task_label.\n" >> "$log_file"
     echo -e "$task_info" >> "$log_file"
     echo "Log saved to $log_file"
 
