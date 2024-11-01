@@ -40,14 +40,16 @@ schedule_task() {
   # Debugging output to check the variables
   echo "Task name: $task_name, Task ID: $task_id, Duration: $duration, Datetime: $datetime, Recurring: $recurring"
 
-  # Format datetime for prettier output
+  # Determine the appropriate date command for macOS (Darwin) or other systems
   if [[ "$(uname)" == "Darwin" ]]; then
-    formatted_date=$(gdate -d "$datetime" "+%d. %B %Y")
-    formatted_time=$(gdate -d "$datetime" "+%H:%M")
+    date_cmd="gdate"
   else
-    formatted_date=$(date -d "$datetime" "+%d. %B %Y")
-    formatted_time=$(date -d "$datetime" "+%H:%M")
+    date_cmd="date"
   fi
+
+  formatted_month=$($date_cmd -d "$datetime" "+%B" | tr '[:upper:]' '[:lower:]')
+  formatted_date=$($date_cmd -d "$datetime" "+%-d. ${formatted_month}ta %Y")
+  formatted_time=$($date_cmd -d "$datetime" "+%H:%M")
 
   # Prettified comment to be added to the scheduled task
   comment="🤖 Rollen tekoälyavustaja v${SCRIPT_VERSION} lykkäsi tätä tehtävää eteenpäin ajalle $formatted_date, kello $formatted_time. Tehtävän kestoksi määriteltiin $duration minuuttia."
