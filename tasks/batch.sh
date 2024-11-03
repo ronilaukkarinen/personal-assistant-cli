@@ -1,6 +1,5 @@
 # Get dependencies
 source ${SCRIPTS_LOCATION}/tasks/schedule.sh
-source ${SCRIPTS_LOCATION}/tasks/postpone.sh
 
 # Batch process tasks and sync Google Calendar events to Todoist
 function batch() {
@@ -66,22 +65,25 @@ function batch() {
   echo -e "${BOLD}${CYAN}Tasks between $start_day and $end_day:\n$days_tasks${RESET}"
 
   # Instruct AI to prioritize tasks
-  # Note instructions prompt
-  note_instructions='Ohjeistus muistiipanolle, johon kirjoitat priorisoinnit (noudata tarkkaan!):\n
-    - Muotoile listat markdown-muodossa. Muista rivinvaihto otsikon jälkeen.\n
-    - Ensimmäinen lista, h2-otsikko: "Tärkeimmät tehtävät päivien '$start_day' - '$end_day' välillä" (Top X)". Ole hyvä ja arvioi, miksi tehtävä on tärkeä, milloin minun tulisi suorittaa kukin tehtävä ja kuinka kauan ne kestävät, kerro selkokielisessä muodossa eli erottele tunnit ja minuutit. Tehtävän nimi listan ensimmäiselle riville, perustelu toiselle riville ja metadata kolmannelle riville. Perustele huolellisesti. Tehtävän nimessä ei tarvitse olla ID:tä, mutta metadata ja ID on oltava viimeisenä tehtävän tietojen jälkeen omalla rivillään, kaikki samalla rivillä.\n
-    - Toinen lista, h2-otsikko: "Tehtävät, jotka voidaan lykätä myöhempään". Laita tähän listaan KAIKKI muut tehtävät, jotka eivät mahdu realistisesti näiden päivien aikaikkunaan. Tehtävän nimi listan ensimmäiselle riville, perustelu toiselle riville ja metadata ja ID kolmannelle riville. Perustele huolellisesti.\n
-    - Huom, tärkeä: Jokaisen tehtävän perään Metadata tässä muodossa, omalle rivilleen, huom. "siirretty myöhemmälle" VAIN jos kyseessä on lykättävä tehtävä, ei muutoin. Nämä ovat ehdottoman tärkeitä tietoja, jotta muu koodini osaa parseroida listaa. Esimerkki metadatatiedosta, jollaisessa muodossa metadata on sisällytettävä tehtävään listassa, Metadata aina sulkuihin ja ID aina sulkuihin: (Metadata: "duration": 60, "datetime": "YYYY-MM-DDTHH:MM:SS") (12345678901, siirretty myöhemmälle).\n
-    - Kerro listojen lopuksi omat huomiosi. Älä unohda, että olen iltavirkku, heräisin mielelläni klo 9-10, minun on nukuttava vähintään 8 tuntia 15 minuuttia, ajoita tehtäviä sen mukaan. Älä ajoita tehtäviä välille 00-10.\n'
+  the_prompt="\
+  Tässä lista tehtävistä:\n\n${days_tasks}\n\nTässä lista kalenteritapahtumista:\n\n${all_events}\n\n
+  Taustatiedot: Olen teknologiayrittäjä ja perustaja 15 henkilön yrityksessä. Yrityksessä priorisoimme asiat, joista saa rahaa nopeasti, seuraavaksi asiat, joista saa rahaa tulevaisuudessa ja vasta sitten kaikki muu. Vapaa-ajalla arvostan rentoutumista.\n\n
 
-  combined_message+="${PROMPT_BGINFO}\n\n${PROMPT}\n\nTässä ovat päivien '$start_day' - '$end_day' väliset tehtävät (mukana ID:t):\n$days_tasks\n\n$note_instructions\n\nOle hyvä ja arvioi kullekin tehtävälle suoritusaika ja kesto, ja merkitse lykkäämisen tarve. Ota mukaan kaikki alkuperäisen listan tehtävät, älä tiivistä niin että tehtäviä jää pois. Jokainen on tärkeä mainita ja huomioida."
+  Pyydän, että priorisoit ja aikataulutat nämä tehtävät koko määritetylle ajalle (päivien '$start_day' - '$end_day' välillä) seuraavasti:
+  1. Kaikille tehtäville lisätään tai päivitetään metadatariville \"duration\" ja \"datetime\" kentät. Mikäli tehtävään on merkity \"Backlog / asiat, joita ei tarvitse tehdä heti\", voit lykätä tehtäviä vapaasti pidemmällekin, vaikka kuukauden päähän.\n
+  2. Kunkin tehtävän muoto on: Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: \"1234567890\", priority: \"1-4\", duration: \"0-999\", datetime: \"YYYY-MM-DDTHH:MM:SS\"). Lisää myös tehtävän perään selkokielinen päiväys siitä minne se on lykätty.\n
+  3. Älä koskaan aikatauluta tehtäviä yöajalle tai ennen kello 10:00.\n
+  4. Jos päivälle on liikaa tekemistä, lykkää loput tehtävistä myöhemmille päiville ja viikoille, poislukien 1 ja 2 prioriteetin tehtävät.\n
+  5. Tehtävälistan tulee olla yhtenäinen, ja kaikki tehtävät tulee sisällyttää, vaikka aikataulua muokataan!!! Tämä on tärkeää.
+
+  Anna aikataululista yhtenä kokonaisuutena ja lisää lopuksi muistiinpanot valinnoista. Käytä vain pieniä kirjaimia paitsi otsikoissa. Käytä seuraavia otsikoita: \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\" ja \"Yhteenveto\"."
 
   # Create the JSON payload - no debug info is included in the payload
-  json_payload=$(jq -n --arg combined_message "$combined_message" '{
+  json_payload=$(jq -n --arg the_prompt "$the_prompt" '{
       "model": "gpt-4o-mini",
       "messages": [
           {"role": "system", "content": "Sinä olet tehtävien priorisoija."},
-          {"role": "user", "content": $combined_message}
+          {"role": "user", "content": $the_prompt}
       ],
       "max_tokens": 16000,
       "temperature": 0.5
@@ -141,18 +143,18 @@ function batch() {
 
     for task_id in $task_ids_to_schedule; do
       if [[ "$(uname)" == "Darwin" ]]; then
-        metadata_line=$(echo "$priorities" | ggrep -P "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
+        metadata_line=$(echo "$priorities" | ggrep -P "Metadata:.*id:\s*\"$task_id\".*priority:\s*\"[0-9]+\".*duration:\s*\"[0-9a-zA-Z]+\".*datetime:\s*\"[0-9T:.Z-]+\"")
       else
-        metadata_line=$(echo "$priorities" | grep -P "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
+        metadata_line=$(echo "$priorities" | grep -P "Metadata:.*id:\s*\"$task_id\".*priority:\s*\"[0-9]+\".*duration:\s*\"[0-9a-zA-Z]+\".*datetime:\s*\"[0-9T:.Z-]+\"")
       fi
 
       if [[ -n "$metadata_line" ]]; then
         if [[ "$(uname)" == "Darwin" ]]; then
-          task_duration=$(echo "$metadata_line" | ggrep -oP '(?<=duration":\s)[0-9]+')
-          task_datetime=$(echo "$metadata_line" | ggrep -oP '(?<=datetime":\s")[^"]+')
+          task_duration=$(echo "$metadata_line" | ggrep -oP '(?<=duration: ")[0-9a-zA-Z]+')
+          task_datetime=$(echo "$metadata_line" | ggrep -oP '(?<=datetime: ")[^"]+')
         else
-          task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration":\s)[0-9]+')
-          task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime":\s")[^"]+')
+          task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration: ")[0-9a-zA-Z]+')
+          task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime: ")[^"]+')
         fi
 
         if [[ -n "$task_duration" && -n "$task_datetime" ]]; then
@@ -166,31 +168,6 @@ function batch() {
     done
   else
     echo -e "${BOLD}${CYAN}AI did not suggest scheduling any tasks or task IDs were not found.${RESET}"
-  fi
-
-  echo -e "${BOLD}${YELLOW}Postponing tasks to the possible day (a day after end day of the batch)...${RESET}"
-
-  # macOS and Linux compatible version
-  if [[ "$(uname)" == "Darwin" ]]; then
-    task_ids_to_postpone=$(echo "$priorities" | ggrep -oP '\b\d{5,}\b(?=.*siirretty myöhemmälle)')
-  else
-    task_ids_to_postpone=$(echo "$priorities" | grep -oP '\b\d{5,}\b(?=.*siirretty myöhemmälle)')
-  fi
-
-  # Debugging to see the extracted task IDs
-  if [ "$DEBUG" = true ]; then
-    echo -e "${BOLD}${CYAN}Postponed task IDs:${RESET} $task_ids_to_postpone"
-  fi
-
-  # Moving those tasks to the next day that AI suggested
-  if [[ -n "$task_ids_to_postpone" ]]; then
-    echo -e "${BOLD}${YELLOW}Postponing tasks suggested by AI to the next possible day...${RESET}"
-
-    for postpone_task_id in $task_ids_to_postpone; do
-      postpone_task "$postpone_task_id" "$end_day"
-    done
-  else
-    echo -e "${BOLD}${CYAN}AI did not suggest postponing any tasks or task IDs were not found.${RESET}"
   fi
 
   # Clean up metadata from notes

@@ -1,49 +1,43 @@
-# Function: Cleanup notes by removing only the (Metadata: ...) part from each line, preserving the original text
+#!/bin/bash
 
-# If run directly, import arguments
-# For tests directly:
-# script_path=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-# script_path=${script_path%/tasks}
-# root_path=$(cd "$script_path/.." && pwd)
-# source "${script_path}/tasks/arguments.sh"
-
-# If start day is set, use it as current_day
-if [ -n "$start_day" ]; then
-  current_day="$start_day"
-else
-  current_day=$(date "+%Y-%m-%d")
-fi
-
+# Function to clean up metadata from notes by removing "(Metadata: ...)"
 cleanup_notes() {
-  local notes="$1"
+  local file="$1"
   local cleaned_notes=""
 
-  # Use sed to remove only the "(Metadata: ...)" part from each line, leaving the rest of the line intact
-  cleaned_notes=$(echo "$notes" | sed 's/(Metadata:.*)//g')
+  # Ensure the file exists before attempting to clean it
+  if [ ! -f "$file" ]; then
+    echo "File not found: $file"
+    return
+  fi
 
-  # Debugging: Print the cleaned version of notes before saving
+  # Use sed to remove only the "(Metadata: ...)" part, leaving the rest intact
+  cleaned_notes=$(sed 's/(Metadata:.*)//g' "$file")
+
+  # Debugging: Display cleaned notes if in DEBUG mode
   if [ "$DEBUG" = true ]; then
-    echo -e "${GREEN}Cleaned notes:${RESET}\n$cleaned_notes"
+    echo -e "${GREEN}Cleaned notes for $file:${RESET}\n$cleaned_notes"
   fi
 
   # Overwrite the original file with cleaned notes
   echo "$cleaned_notes" > "$file"
 }
 
-# Get today's notes and clean them up
-# If current day is defined, use it in the file name
-if [[ "$(uname)" == "Darwin" ]]; then
-  notefile_format="$HOME/Documents/Brain dump/Päivän suunnittelu/$current_day.md"
+# Determine file paths based on the existence of start and end dates
+if [ -n "$start_day" ] && [ -n "$end_day" ]; then
+  # Multi-day file format
+  file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/${start_day}-${end_day} (useampi päivä).md"
 else
-  notefile_format="$HOME/Documents/Brain dump/Päivän suunnittelu/$(date "+%Y-%m-%d").md"
+  # Single-day file format
+  filename=$(date -d "${start_day:-$(date "+%Y-%m-%d")}" "+%Y-%m-%d")
+  file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
 fi
 
-# Loop through all files that match the pattern and clean them up
-find "$notefile_format"* -type f | while IFS= read -r file; do
+# Find and process the file(s) based on the patterns
+for file in "$file_path" "$HOME/Documents/Brain dump/Päivän suunnittelu/${start_day}*.md"; do
   if [ -f "$file" ]; then
-    notes=$(cat "$file")
-    cleanup_notes "$notes"
+    cleanup_notes "$file"
   else
-    echo "No files found matching the pattern: $notefile_format"
+    echo "No files found matching pattern: $file"
   fi
 done

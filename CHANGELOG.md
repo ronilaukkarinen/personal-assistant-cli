@@ -1,3 +1,8 @@
+# 1.2.2: 2024-11-03
+
+* Release new version of batch.sh (--one-batch) to schedule tasks for the whole week
+* Fix cleanup for batch scheduling
+
 # 1.2.1: 2024-11-01
 
 * Improve postponed task comment date formatting

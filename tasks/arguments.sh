@@ -60,7 +60,7 @@ while [[ "$#" -gt 0 ]]; do
       if [[ -n "$days_to_process" && -n "$start_day" ]]; then
         mode="batch"
       else
-        echo "Error: --one-batch argument requires --days and --start-day."
+        echo "Error: --one-batch argument requires --days and --start-day. The --one-batch argument should be the last argument."
         exit 1
       fi
       shift
