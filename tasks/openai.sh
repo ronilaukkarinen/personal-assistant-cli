@@ -49,7 +49,7 @@ get_priorities() {
     Taustatiedot: Olen teknologiayrittäjä ja perustaja 15 henkilön yrityksessä. Yrityksessä priorisoimme asiat, joista saa rahaa nopeasti, seuraavaksi asiat, joista saa rahaa tulevaisuudessa ja vasta sitten kaikki muu. Vapaa-ajalla arvostan rentoutumista.\n\n
 
     Pyydän, että priorisoit ja aikataulutat nämä tehtävät seuraavasti:
-    1. Kaikille tehtäville lisätään tai päivitetään metadatariville \"duration\" ja \"datetime\" kentät. Mikäli tehtävään on merkity \"Backlog / asiat, joita ei tarvitse tehdä heti\", voit lykätä tehtäviä vapaasti pidemmällekin, vaikka kuukauden päähän.\n
+    1. Kaikille tehtäville lisätään tai päivitetään metadatariville \"duration\" ja \"datetime\" kentät. Mikäli tehtävään on merkity \"Backlog / asiat, joita ei tarvitse tehdä heti\", aikaa ei tarvitse määrittää, ellei tehtävä tunnu tärkeältä.\n
     2. Kunkin tehtävän muoto on: Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: \"1234567890\", priority: \"1-4\", duration: \"0-999\", datetime: \"YYYY-MM-DDTHH:MM:SS\"). Lisää myös tehtävän perään selkokielinen päiväys siitä minne se on lykätty.\n
     3. Älä koskaan aikatauluta tehtäviä yöajalle tai ennen kello 10:00.\n
     4. Jos tälle päivälle on liikaa tekemistä, lykkää loput tehtävistä seuraaville päiville ja viikoille, poislukien 1 ja 2 prioriteetin tehtävät.\n
