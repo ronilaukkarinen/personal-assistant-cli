@@ -342,7 +342,8 @@ sync_google_calendar_to_todoist() {
             \"project_id\": \"$personal_project_id\",
             \"duration\": $event_duration,
             \"duration_unit\": \"minute\",
-            \"labels\": [\"Google-kalenterin tapahtuma\"]
+            \"labels\": [\"Google-kalenterin tapahtuma\"],
+            \"priority\": \"3\"
           }")
 
           # Debug
