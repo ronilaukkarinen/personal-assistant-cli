@@ -233,7 +233,7 @@ sync_google_calendar_to_todoist() {
           \"duration\": $event_duration,
           \"duration_unit\": \"minute\",
           \"labels\": [\"Google-kalenterin tapahtuma\"],
-          \"priority\": \"3\"
+          \"priority\": 3
         }")
 
         # Debug
@@ -343,7 +343,7 @@ sync_google_calendar_to_todoist() {
             \"duration\": $event_duration,
             \"duration_unit\": \"minute\",
             \"labels\": [\"Google-kalenterin tapahtuma\"],
-            \"priority\": \"3\"
+            \"priority\": 3
           }")
 
           # Debug

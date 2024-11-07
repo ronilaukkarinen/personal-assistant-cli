@@ -1,3 +1,6 @@
+### 1.2.4: 2024-11-07
+
+* Fix priority not being an integer
 
 ### 1.2.3: 2024-11-05
 
