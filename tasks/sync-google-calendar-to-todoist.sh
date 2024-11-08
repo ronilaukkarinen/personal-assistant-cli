@@ -181,8 +181,24 @@ sync_google_calendar_to_todoist() {
 
         event_title="$(echo "$event" | jq -r '.summary')"
 
-        # Cut +03:00 from the end of the timestamp
-        event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date' | awk '{print substr($0, 1, 19)}')
+        # Get the full dateTime string including timezone
+        event_start_full=$(echo "$event" | jq -r '.start.dateTime // .start.date')
+        event_end_full=$(echo "$event" | jq -r '.end.dateTime // .end.date')
+
+        # If it's a dateTime (not just date), process the timezone
+        if [[ "$event_start_full" =~ "T" ]]; then
+          # Add 2 hours to both start and end times to correct timezone offset
+          if [[ "$(uname)" == "Darwin" ]]; then
+            event_start=$(TZ=UTC gdate --date="$event_start_full 2 hours" "+%Y-%m-%dT%H:%M:%S")
+            event_end=$(TZ=UTC gdate --date="$event_end_full 2 hours" "+%Y-%m-%dT%H:%M:%S")
+          else
+            event_start=$(TZ=UTC date --date="$event_start_full 2 hours" "+%Y-%m-%dT%H:%M:%S")
+            event_end=$(TZ=UTC date --date="$event_end_full 2 hours" "+%Y-%m-%dT%H:%M:%S")
+          fi
+        else
+          event_start="$event_start_full"
+          event_end="$event_end_full"
+        fi
 
         # Skip full-day events that only have date without time
         if [[ "$event_start" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
@@ -205,10 +221,10 @@ sync_google_calendar_to_todoist() {
         # Convert date to seconds since epoch
         if [[ "$(uname)" == "Darwin" ]]; then
           start_timestamp=$(gdate -d "$event_start" +%s)
-          end_timestamp=$(gdate -d "$(echo "$event" | jq -r '.end.dateTime // .end.date')" +%s)
+          end_timestamp=$(gdate -d "$event_end" +%s)
         else
           start_timestamp=$(date -d "$event_start" +%s)
-          end_timestamp=$(date -d "$(echo "$event" | jq -r '.end.dateTime // .end.date')" +%s)
+          end_timestamp=$(date -d "$event_end" +%s)
         fi
 
         # Debug
@@ -291,8 +307,24 @@ sync_google_calendar_to_todoist() {
 
           event_title="$(echo "$event" | jq -r '.summary')"
 
-          # Cut +03:00 from the end of the timestamp
-          event_start=$(echo "$event" | jq -r '.start.dateTime // .start.date' | awk '{print substr($0, 1, 19)}')
+          # Get the full dateTime string including timezone
+          event_start_full=$(echo "$event" | jq -r '.start.dateTime // .start.date')
+          event_end_full=$(echo "$event" | jq -r '.end.dateTime // .end.date')
+
+          # If it's a dateTime (not just date), process the timezone
+          if [[ "$event_start_full" =~ "T" ]]; then
+            # Add 2 hours to both start and end times to correct timezone offset
+            if [[ "$(uname)" == "Darwin" ]]; then
+              event_start=$(TZ=UTC gdate --date="$event_start_full 2 hours" "+%Y-%m-%dT%H:%M:%S")
+              event_end=$(TZ=UTC gdate --date="$event_end_full 2 hours" "+%Y-%m-%dT%H:%M:%S")
+            else
+              event_start=$(TZ=UTC date --date="$event_start_full 2 hours" "+%Y-%m-%dT%H:%M:%S")
+              event_end=$(TZ=UTC date --date="$event_end_full 2 hours" "+%Y-%m-%dT%H:%M:%S")
+            fi
+          else
+            event_start="$event_start_full"
+            event_end="$event_end_full"
+          fi
 
           # Skip full-day events that only have date without time
           if [[ "$event_start" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
@@ -315,10 +347,10 @@ sync_google_calendar_to_todoist() {
           # Convert date to seconds since epoch
           if [[ "$(uname)" == "Darwin" ]]; then
             start_timestamp=$(gdate -d "$event_start" +%s)
-            end_timestamp=$(gdate -d "$(echo "$event" | jq -r '.end.dateTime // .end.date')" +%s)
+            end_timestamp=$(gdate -d "$event_end" +%s)
           else
             start_timestamp=$(date -d "$event_start" +%s)
-            end_timestamp=$(date -d "$(echo "$event" | jq -r '.end.dateTime // .end.date')" +%s)
+            end_timestamp=$(date -d "$event_end" +%s)
           fi
 
           # Debug

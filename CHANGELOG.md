@@ -2,6 +2,7 @@
 
 * Fix remaining hours not being calculated correctly
 * Change priority to p3 (blue) for calendar event tasks, mistakenly set to p2 (orange) which is 3 in the endpoint
+* Fix training task being scheduled 2 hours late
 
 ### 1.2.4: 2024-11-07
 
