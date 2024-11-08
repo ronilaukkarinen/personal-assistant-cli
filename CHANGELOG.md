@@ -1,6 +1,7 @@
 ### 1.2.5: 2024-11-08
 
 * Fix remaining hours not being calculated correctly
+* Change priority to p3 (blue) for calendar event tasks, mistakenly set to p2 (orange) which is 3 in the endpoint
 
 ### 1.2.4: 2024-11-07
 
