@@ -56,7 +56,7 @@ main() {
     filename=$(date -d "$start_day" "+%Y-%m-%d")
   fi
 
-  # Add remaining hours
+  # Calculate remaining hours
   remaining_hours=$(calculate_remaining_hours)
 
   # File path

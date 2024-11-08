@@ -1,3 +1,7 @@
+### 1.2.5: 2024-11-08
+
+* Fix remaining hours not being calculated correctly
+
 ### 1.2.4: 2024-11-07
 
 * Fix priority not being an integer
