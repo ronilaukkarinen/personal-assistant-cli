@@ -1,3 +1,17 @@
+# Get absolute path of the script
+script_path=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+# Eliminate possible /tasks from the path
+script_path=${script_path%/tasks}
+
+# Get root
+root_path=$(cd "$script_path/.." && pwd)
+
+# Get .env if script is run directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  source "$root_path/.env"
+fi
+
 # If we're using macOS and homebrew not found, install it
 if [[ "$(uname)" == "Darwin" && ! -x "$(command -v brew)" ]]; then
   echo -e "${BOLD}${YELLOW}Homebrew not found, installing...${RESET}"
