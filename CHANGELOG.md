@@ -1,3 +1,7 @@
+### 1.2.6: 2024-11-09
+
+* Fix still occurring issue with remaining hours calculation
+
 ### 1.2.5: 2024-11-08
 
 * Fix remaining hours not being calculated correctly

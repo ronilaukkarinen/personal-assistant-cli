@@ -57,13 +57,32 @@ main() {
   fi
 
   # Calculate remaining hours
-  remaining_hours=$(calculate_remaining_hours)
+  if [[ "$(uname)" == "Darwin" ]]; then
+    remaining_hours=$(calculate_remaining_hours)
+    current_time=$(gdate "+%H:%M")
+  else
+    remaining_hours=$(calculate_remaining_hours)
+    current_time=$(date "+%H:%M")
+  fi
+
+  # Debug remaining hours calculation
+  if [ "$DEBUG" = true ]; then
+    echo -e "${CYAN}Debug: Current time: $current_time${RESET}"
+    echo -e "${CYAN}Debug: Remaining hours: $remaining_hours${RESET}"
+  fi
 
   # File path
   file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
-  echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\nYhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas). Palaverien määrä tänään: **${event_count}**. Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä **${remaining_work_hours} tuntia**.\n\n## Päivän tapahtumat\n\n$all_events\n$priorities" > "$file_path"
+  if [ -n "$remaining_hours" ]; then
+    echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\nYhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas). Palaverien määrä tänään: **${event_count}**. Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä **${remaining_work_hours} tuntia**.\n\n## Päivän tapahtumat\n\n$all_events\n$priorities" > "$file_path"
+  else
+    # Fallback if calculate_remaining_hours fails
+    current_hour=$(date "+%H")
+    remaining_hours=$((24 - current_hour))
+    echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\nYhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas). Palaverien määrä tänään: **${event_count}**. Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä **${remaining_work_hours} tuntia**.\n\n## Päivän tapahtumat\n\n$all_events\n$priorities" > "$file_path"
+  fi
 
   # Add TASKS_TO_BE_SCHEDULED at the end of the file
   echo -e "\n## Aikataulutetut tehtävät\n\n$TASKS_TO_BE_SCHEDULED" >> "$file_path"

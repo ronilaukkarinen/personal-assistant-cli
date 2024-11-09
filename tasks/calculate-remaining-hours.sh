@@ -13,8 +13,8 @@ calculate_remaining_hours() {
       return 1
     fi
   else
-    # For Linux, use full path to date
-    current_hour=$(/bin/date "+%H")
+    # For Linux, use date with explicit format
+    current_hour=$(date "+%H")
   fi
 
   # Ensure current_hour is a number
@@ -25,5 +25,12 @@ calculate_remaining_hours() {
 
   # Calculate remaining hours until the end of the day
   remaining_hours=$((24 - current_hour))
-  echo "$remaining_hours"
+
+  # Ensure we return a valid number
+  if [[ "$remaining_hours" -ge 0 && "$remaining_hours" -le 24 ]]; then
+    echo "$remaining_hours"
+  else
+    echo "Error: Invalid remaining hours calculation" >&2
+    return 1
+  fi
 }
