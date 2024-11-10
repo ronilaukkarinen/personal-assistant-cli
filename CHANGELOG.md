@@ -1,3 +1,8 @@
+### 1.2.7: 2024-11-10
+
+* Fix cronjob
+* Fix cleanup notes for multi-day files
+
 ### 1.2.6: 2024-11-09
 
 * Fix still occurring issue with remaining hours calculation

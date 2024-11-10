@@ -27,17 +27,10 @@ cleanup_notes() {
 if [ -n "$start_day" ] && [ -n "$end_day" ]; then
   # Multi-day file format
   file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/${start_day}-${end_day} (useampi päivä).md"
+  cleanup_notes "$file_path"
 else
   # Single-day file format
   filename=$(date -d "${start_day:-$(date "+%Y-%m-%d")}" "+%Y-%m-%d")
   file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
+  cleanup_notes "$file_path"
 fi
-
-# Find and process the file(s) based on the patterns
-for file in "$file_path" "$HOME/Documents/Brain dump/Päivän suunnittelu/${start_day}*.md"; do
-  if [ -f "$file" ]; then
-    cleanup_notes "$file"
-  else
-    echo "No files found matching pattern: $file"
-  fi
-done
