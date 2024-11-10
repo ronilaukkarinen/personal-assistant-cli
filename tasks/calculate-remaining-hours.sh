@@ -1,36 +1,41 @@
 # Function: Calculate remaining hours in the day
 calculate_remaining_hours() {
   local current_hour
+  local current_minute
   local remaining_hours
 
-  # Get the current hour in 24-hour format
+  # Get the current time in 24-hour format
   if [[ "$(uname)" == "Darwin" ]]; then
-    # For macOS, ensure gdate is available and use full path if needed
-    if command -v gdate >/dev/null 2>&1; then
-      current_hour=$(gdate "+%H")
-    else
-      echo "Error: gdate not found. Please install coreutils." >&2
-      return 1
+    if ! command -v gdate >/dev/null 2>&1; then
+      logger -t "calculate-hours" "Error: gdate not found. Please install coreutils."
+      exit 1  # Exit explicitly instead of return for cron
     fi
+    current_hour=$(gdate "+%H") || { logger -t "calculate-hours" "Failed to get hour"; exit 1; }
+    current_minute=$(gdate "+%M") || { logger -t "calculate-hours" "Failed to get minute"; exit 1; }
   else
-    # For Linux, use date with explicit format
-    current_hour=$(date "+%H")
+    current_hour=$(date "+%H") || { logger -t "calculate-hours" "Failed to get hour"; exit 1; }
+    current_minute=$(date "+%M") || { logger -t "calculate-hours" "Failed to get minute"; exit 1; }
   fi
 
-  # Ensure current_hour is a number
-  if ! [[ "$current_hour" =~ ^[0-9]+$ ]]; then
-    echo "Error: Invalid hour format" >&2
-    return 1
+  # Validate hour format
+  if ! [[ "$current_hour" =~ ^[0-9]+$ ]] || [ "$current_hour" -gt 23 ]; then
+    logger -t "calculate-hours" "Error: Invalid hour format: $current_hour"
+    exit 1
   fi
 
-  # Calculate remaining hours until the end of the day
-  remaining_hours=$((24 - current_hour))
+  # Calculate remaining hours, accounting for minutes
+  if [ "$current_minute" -gt 0 ]; then
+    remaining_hours=$((23 - current_hour))
+  else
+    remaining_hours=$((24 - current_hour))
+  fi
 
-  # Ensure we return a valid number
+  # Validate result
   if [[ "$remaining_hours" -ge 0 && "$remaining_hours" -le 24 ]]; then
     echo "$remaining_hours"
+    exit 0
   else
-    echo "Error: Invalid remaining hours calculation" >&2
-    return 1
+    logger -t "calculate-hours" "Error: Invalid calculation result: $remaining_hours"
+    exit 1
   fi
 }
