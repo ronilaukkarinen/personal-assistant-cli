@@ -28,7 +28,7 @@ Usage: app.sh [--days <number>] [--debug]
 It is recommended to run this script as a cronjob. Here is an example cronjob that runs the script every day at 8:00 AM:
 
 ```bash
-0 8 * * * bash /path/to/personal-assistant-cli/app.sh >/dev/null 2>&1
+0 8 * * * SHELL=/bin/bash TZ=Europe/Helsinki LANG=fi_FI.UTF-8 bash /path/to/personal-assistant-cli/app.sh >> /tmp/personal-assistant.log 2>&1
 ```
 
 The cron job for daily summary to Obsidian:
