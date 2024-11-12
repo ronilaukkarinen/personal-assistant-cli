@@ -13,11 +13,18 @@ schedule_task() {
   duration=$(echo "$duration" | head -n 1)
   datetime=$(echo "$datetime" | head -n 1)
 
-  # Get task data
+  # Get existing labels and task name for the task
   task_data=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}")
+
+  if [ -z "$task_data" ]; then
+    echo -e "${RED}Error: Failed to fetch task data for ID $task_id${RESET}"
+    return 1
+  fi
+
   task_name=$(echo "$task_data" | jq -r '.content')
+  labels=$(echo "$task_data" | jq -r '.labels | join(", ")')
 
   echo -e "${YELLOW}Scheduling task $task_name, with ID: $task_id (Duration: $duration minutes, Datetime: $datetime)...${RESET}"
 

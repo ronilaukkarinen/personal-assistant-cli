@@ -1,3 +1,8 @@
+### 1.2.8: 2024-11-12
+
+* Fix all tasks not being scheduled
+* Fix cron problem: 08: value too great for base (error token is "08")
+
 ### 1.2.7: 2024-11-10
 
 * Fix cronjob

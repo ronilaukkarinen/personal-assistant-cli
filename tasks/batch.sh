@@ -142,19 +142,21 @@ function batch() {
     echo -e "${BOLD}${YELLOW}Scheduling tasks based on metadata...${RESET}"
 
     for task_id in $task_ids_to_schedule; do
+      # First find the line containing the metadata for this task ID
       if [[ "$(uname)" == "Darwin" ]]; then
-        metadata_line=$(echo "$priorities" | ggrep -P "Metadata:.*id:\s*\"$task_id\".*priority:\s*\"[0-9]+\".*duration:\s*\"[0-9a-zA-Z]+\".*datetime:\s*\"[0-9T:.Z-]+\"")
+        metadata_line=$(echo "$priorities" | ggrep -P "Metadata:.*id:\s*\"$task_id\"")
       else
-        metadata_line=$(echo "$priorities" | grep -P "Metadata:.*id:\s*\"$task_id\".*priority:\s*\"[0-9]+\".*duration:\s*\"[0-9a-zA-Z]+\".*datetime:\s*\"[0-9T:.Z-]+\"")
+        metadata_line=$(echo "$priorities" | grep -P "Metadata:.*id:\s*\"$task_id\"")
       fi
 
       if [[ -n "$metadata_line" ]]; then
+        # Then extract duration and datetime separately
         if [[ "$(uname)" == "Darwin" ]]; then
-          task_duration=$(echo "$metadata_line" | ggrep -oP '(?<=duration: ")[0-9a-zA-Z]+')
-          task_datetime=$(echo "$metadata_line" | ggrep -oP '(?<=datetime: ")[^"]+')
+          task_duration=$(echo "$metadata_line" | ggrep -oP 'duration:\s*"\K[^"]+')
+          task_datetime=$(echo "$metadata_line" | ggrep -oP 'datetime:\s*"\K[^"]+')
         else
-          task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration: ")[0-9a-zA-Z]+')
-          task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime: ")[^"]+')
+          task_duration=$(echo "$metadata_line" | grep -oP 'duration:\s*"\K[^"]+')
+          task_datetime=$(echo "$metadata_line" | grep -oP 'datetime:\s*"\K[^"]+')
         fi
 
         if [[ -n "$task_duration" && -n "$task_datetime" ]]; then

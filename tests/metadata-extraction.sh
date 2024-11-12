@@ -22,12 +22,12 @@ test_metadata_extraction() {
     # Loop through each task and extract duration and datetime
     for task_id in $task_ids_to_schedule; do
       # Search for the metadata that contains duration and datetime for this task ID
-      metadata_line=$(echo "$priorities" | grep -P "Metadata:.*\"duration\":\s*[0-9]+.*\"datetime\":\s*\"[0-9T:.Z-]+\".*$task_id")
+      metadata_line=$(echo "$priorities" | grep -P "Metadata:.*id:\s*\"$task_id\"")
 
       if [[ -n "$metadata_line" ]]; then
         # Extract duration and datetime from the metadata line
-        duration=$(echo "$metadata_line" | grep -oP '(?<=duration":\s)[0-9]+')
-        datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime":\s")[^"]+')
+        duration=$(echo "$metadata_line" | grep -oP 'duration:\s*"\K[^"]+')
+        datetime=$(echo "$metadata_line" | grep -oP 'datetime:\s*"\K[^"]+')
 
         # If either duration or datetime is missing, display an error
         if [[ -z "$duration" || -z "$datetime" ]]; then
