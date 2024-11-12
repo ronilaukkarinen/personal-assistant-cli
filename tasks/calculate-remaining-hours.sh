@@ -10,11 +10,11 @@ calculate_remaining_hours() {
       logger -t "calculate-hours" "Error: gdate not found. Please install coreutils."
       exit 1  # Exit explicitly instead of return for cron
     fi
-    current_hour=$(gdate "+%H") || { logger -t "calculate-hours" "Failed to get hour"; exit 1; }
-    current_minute=$(gdate "+%M") || { logger -t "calculate-hours" "Failed to get minute"; exit 1; }
+    current_hour=$((10#$(gdate "+%H"))) || { logger -t "calculate-hours" "Failed to get hour"; exit 1; }
+    current_minute=$((10#$(gdate "+%M"))) || { logger -t "calculate-hours" "Failed to get minute"; exit 1; }
   else
-    current_hour=$(date "+%H") || { logger -t "calculate-hours" "Failed to get hour"; exit 1; }
-    current_minute=$(date "+%M") || { logger -t "calculate-hours" "Failed to get minute"; exit 1; }
+    current_hour=$((10#$(date "+%H"))) || { logger -t "calculate-hours" "Failed to get hour"; exit 1; }
+    current_minute=$((10#$(date "+%M"))) || { logger -t "calculate-hours" "Failed to get minute"; exit 1; }
   fi
 
   # Validate hour format
