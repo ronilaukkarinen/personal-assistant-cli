@@ -1,3 +1,7 @@
+### 1.3.0: 2024-11-12
+
+* Refine prompt
+
 ### 1.2.9: 2024-11-12
 
 * Improve prompt to include more tasks to be scheduled

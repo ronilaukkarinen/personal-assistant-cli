@@ -45,17 +45,17 @@ get_priorities() {
 
     # THE PROMPT
     the_prompt="\
-    Tässä lista tehtävistä:\n\n${tasks}\n\nTässä lista kalenteritapahtumista:\n\n${all_events}\n\n
-    Taustatiedot: Olen teknologiayrittäjä ja perustaja 15 henkilön yrityksessä. Yrityksessä priorisoimme asiat, joista saa rahaa nopeasti, seuraavaksi asiat, joista saa rahaa tulevaisuudessa ja vasta sitten kaikki muu. Vapaa-ajalla arvostan rentoutumista.\n\n
+    Tässä tehtävälista:\n\n${tasks}\n\nTässä lista kalenteritapahtumista:\n\n${all_events}\n\n
+    Taustatiedot: Olen teknologiayrittäjä ja perustaja 15 henkilön yrityksessä. Yrityksessä priorisoimme asiat, joista saa rahaa nopeasti, seuraavaksi asiat, joista saa rahaa tulevaisuudessa ja vasta sitten kaikki muu.\n\n
 
-    Pyydän, että priorisoit ja aikataulutat nämä tehtävät seuraavasti:
-    1. Kaikille tehtäville lisätään tai päivitetään metadatariville \"duration\" ja \"datetime\" kentät. Mikäli tehtävään on merkity \"Backlog / asiat, joita ei tarvitse tehdä heti\", aikaa ei tarvitse määrittää, ellei tehtävä tunnu tärkeältä.\n
+    Pyydän, että priorisoit ja aikataulutat nämä tehtävät seuraavasti:\n
+    1. Kaikille tehtäville päivitetään \"duration\" ja \"datetime\" kentät. Mikäli tehtävään on merkity \"Backlog\" tai \"low priority\", lykkää tehtävä suoraan miettimättä lähitulevaisuuteen.\n
     2. Kunkin tehtävän muoto on: Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: \"1234567890\", priority: \"1-4\", duration: \"0-999\", datetime: \"YYYY-MM-DDTHH:MM:SS\"). Lisää myös tehtävän perään selkokielinen päiväys siitä minne se on lykätty.\n
-    3. Älä koskaan aikatauluta tehtäviä yöajalle tai ennen kello 10:00.\n
-    4. Jos tälle päivälle on liikaa tekemistä, lykkää loput tehtävistä seuraaville päiville ja viikoille, poislukien 1 ja 2 prioriteetin tehtävät.\n
-    5. Tehtävälistan tulee olla yhtenäinen, ja kaikki tehtävät tulee sisällyttää, vaikka aikataulua muokataan!!! Tämä on tärkeää.\n
+    3. Lykkää mielestäsi ei-tärkeät tehtävät ilman kellonaikaa lähitulevaisuuteen, poislukien tehtävät joissa on priority 1 tai 2.\n
+    5. Kaikki annetun tehtävälistan tehtävät tulee sisällyttää, vaikka aikataulua muokataan!!! Tämä on tärkeää.\n
+    6. Älä koskaan aikatauluta työtehtäviä työajan ulkopuolelle! Työaikani on 10:00-18:00.\n
 
-    Anna aikataululista yhtenä kokonaisuutena ja lisää lopuksi muistiinpanot valinnoista. Käytä vain pieniä kirjaimia paitsi otsikoissa. Käytä seuraavia otsikoita: \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\" ja \"Yhteenveto\"."
+    Lisää lopuksi muistiinpanot valinnoista. Käytä vain pieniä kirjaimia paitsi otsikoissa, otsikon jälkeen tyhjä rivi. Käytä seuraavia otsikoita: \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\" ja \"Yhteenveto\"."
 
     # Check for weekend or holiday
     if is_weekend "$current_day"; then
