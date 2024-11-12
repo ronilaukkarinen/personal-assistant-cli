@@ -53,9 +53,10 @@ get_priorities() {
     2. Kunkin tehtävän muoto on: Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: \"1234567890\", priority: \"1-4\", duration: \"0-999\", datetime: \"YYYY-MM-DDTHH:MM:SS\"). Lisää myös tehtävän perään selkokielinen päiväys siitä minne se on lykätty.\n
     3. Älä koskaan aikatauluta tehtäviä yöajalle tai ennen kello 10:00.\n
     4. Jos tälle päivälle on liikaa tekemistä, lykkää loput tehtävistä seuraaville päiville ja viikoille, poislukien 1 ja 2 prioriteetin tehtävät.\n
-    5. Tehtävälistan tulee olla yhtenäinen, ja kaikki tehtävät tulee sisällyttää, vaikka aikataulua muokataan!!! Tämä on tärkeää.
+    5. Tehtävälistan tulee olla yhtenäinen, ja kaikki tehtävät tulee sisällyttää, vaikka aikataulua muokataan!!! Tämä on tärkeää.\n
+    6. Jos tehtäviä on paljon, jaa ne useampaan osioon, kuten \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\", ja \"Muut tehtävät\" varmistaen, että kaikki tehtävät ovat mukana aikataulussa.
 
-    Anna aikataululista yhtenä kokonaisuutena ja lisää lopuksi muistiinpanot valinnoista. Käytä vain pieniä kirjaimia paitsi otsikoissa. Käytä seuraavia otsikoita: \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\" ja \"Yhteenveto\"."
+    Anna aikataululista yhtenä kokonaisuutena ja lisää lopuksi muistiinpanot valinnoista. Käytä vain pieniä kirjaimia paitsi otsikoissa. Käytä seuraavia otsikoita: \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\", \"Muut tehtävät\" ja \"Yhteenveto\"."
 
     # Check for weekend or holiday
     if is_weekend "$current_day"; then

@@ -1,3 +1,7 @@
+### 1.2.9: 2024-11-12
+
+* Improve prompt to include more tasks to be scheduled
+
 ### 1.2.8: 2024-11-12
 
 * Fix all tasks not being scheduled
