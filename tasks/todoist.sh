@@ -76,4 +76,7 @@ fetch_tasks() {
 
   # Export variable to be used in other part of the program
   export TASKS_TO_BE_SCHEDULED="$TASKS_TO_BE_SCHEDULED"
+
+  # Export the final task count
+  export TOTAL_TASK_COUNT=$((counter - 1))
 }
