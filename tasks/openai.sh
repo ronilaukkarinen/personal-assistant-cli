@@ -55,7 +55,7 @@ get_priorities() {
     5. Kaikki annetun tehtävälistan tehtävät tulee sisällyttää, vaikka aikataulua muokataan!!! Tämä on tärkeää.\n
     6. Kunnioita aikoja! Älä aikatauluta samoille kellonajoille, joilla on jo tapahtumia tai tehtäviä. Älä koskaan aikatauluta työtehtäviä työajan ulkopuolelle! Työaikani on 10:00-18:00.\n
 
-    Lisää lopuksi muistiinpanot valinnoista. Käytä vain pieniä kirjaimia paitsi otsikoissa, otsikon jälkeen tyhjä rivi. Käytä seuraavia otsikoita: \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\" ja \"Yhteenveto\"."
+    Lisää jokaiselle lyhyt perustelu miksi tehtävä on tärkeä tai vähemmän tärkeä tänään. Lisää lopuksi yhteenveto. Käytä vain pieniä kirjaimia paitsi otsikoissa, otsikon jälkeen tyhjä rivi. Käytä seuraavia otsikoita: \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\" ja \"Yhteenveto\"."
 
     # Check for weekend or holiday
     if is_weekend "$current_day"; then

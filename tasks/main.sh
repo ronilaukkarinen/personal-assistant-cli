@@ -83,7 +83,6 @@ main() {
     remaining_hours=$((24 - current_hour))
     echo -e "# $header\n\nKello on muistiinpanojen luomishetkellä $current_time. Päivää on jäljellä noin $remaining_hours tuntia.\n\nYhteensä tapaamisia tänään $total_event_duration tuntia (mukaanlukien lounas). Tehtäviä tänään: **${TOTAL_TASK_COUNT}**. Palaverien määrä tänään: **${event_count}**. Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä **${remaining_work_hours} tuntia**.\n\n## Päivän tapahtumat\n\n$all_events\n$priorities" > "$file_path"
   fi
-
   # Add TASKS_TO_BE_SCHEDULED at the end of the file
   echo -e "\n## Aikataulutetut tehtävät\n\n$TASKS_TO_BE_SCHEDULED" >> "$file_path"
 
@@ -114,29 +113,25 @@ main() {
 
     for task_id in $task_ids_to_schedule; do
       if [[ "$(uname)" == "Darwin" ]]; then
-        metadata_line=$(echo "$priorities" | ggrep -P "Metadata:.*id:\s*\"$task_id\".*priority:\s*\"[0-9]+\".*duration:\s*\"[0-9a-zA-Z]+\".*datetime:\s*\"[0-9T:.Z-]+\".*backlog:\s*\"?(true|false)")
+        metadata_line=$(echo "$priorities" | ggrep -P "Metadata:.*id:\s*\"$task_id\"")
       else
-        metadata_line=$(echo "$priorities" | grep -P "Metadata:.*id:\s*\"$task_id\".*priority:\s*\"[0-9]+\".*duration:\s*\"[0-9a-zA-Z]+\".*datetime:\s*\"[0-9T:.Z-]+\".*backlog:\s*\"?(true|false)")
+        metadata_line=$(echo "$priorities" | grep -P "Metadata:.*id:\s*\"$task_id\"")
       fi
 
       if [[ -n "$metadata_line" ]]; then
         if [[ "$(uname)" == "Darwin" ]]; then
-          task_duration=$(echo "$metadata_line" | ggrep -oP '(?<=duration: ")[0-9a-zA-Z]+')
-          task_datetime=$(echo "$metadata_line" | ggrep -oP '(?<=datetime: ")[^"]+')
-          backlog=$(echo "$metadata_line" | ggrep -oP '(?<=backlog: )(true|false)')
+          task_duration=$(echo "$metadata_line" | ggrep -oP '(?<=duration: ")[0-9a-zA-Z]+' || echo "")
+          task_datetime=$(echo "$metadata_line" | ggrep -oP '(?<=datetime: )(null|"[^"]+")' | sed 's/"//g' || echo "null")
+          backlog=$(echo "$metadata_line" | ggrep -oP '(?<=backlog: )(true|false)' || echo "false")
         else
-          task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration: ")[0-9a-zA-Z]+')
-          task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime: ")[^"]+')
-          backlog=$(echo "$metadata_line" | grep -oP '(?<=backlog: )(true|false)')
+          task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration: ")[0-9a-zA-Z]+' || echo "")
+          task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime: )(null|"[^"]+")' | sed 's/"//g' || echo "null")
+          backlog=$(echo "$metadata_line" | grep -oP '(?<=backlog: )(true|false)' || echo "false")
         fi
 
-        if [[ -n "$task_duration" && -n "$task_datetime" ]]; then
-          schedule_task "$task_id" "$task_duration" "$task_datetime" "$today" "$backlog"
-        else
-          echo -e "${RED}Error: Missing duration or datetime for task ID $task_id${RESET}"
-        fi
+        schedule_task "$task_id" "${task_duration:-0}" "${task_datetime:-null}" "$today" "${backlog:-false}"
       else
-        echo -e "${RED}Error: No metadata found for task ID $task_id${RESET}"
+        echo -e "${YELLOW}Warning: No metadata found for task ID $task_id${RESET}"
       fi
     done
   else
