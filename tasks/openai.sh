@@ -48,12 +48,22 @@ get_priorities() {
     Tässä tehtävälista:\n\n${tasks}\n\nTässä lista kalenteritapahtumista:\n\n${all_events}\n\n
     Taustatiedot: Olen teknologiayrittäjä ja perustaja 15 henkilön yrityksessä. Yrityksessä priorisoimme asiat, joista saa rahaa nopeasti, seuraavaksi asiat, joista saa rahaa tulevaisuudessa ja vasta sitten kaikki muu.\n\n
 
-    Pyydän, että priorisoit ja aikataulutat nämä tehtävät seuraavasti:\n
-    1. Kaikille aikataulutettaville tehtäville päivitetään \"duration\" ja \"datetime\" kentät. Mikäli tehtävään on merkity \"Backlog\" tai \"low priority\", poista datetime vaihtamalla se nulliksi.\n
+    TÄRKEIMMÄT SÄÄNNÖT AIKATAULUTUKSEEN:\n
+    1. Kalenteritapahtumat ovat AINA etusijalla - tarkista ne ensin!\n
+    2. Älä KOSKAAN aikatauluta mitään päällekkäin kalenteritapahtumien kanssa\n
+    3. Työaika on 10:00-18:00 - älä aikatauluta työtehtäviä tämän ulkopuolelle\n
+    4. Jätä 15 minuutin siirtymäaika kokousten väliin\n
+
+    Esimerkkejä aikataulutuksesta:\n
+    - Jos kalenterissa on kokous klo 14:00-15:00, tämä aika on kokonaan varattu\n
+    - Jos tehtävän kesto on 30min ja seuraava kokous alkaa klo 16:00, voit aikatauluttaa sen viimeistään klo 15:30\n
+    - Jos päivässä on paljon kokouksia, priorisoi lyhytkestoiset tehtävät kokousten väleihin\n
+
+    Pyydän, että priorisoit ja aikataulutat tehtävät seuraavasti:\n
+    1. Kaikille aikataulutettaville tehtäville päivitetään \"duration\" ja \"datetime\" kentät. Mikäli tehtävään on merkitty \"Backlog\" tai \"low priority\", poista datetime vaihtamalla se nulliksi.\n
     2. Kunkin tehtävän muoto on: Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: \"1234567890\", priority: \"1-4\", duration: \"0-999\", datetime: \"YYYY-MM-DDTHH:MM:SS\", backlog: \"true\"/false).\n
     3. Laita mielestäsi ei-tärkeät tehtävät backlogille vaihtamalla backlog: true, poislukien tehtävät joissa on priority 1 tai 2.\n
-    5. Kaikki annetun tehtävälistan tehtävät tulee sisällyttää, vaikka aikataulua muokataan!!! Tämä on tärkeää.\n
-    6. Kunnioita aikoja! Älä aikatauluta samoille kellonajoille, joilla on jo tapahtumia tai tehtäviä. Älä aikatauluta päällekkäin kalenterin tapahtumien kanssa. Älä koskaan aikatauluta työtehtäviä työajan ulkopuolelle! Työaikani on 10:00-18:00.\n
+    4. Kaikki annetun tehtävälistan tehtävät tulee sisällyttää, vaikka aikataulua muokataan!!! Tämä on tärkeää.\n
 
     Lisää jokaiselle lyhyt perustelu miksi tehtävä on tärkeä tai vähemmän tärkeä tänään. Lisää lopuksi yhteenveto. Käytä vain pieniä kirjaimia paitsi otsikoissa, otsikon jälkeen tyhjä rivi. Käytä seuraavia otsikoita: \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\" ja \"Yhteenveto\"."
 
