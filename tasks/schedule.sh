@@ -58,8 +58,8 @@ schedule_task() {
   formatted_date=$($date_cmd -d "$datetime" "+%-d. ${formatted_month}ta %Y")
   formatted_time=$($date_cmd -d "$datetime" "+%H:%M")
 
-  # Prettified comment to be added to the scheduled task
-  comment="🤖 Rollen tekoälyavustaja v${SCRIPT_VERSION} lykkäsi tätä tehtävää eteenpäin ajalle $formatted_date, kello $formatted_time. Tehtävän kestoksi määriteltiin $duration minuuttia."
+  # Get task date in YYYY-MM-DD format for comparison
+  task_date=$($date_cmd -d "$datetime" "+%Y-%m-%d")
 
   if [ "$recurring" == "true" ]; then
     if [ "$duration" -gt 0 ]; then
@@ -95,12 +95,18 @@ schedule_task() {
     fi
   fi
 
-  # Add a comment to the task after scheduling
-  comment_response=$(curl -s --request POST \
-    --url "https://api.todoist.com/rest/v2/comments" \
-    --header "Content-Type: application/json" \
-    --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-    --data "{\"task_id\": \"$task_id\", \"content\": \"$comment\"}")
+  # Only add comment if task is scheduled for a different day
+  if [ "$task_date" != "$current_day" ]; then
+    # Prettified comment to be added to the scheduled task
+    comment="🤖 Rollen tekoälyavustaja v${SCRIPT_VERSION} lykkäsi tätä tehtävää eteenpäin ajalle $formatted_date, kello $formatted_time. Tehtävän kestoksi määriteltiin $duration minuuttia."
+
+    # Add a comment to the task after scheduling
+    comment_response=$(curl -s --request POST \
+      --url "https://api.todoist.com/rest/v2/comments" \
+      --header "Content-Type: application/json" \
+      --header "Authorization: Bearer ${TODOIST_API_KEY}" \
+      --data "{\"task_id\": \"$task_id\", \"content\": \"$comment\"}")
+  fi
 
   # Check if there was an error during the update
   if echo "$update_response" | grep -q '"error"'; then

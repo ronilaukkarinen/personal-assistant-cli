@@ -49,11 +49,11 @@ get_priorities() {
     Taustatiedot: Olen teknologiayrittäjä ja perustaja 15 henkilön yrityksessä. Yrityksessä priorisoimme asiat, joista saa rahaa nopeasti, seuraavaksi asiat, joista saa rahaa tulevaisuudessa ja vasta sitten kaikki muu.\n\n
 
     Pyydän, että priorisoit ja aikataulutat nämä tehtävät seuraavasti:\n
-    1. Kaikille tehtäville päivitetään \"duration\" ja \"datetime\" kentät. Mikäli tehtävään on merkity \"Backlog\" tai \"low priority\", lykkää tehtävä suoraan miettimättä lähitulevaisuuteen.\n
-    2. Kunkin tehtävän muoto on: Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: \"1234567890\", priority: \"1-4\", duration: \"0-999\", datetime: \"YYYY-MM-DDTHH:MM:SS\"). Lisää myös tehtävän perään selkokielinen päiväys siitä minne se on lykätty.\n
-    3. Lykkää mielestäsi ei-tärkeät tehtävät ilman kellonaikaa lähitulevaisuuteen, poislukien tehtävät joissa on priority 1 tai 2.\n
+    1. Kaikille aikataulutettaville tehtäville päivitetään \"duration\" ja \"datetime\" kentät. Mikäli tehtävään on merkity \"Backlog\" tai \"low priority\", poista datetime vaihtamalla se nulliksi.\n
+    2. Kunkin tehtävän muoto on: Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: \"1234567890\", priority: \"1-4\", duration: \"0-999\", datetime: \"YYYY-MM-DDTHH:MM:SS\", backlog: \"true\"/false).\n
+    3. Laita mielestäsi ei-tärkeät tehtävät backlogille vaihtamalla backlog: true, poislukien tehtävät joissa on priority 1 tai 2.\n
     5. Kaikki annetun tehtävälistan tehtävät tulee sisällyttää, vaikka aikataulua muokataan!!! Tämä on tärkeää.\n
-    6. Älä koskaan aikatauluta työtehtäviä työajan ulkopuolelle! Työaikani on 10:00-18:00.\n
+    6. Kunnioita aikoja! Älä aikatauluta samoille kellonajoille, joilla on jo tapahtumia tai tehtäviä. Älä koskaan aikatauluta työtehtäviä työajan ulkopuolelle! Työaikani on 10:00-18:00.\n
 
     Lisää lopuksi muistiinpanot valinnoista. Käytä vain pieniä kirjaimia paitsi otsikoissa, otsikon jälkeen tyhjä rivi. Käytä seuraavia otsikoita: \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\" ja \"Yhteenveto\"."
 

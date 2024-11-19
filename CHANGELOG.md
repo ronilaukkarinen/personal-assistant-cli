@@ -1,3 +1,8 @@
+### 1.3.1: 2024-11-19
+
+* Add comment to scheduled tasks only if they are scheduled for a different day
+* Fix prompt for postponed tasks
+
 ### 1.3.0: 2024-11-12
 
 * Refine prompt
