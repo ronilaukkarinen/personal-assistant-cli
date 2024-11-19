@@ -4,14 +4,13 @@ schedule_task() {
   local datetime="$3"
   local current_day="$4"
 
-  if [[ -z "$duration" || -z "$datetime" ]]; then
-    echo -e "${RED}Error: Missing duration or datetime for task ID $task_id${RESET}"
-    return
+  # Ensure duration and datetime are valid by using only the first match if present
+  if [ ! -z "$duration" ]; then
+    duration=$(echo "$duration" | head -n 1)
   fi
-
-  # Ensure duration and datetime are valid by using only the first match
-  duration=$(echo "$duration" | head -n 1)
-  datetime=$(echo "$datetime" | head -n 1)
+  if [ ! -z "$datetime" ]; then
+    datetime=$(echo "$datetime" | head -n 1)
+  fi
 
   # Get existing labels and task name for the task
   task_data=$(curl -s --request GET \
@@ -54,49 +53,45 @@ schedule_task() {
     date_cmd="date"
   fi
 
-  formatted_month=$($date_cmd -d "$datetime" "+%B" | tr '[:upper:]' '[:lower:]')
-  formatted_date=$($date_cmd -d "$datetime" "+%-d. ${formatted_month}ta %Y")
-  formatted_time=$($date_cmd -d "$datetime" "+%H:%M")
-
-  # Get task date in YYYY-MM-DD format for comparison
-  task_date=$($date_cmd -d "$datetime" "+%Y-%m-%d")
-
-  if [ "$recurring" == "true" ]; then
-    if [ "$duration" -gt 0 ]; then
-      # Update task's details and keep recurrence with duration
-      update_response=$(curl -s --request POST \
-        --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
-        --header "Content-Type: application/json" \
-        --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-        --data "{\"due_datetime\": \"$datetime\", \"due_string\": \"$due_string\", \"duration\": \"$duration\", \"duration_unit\": \"minute\"}")
-    else
-      # Update task's details and keep recurrence without duration
-      update_response=$(curl -s --request POST \
-        --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
-        --header "Content-Type: application/json" \
-        --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-        --data "{\"due_datetime\": \"$datetime\", \"due_string\": \"$due_string\"}")
-    fi
-  else
-    if [ "$duration" -gt 0 ]; then
-      # Update the task's details with duration
-      update_response=$(curl -s --request POST \
-        --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
-        --header "Content-Type: application/json" \
-        --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-        --data "{\"due_datetime\": \"$datetime\", \"duration\": \"$duration\", \"duration_unit\": \"minute\"}")
-    else
-      # Update the task's details without duration
-      update_response=$(curl -s --request POST \
-        --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
-        --header "Content-Type: application/json" \
-        --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-        --data "{\"due_datetime\": \"$datetime\"}")
-    fi
+  if [ ! -z "$datetime" ]; then
+    formatted_month=$($date_cmd -d "$datetime" "+%B" | tr '[:upper:]' '[:lower:]')
+    formatted_date=$($date_cmd -d "$datetime" "+%-d. ${formatted_month}ta %Y")
+    formatted_time=$($date_cmd -d "$datetime" "+%H:%M")
+    task_date=$($date_cmd -d "$datetime" "+%Y-%m-%d")
   fi
 
-  # Only add comment if task is scheduled for a different day
-  if [ "$task_date" != "$current_day" ]; then
+  # Build update data based on what's available
+  update_data="{"
+  if [ "$recurring" == "true" ]; then
+    if [ ! -z "$datetime" ]; then
+      update_data+="\"due_datetime\": \"$datetime\", \"due_string\": \"$due_string\""
+    fi
+    if [ ! -z "$duration" ] && [ "$duration" -gt 0 ]; then
+      if [ ! -z "$datetime" ]; then update_data+=", "; fi
+      update_data+="\"duration\": \"$duration\", \"duration_unit\": \"minute\""
+    fi
+  else
+    if [ ! -z "$datetime" ]; then
+      update_data+="\"due_datetime\": \"$datetime\""
+    fi
+    if [ ! -z "$duration" ] && [ "$duration" -gt 0 ]; then
+      if [ ! -z "$datetime" ]; then update_data+=", "; fi
+      update_data+="\"duration\": \"$duration\", \"duration_unit\": \"minute\""
+    fi
+  fi
+  update_data+="}"
+
+  # Only update if we have data to update
+  if [ "$update_data" != "{}" ]; then
+    update_response=$(curl -s --request POST \
+      --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
+      --header "Content-Type: application/json" \
+      --header "Authorization: Bearer ${TODOIST_API_KEY}" \
+      --data "$update_data")
+  fi
+
+  # Only add comment if task is scheduled for a different day and datetime exists
+  if [ ! -z "$datetime" ] && [ ! -z "$task_date" ] && [ "$task_date" != "$current_day" ]; then
     # Prettified comment to be added to the scheduled task
     comment="🤖 Rollen tekoälyavustaja v${SCRIPT_VERSION} lykkäsi tätä tehtävää eteenpäin ajalle $formatted_date, kello $formatted_time. Tehtävän kestoksi määriteltiin $duration minuuttia."
 
@@ -109,7 +104,7 @@ schedule_task() {
   fi
 
   # Check if there was an error during the update
-  if echo "$update_response" | grep -q '"error"'; then
+  if [ ! -z "$update_response" ] && echo "$update_response" | grep -q '"error"'; then
     echo -e "${RED}Error scheduling task with ID $task_id: $update_response${RESET}"
   else
     echo -e "${GREEN}Task with ID $task_id successfully scheduled with comment.${RESET}"

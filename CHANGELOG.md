@@ -2,6 +2,7 @@
 
 * Add comment to scheduled tasks only if they are scheduled for a different day
 * Fix prompt for postponed tasks
+* Remove due and duration from Todoist tasks if they are not defined by AI
 
 ### 1.3.0: 2024-11-12
 
