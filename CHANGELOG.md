@@ -9,6 +9,7 @@
 * Allow missing metadata for tasks
 * If date is null, remove datetime from the task
 * Refine scheduling prompt
+* Add rate limit between API calls for Todoist
 
 ### 1.3.0: 2024-11-12
 

@@ -92,8 +92,22 @@ schedule_task() {
   fi
   update_data+="}"
 
-  # Only update if we have data to update
-  if [ "$update_data" != "{}" ]; then
+  # Add sleep between API calls to respect rate limits
+  sleep 2
+
+  update_response=$(curl -s --request POST \
+    --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
+    --header "Content-Type: application/json" \
+    --header "Authorization: Bearer ${TODOIST_API_KEY}" \
+    --data "$update_data")
+
+  # If we hit rate limit, wait and retry
+  if [[ "$update_response" == *"retry_after"* ]]; then
+    retry_after=$(echo "$update_response" | jq -r '.error_extra.retry_after')
+    echo -e "${YELLOW}Rate limit hit, waiting ${retry_after} seconds...${RESET}"
+    sleep "$retry_after"
+
+    # Retry the request
     update_response=$(curl -s --request POST \
       --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
       --header "Content-Type: application/json" \
