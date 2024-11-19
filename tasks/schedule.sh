@@ -73,11 +73,14 @@ schedule_task() {
       update_data+="\"duration\": \"$duration\", \"duration_unit\": \"minute\""
     fi
   else
+    # Only add due_datetime if it's valid
     if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then
       update_data+="\"due_datetime\": \"$datetime\""
-    fi
-    if [ ! -z "$duration" ] && [ "$duration" != "0" ]; then
-      if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then update_data+=", "; fi
+      if [ ! -z "$duration" ] && [ "$duration" != "0" ]; then
+        update_data+=", \"duration\": \"$duration\", \"duration_unit\": \"minute\""
+      fi
+    elif [ ! -z "$duration" ] && [ "$duration" != "0" ]; then
+      # Only add duration if it's valid
       update_data+="\"duration\": \"$duration\", \"duration_unit\": \"minute\""
     fi
   fi
@@ -87,33 +90,23 @@ schedule_task() {
   if [ "$backlog" = "true" ]; then
     # Add Backlog label if it doesn't exist
     if ! echo "$existing_labels" | grep -q "Backlog"; then
-      update_data+=", \"labels\": $(echo "$existing_labels" | jq '. + ["Backlog"]')"
+      if [[ "$update_data" != "{" ]]; then update_data+=", "; fi
+      update_data+="\"labels\": $(echo "$existing_labels" | jq '. + ["Backlog"]')"
     fi
   fi
   update_data+="}"
 
-  # Add sleep between API calls to respect rate limits
-  sleep 2
+  # Skip update if no changes are needed
+  if [ "$update_data" = "{}" ]; then
+    echo -e "${YELLOW}No updates needed for task $task_id${RESET}"
+    return 0
+  fi
 
   update_response=$(curl -s --request POST \
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
     --header "Content-Type: application/json" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}" \
     --data "$update_data")
-
-  # If we hit rate limit, wait and retry
-  if [[ "$update_response" == *"retry_after"* ]]; then
-    retry_after=$(echo "$update_response" | jq -r '.error_extra.retry_after')
-    echo -e "${YELLOW}Rate limit hit, waiting ${retry_after} seconds...${RESET}"
-    sleep "$retry_after"
-
-    # Retry the request
-    update_response=$(curl -s --request POST \
-      --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
-      --header "Content-Type: application/json" \
-      --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-      --data "$update_data")
-  fi
 
   # Only add comment if task is scheduled for a different day and datetime exists and is valid
   if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ] && [ ! -z "$task_date" ] && [ "$task_date" != "$current_day" ]; then
