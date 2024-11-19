@@ -54,7 +54,8 @@ schedule_task() {
     date_cmd="date"
   fi
 
-  if [ ! -z "$datetime" ]; then
+  # Only process datetime if it's not null or undefined
+  if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then
     formatted_month=$($date_cmd -d "$datetime" "+%B" | tr '[:upper:]' '[:lower:]')
     formatted_date=$($date_cmd -d "$datetime" "+%-d. ${formatted_month}ta %Y")
     formatted_time=$($date_cmd -d "$datetime" "+%H:%M")
@@ -64,19 +65,19 @@ schedule_task() {
   # Build update data based on what's available
   update_data="{"
   if [ "$recurring" == "true" ]; then
-    if [ ! -z "$datetime" ]; then
+    if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then
       update_data+="\"due_datetime\": \"$datetime\", \"due_string\": \"$due_string\""
     fi
     if [ ! -z "$duration" ] && [ "$duration" -gt 0 ]; then
-      if [ ! -z "$datetime" ]; then update_data+=", "; fi
+      if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then update_data+=", "; fi
       update_data+="\"duration\": \"$duration\", \"duration_unit\": \"minute\""
     fi
   else
-    if [ ! -z "$datetime" ]; then
+    if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then
       update_data+="\"due_datetime\": \"$datetime\""
     fi
     if [ ! -z "$duration" ] && [ "$duration" -gt 0 ]; then
-      if [ ! -z "$datetime" ]; then update_data+=", "; fi
+      if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then update_data+=", "; fi
       update_data+="\"duration\": \"$duration\", \"duration_unit\": \"minute\""
     fi
   fi
@@ -100,8 +101,8 @@ schedule_task() {
       --data "$update_data")
   fi
 
-  # Only add comment if task is scheduled for a different day and datetime exists
-  if [ ! -z "$datetime" ] && [ ! -z "$task_date" ] && [ "$task_date" != "$current_day" ]; then
+  # Only add comment if task is scheduled for a different day and datetime exists and is valid
+  if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ] && [ ! -z "$task_date" ] && [ "$task_date" != "$current_day" ]; then
     # Prettified comment to be added to the scheduled task
     comment="🤖 Rollen tekoälyavustaja v${SCRIPT_VERSION} lykkäsi tätä tehtävää eteenpäin ajalle $formatted_date, kello $formatted_time. Tehtävän kestoksi määriteltiin $duration minuuttia."
 
