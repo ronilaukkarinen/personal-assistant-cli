@@ -68,7 +68,7 @@ schedule_task() {
     if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then
       update_data+="\"due_datetime\": \"$datetime\", \"due_string\": \"$due_string\""
     fi
-    if [ ! -z "$duration" ] && [ "$duration" -gt 0 ]; then
+    if [ ! -z "$duration" ] && [ "$duration" != "0" ]; then
       if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then update_data+=", "; fi
       update_data+="\"duration\": \"$duration\", \"duration_unit\": \"minute\""
     fi
@@ -76,7 +76,7 @@ schedule_task() {
     if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then
       update_data+="\"due_datetime\": \"$datetime\""
     fi
-    if [ ! -z "$duration" ] && [ "$duration" -gt 0 ]; then
+    if [ ! -z "$duration" ] && [ "$duration" != "0" ]; then
       if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then update_data+=", "; fi
       update_data+="\"duration\": \"$duration\", \"duration_unit\": \"minute\""
     fi
