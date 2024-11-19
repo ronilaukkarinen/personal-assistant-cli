@@ -114,22 +114,24 @@ main() {
 
     for task_id in $task_ids_to_schedule; do
       if [[ "$(uname)" == "Darwin" ]]; then
-        metadata_line=$(echo "$priorities" | ggrep -P "Metadata:.*id:\s*\"$task_id\".*priority:\s*\"[0-9]+\".*duration:\s*\"[0-9a-zA-Z]+\".*datetime:\s*\"[0-9T:.Z-]+\"")
+        metadata_line=$(echo "$priorities" | ggrep -P "Metadata:.*id:\s*\"$task_id\".*priority:\s*\"[0-9]+\".*duration:\s*\"[0-9a-zA-Z]+\".*datetime:\s*\"[0-9T:.Z-]+\".*backlog:\s*\"?(true|false)")
       else
-        metadata_line=$(echo "$priorities" | grep -P "Metadata:.*id:\s*\"$task_id\".*priority:\s*\"[0-9]+\".*duration:\s*\"[0-9a-zA-Z]+\".*datetime:\s*\"[0-9T:.Z-]+\"")
+        metadata_line=$(echo "$priorities" | grep -P "Metadata:.*id:\s*\"$task_id\".*priority:\s*\"[0-9]+\".*duration:\s*\"[0-9a-zA-Z]+\".*datetime:\s*\"[0-9T:.Z-]+\".*backlog:\s*\"?(true|false)")
       fi
 
       if [[ -n "$metadata_line" ]]; then
         if [[ "$(uname)" == "Darwin" ]]; then
           task_duration=$(echo "$metadata_line" | ggrep -oP '(?<=duration: ")[0-9a-zA-Z]+')
           task_datetime=$(echo "$metadata_line" | ggrep -oP '(?<=datetime: ")[^"]+')
+          backlog=$(echo "$metadata_line" | ggrep -oP '(?<=backlog: )(true|false)')
         else
           task_duration=$(echo "$metadata_line" | grep -oP '(?<=duration: ")[0-9a-zA-Z]+')
           task_datetime=$(echo "$metadata_line" | grep -oP '(?<=datetime: ")[^"]+')
+          backlog=$(echo "$metadata_line" | grep -oP '(?<=backlog: )(true|false)')
         fi
 
         if [[ -n "$task_duration" && -n "$task_datetime" ]]; then
-          schedule_task "$task_id" "$task_duration" "$task_datetime"
+          schedule_task "$task_id" "$task_duration" "$task_datetime" "$today" "$backlog"
         else
           echo -e "${RED}Error: Missing duration or datetime for task ID $task_id${RESET}"
         fi

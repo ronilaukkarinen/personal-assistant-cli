@@ -3,6 +3,7 @@ schedule_task() {
   local duration="$2"
   local datetime="$3"
   local current_day="$4"
+  local backlog="$5"
 
   # Ensure duration and datetime are valid by using only the first match if present
   if [ ! -z "$duration" ]; then
@@ -77,6 +78,15 @@ schedule_task() {
     if [ ! -z "$duration" ] && [ "$duration" -gt 0 ]; then
       if [ ! -z "$datetime" ]; then update_data+=", "; fi
       update_data+="\"duration\": \"$duration\", \"duration_unit\": \"minute\""
+    fi
+  fi
+
+  # Get existing labels and add Backlog if needed
+  existing_labels=$(echo "$task_data" | jq -r '.labels')
+  if [ "$backlog" = "true" ]; then
+    # Add Backlog label if it doesn't exist
+    if ! echo "$existing_labels" | grep -q "Backlog"; then
+      update_data+=", \"labels\": $(echo "$existing_labels" | jq '. + ["Backlog"]')"
     fi
   fi
   update_data+="}"
