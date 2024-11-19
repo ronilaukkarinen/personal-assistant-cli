@@ -116,6 +116,9 @@ list_today_events() {
     echo -e "Päivässä aikaa tehtävien suorittamiseen jäljellä yhteensä $remaining_work_hours tuntia."
     echo -e "Palaverien määrä tänään: $event_count."
 
+    # Export all events to make sure they are included in the prompt
+    export all_events="$all_events"
+
   done
 }
 

@@ -4,6 +4,7 @@
 * Fix prompt for postponed tasks
 * Remove due and duration from Todoist tasks if they are not defined by AI
 * Add task to backlog if it's not important
+* Fix: Make all events available in the prompt
 
 ### 1.3.0: 2024-11-12
 
