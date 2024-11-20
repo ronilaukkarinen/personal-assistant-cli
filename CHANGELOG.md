@@ -3,6 +3,7 @@
 * Only schedule tasks for today if they have no specific time set
 * Properly remove date from backlog tasks with due_string: "no due date"
 * Fix some date commands for macOS
+* Fixes to comment on scheduled tasks
 
 ### 1.3.1: 2024-11-19
 

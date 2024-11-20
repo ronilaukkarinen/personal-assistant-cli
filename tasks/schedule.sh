@@ -73,7 +73,12 @@ schedule_task() {
       formatted_date=$($date_cmd -d "$datetime" "+%-d. ${formatted_month}ta %Y")
       formatted_time=$($date_cmd -d "$datetime" "+%H:%M")
 
-      comment_data="{\"task_id\": $task_id, \"content\": \"🤖 Scheduled for $formatted_date at $formatted_time\"}"
+      if [ ! -z "$duration" ] && [ "$duration" != "0" ]; then
+        comment_data="{\"task_id\": $task_id, \"content\": \"🤖 Rollen tekoälyavustaja v${VERSION} lykkäsi tätä tehtävää eteenpäin ajalle $formatted_date, kello $formatted_time. Tehtävän kestoksi määriteltiin $duration minuuttia.\"}"
+      else
+        comment_data="{\"task_id\": $task_id, \"content\": \"🤖 Rollen tekoälyavustaja v${VERSION} lykkäsi tätä tehtävää eteenpäin ajalle $formatted_date, kello $formatted_time.\"}"
+      fi
+
       comment_response=$(curl -s --request POST \
         --url "https://api.todoist.com/rest/v2/comments" \
         --header "Authorization: Bearer ${TODOIST_API_KEY}" \
@@ -83,6 +88,13 @@ schedule_task() {
       if [ "$DEBUG" = true ]; then
         echo "Comment response: $comment_response"
       fi
+    elif [ "$datetime" = "null" ]; then
+      comment_data="{\"task_id\": $task_id, \"content\": \"🤖 Rollen tekoälyavustaja v${VERSION} poisti tämän tehtävän aikataulutuksen.\"}"
+      curl -s --request POST \
+        --url "https://api.todoist.com/rest/v2/comments" \
+        --header "Authorization: Bearer ${TODOIST_API_KEY}" \
+        --header "Content-Type: application/json" \
+        --data "$comment_data"
     fi
   else
     echo -e "${RED}Failed to schedule task '$task_name'. Response code: $response${RESET}"
