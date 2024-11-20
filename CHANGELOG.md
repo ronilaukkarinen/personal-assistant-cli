@@ -1,3 +1,8 @@
+### 1.3.2: 2024-11-20
+
+* Only schedule tasks for today if they have no specific time set
+* Properly remove date from backlog tasks with due_string: "no due date"
+
 ### 1.3.1: 2024-11-19
 
 * Add comment to scheduled tasks only if they are scheduled for a different day

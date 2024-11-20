@@ -5,15 +5,14 @@ schedule_task() {
   local current_day="$4"
   local backlog="$5"
 
-  # Ensure duration and datetime are valid by using only the first match if present
-  if [ ! -z "$duration" ]; then
-    duration=$(echo "$duration" | head -n 1)
-  fi
-  if [ ! -z "$datetime" ]; then
-    datetime=$(echo "$datetime" | head -n 1)
+  # Handle date command differences between macOS and Linux
+  if [[ "$(uname)" == "Darwin" ]]; then
+    date_cmd="gdate"
+  else
+    date_cmd="date"
   fi
 
-  # Get existing labels and task name for the task
+  # Get existing task data
   task_data=$(curl -s --request GET \
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}")
@@ -23,114 +22,69 @@ schedule_task() {
     return 1
   fi
 
+  # Extract task details
   task_name=$(echo "$task_data" | jq -r '.content')
   labels=$(echo "$task_data" | jq -r '.labels | join(", ")')
+  due_date=$(echo "$task_data" | jq -r '.due.date // empty')
+  due_datetime=$(echo "$task_data" | jq -r '.due.datetime // empty')
 
-  echo -e "${YELLOW}Scheduling task $task_name, with ID: $task_id (Duration: $duration minutes, Datetime: $datetime)...${RESET}"
-
-  # Check if task has a label with name "Google-kalenterin tapahtuma"
-  if echo "$task_data" | jq -r '.labels[]' | grep -q "Google-kalenterin tapahtuma"; then
-    echo -e "${YELLOW}Skipping postponing task, because it has the calendar label: $task_name (ID: $task_id)${RESET}"
+  # Skip if task already has a specific time
+  if [ ! -z "$due_datetime" ]; then
+    echo -e "${YELLOW}Skipping task '$task_name' as it already has a specific time set${RESET}"
     return 0
   fi
 
-  # Skip scheduling if the task name contains "Rutiinit"
-  if [[ "$task_name" == *"Rutiinit"* ]]; then
-    echo -e "${YELLOW}Skipping scheduling task: $task_name (ID: $task_id)${RESET}"
-    return 0
-  fi
-
-  # Handle recurring tasks
-  recurring=$(echo "$task_data" | jq -r '.due.is_recurring')
-  due_string=$(echo "$task_data" | jq -r '.due.string')
-
-  # Debugging output to check the variables
-  echo "Task name: $task_name, Task ID: $task_id, Duration: $duration, Datetime: $datetime, Recurring: $recurring"
-
-  # Determine the appropriate date command for macOS (Darwin) or other systems
-  if [[ "$(uname)" == "Darwin" ]]; then
-    date_cmd="gdate"
-  else
-    date_cmd="date"
-  fi
-
-  # Only process datetime if it's not null or undefined
-  if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then
-    formatted_month=$($date_cmd -d "$datetime" "+%B" | tr '[:upper:]' '[:lower:]')
-    formatted_date=$($date_cmd -d "$datetime" "+%-d. ${formatted_month}ta %Y")
-    formatted_time=$($date_cmd -d "$datetime" "+%H:%M")
-    task_date=$($date_cmd -d "$datetime" "+%Y-%m-%d")
-  fi
-
-  # Build update data based on what's available
+  # Build update data for tasks with only date
   update_data="{"
-  if [ "$recurring" == "true" ]; then
-    if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then
-      update_data+="\"due_datetime\": \"$datetime\", \"due_string\": \"$due_string\""
-    fi
+  should_add_comment=false
+
+  if [ "$datetime" = "null" ]; then
+    # If datetime is explicitly null, remove the due date
+    update_data+="\"due_string\": \"no due date\""
+  elif [ ! -z "$datetime" ] && [ "$datetime" != "undefined" ]; then
+    update_data+="\"due_datetime\": \"$datetime\""
+    should_add_comment=true
     if [ ! -z "$duration" ] && [ "$duration" != "0" ]; then
-      if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then update_data+=", "; fi
-      update_data+="\"duration\": \"$duration\", \"duration_unit\": \"minute\""
-    fi
-  else
-    # Only add due_datetime if it's valid
-    if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then
-      update_data+="\"due_datetime\": \"$datetime\""
-      if [ ! -z "$duration" ] && [ "$duration" != "0" ]; then
-        update_data+=", \"duration\": \"$duration\", \"duration_unit\": \"minute\""
-      fi
-    elif [ ! -z "$duration" ] && [ "$duration" != "0" ]; then
-      # Only add duration if it's valid
-      update_data+="\"duration\": \"$duration\", \"duration_unit\": \"minute\""
+      update_data+=", \"duration\": \"$duration\", \"duration_unit\": \"minute\""
     fi
   fi
 
-  # Get existing labels and add Backlog if needed
-  existing_labels=$(echo "$task_data" | jq -r '.labels')
-  if [ "$backlog" = "true" ]; then
-    # Add Backlog label if it doesn't exist
-    if ! echo "$existing_labels" | grep -q "Backlog"; then
-      if [[ "$update_data" != "{" ]]; then update_data+=", "; fi
-      update_data+="\"labels\": $(echo "$existing_labels" | jq '. + ["Backlog"]')"
-    fi
-  fi
   update_data+="}"
 
-  # Skip update if no changes are needed
+  # Only proceed if we have updates to make
   if [ "$update_data" = "{}" ]; then
-    echo -e "${YELLOW}No updates needed for task $task_id${RESET}"
+    echo -e "${YELLOW}No updates needed for task '$task_name'${RESET}"
     return 0
   fi
 
-  update_response=$(curl -s --request POST \
+  # Make the API call to update the task
+  response=$(curl -s --write-out "%{http_code}" --output /dev/null --request POST \
     --url "https://api.todoist.com/rest/v2/tasks/$task_id" \
-    --header "Content-Type: application/json" \
     --header "Authorization: Bearer ${TODOIST_API_KEY}" \
+    --header "Content-Type: application/json" \
     --data "$update_data")
 
-  # Only add comment if task is scheduled for a different day and datetime exists and is valid
-  if [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ] && [ ! -z "$task_date" ] && [ "$task_date" != "$current_day" ]; then
-    # Prettified comment to be added to the scheduled task
-    comment="🤖 Rollen tekoälyavustaja v${SCRIPT_VERSION} lykkäsi tätä tehtävää eteenpäin ajalle $formatted_date, kello $formatted_time. Tehtävän kestoksi määriteltiin $duration minuuttia."
+  if [ "$response" -eq 204 ] || [ "$response" -eq 200 ]; then
+    echo -e "${GREEN}Successfully scheduled task '$task_name'${RESET}"
 
-    # Add a comment to the task after scheduling
-    comment_response=$(curl -s --request POST \
-      --url "https://api.todoist.com/rest/v2/comments" \
-      --header "Content-Type: application/json" \
-      --header "Authorization: Bearer ${TODOIST_API_KEY}" \
-      --data "{\"task_id\": \"$task_id\", \"content\": \"$comment\"}")
-  fi
+    # Add comment about scheduling only if we have a valid datetime
+    if [ "$should_add_comment" = true ] && [ ! -z "$datetime" ] && [ "$datetime" != "null" ] && [ "$datetime" != "undefined" ]; then
+      formatted_month=$($date_cmd -d "$datetime" "+%B" | tr '[:upper:]' '[:lower:]')
+      formatted_date=$($date_cmd -d "$datetime" "+%-d. ${formatted_month}ta %Y")
+      formatted_time=$($date_cmd -d "$datetime" "+%H:%M")
 
-  # Check if there was an error during the update
-  if [ ! -z "$update_response" ] && echo "$update_response" | grep -q '"error"'; then
-    echo -e "${RED}Error scheduling task with ID $task_id: $update_response${RESET}"
+      comment_data="{\"task_id\": $task_id, \"content\": \"🤖 Scheduled for $formatted_date at $formatted_time\"}"
+      comment_response=$(curl -s --request POST \
+        --url "https://api.todoist.com/rest/v2/comments" \
+        --header "Authorization: Bearer ${TODOIST_API_KEY}" \
+        --header "Content-Type: application/json" \
+        --data "$comment_data")
+
+      if [ "$DEBUG" = true ]; then
+        echo "Comment response: $comment_response"
+      fi
+    fi
   else
-    echo -e "${GREEN}Task with ID $task_id successfully scheduled with comment.${RESET}"
-  fi
-
-  # Debug response
-  if [ "$DEBUG" = true ]; then
-    echo -e "${CYAN}Update response:${RESET}\n$update_response\n"
-    echo -e "${CYAN}Comment response:${RESET}\n$comment_response\n"
+    echo -e "${RED}Failed to schedule task '$task_name'. Response code: $response${RESET}"
   fi
 }
