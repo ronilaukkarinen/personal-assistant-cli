@@ -173,8 +173,14 @@ function batch() {
   fi
 
   # Clean up metadata from notes
-  source ${SCRIPTS_LOCATION}/tasks/cleanup-notes.sh
-  cleanup_notes "$HOME/Documents/Brain dump/Päivän suunnittelu/${start_day}-${end_day} (useampi päivä).md"
+  if [ -n "$start_day" ]; then
+    cleanup_file="$HOME/Documents/Brain dump/Päivän suunnittelu/$start_day.md"
+    if [ -n "$end_day" ]; then
+      cleanup_file="$HOME/Documents/Brain dump/Päivän suunnittelu/${start_day}-${end_day} (useampi päivä).md"
+    fi
+    source ${SCRIPTS_LOCATION}/tasks/cleanup-notes.sh
+    cleanup_notes "$cleanup_file"
+  fi
 }
 
 # Run the batch function

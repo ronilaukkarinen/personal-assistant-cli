@@ -30,7 +30,11 @@ if [ -n "$start_day" ] && [ -n "$end_day" ]; then
   cleanup_notes "$file_path"
 else
   # Single-day file format
-  filename=$(date -d "${start_day:-$(date "+%Y-%m-%d")}" "+%Y-%m-%d")
+  if [[ "$(uname)" == "Darwin" ]]; then
+    filename=$(gdate -d "${start_day:-$(gdate "+%Y-%m-%d")}" "+%Y-%m-%d")
+  else
+    filename=$(date -d "${start_day:-$(date "+%Y-%m-%d")}" "+%Y-%m-%d")
+  fi
   file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
   cleanup_notes "$file_path"
 fi
