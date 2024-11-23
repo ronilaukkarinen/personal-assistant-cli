@@ -74,9 +74,9 @@ schedule_task() {
       formatted_time=$($date_cmd -d "$datetime" "+%H:%M")
 
       if [ ! -z "$duration" ] && [ "$duration" != "0" ]; then
-        comment_data="{\"task_id\": $task_id, \"content\": \"🤖 Rollen tekoälyavustaja v${VERSION} lykkäsi tätä tehtävää eteenpäin ajalle $formatted_date, kello $formatted_time. Tehtävän kestoksi määriteltiin $duration minuuttia.\"}"
+        comment_data="{\"task_id\": $task_id, \"content\": \"🤖 Rollen tekoälyavustaja v${SCRIPT_VERSION} lykkäsi tätä tehtävää eteenpäin ajalle $formatted_date, kello $formatted_time. Tehtävän kestoksi määriteltiin $duration minuuttia.\"}"
       else
-        comment_data="{\"task_id\": $task_id, \"content\": \"🤖 Rollen tekoälyavustaja v${VERSION} lykkäsi tätä tehtävää eteenpäin ajalle $formatted_date, kello $formatted_time.\"}"
+        comment_data="{\"task_id\": $task_id, \"content\": \"🤖 Rollen tekoälyavustaja v${SCRIPT_VERSION} lykkäsi tätä tehtävää eteenpäin ajalle $formatted_date, kello $formatted_time.\"}"
       fi
 
       comment_response=$(curl -s --request POST \
@@ -89,7 +89,7 @@ schedule_task() {
         echo "Comment response: $comment_response"
       fi
     elif [ "$datetime" = "null" ]; then
-      comment_data="{\"task_id\": $task_id, \"content\": \"🤖 Rollen tekoälyavustaja v${VERSION} poisti tämän tehtävän aikataulutuksen.\"}"
+      comment_data="{\"task_id\": $task_id, \"content\": \"🤖 Rollen tekoälyavustaja v${SCRIPT_VERSION} poisti tämän tehtävän aikataulutuksen.\"}"
       curl -s --request POST \
         --url "https://api.todoist.com/rest/v2/comments" \
         --header "Authorization: Bearer ${TODOIST_API_KEY}" \

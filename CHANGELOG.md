@@ -1,3 +1,7 @@
+### 1.3.3: 2024-11-23
+
+* Fix version number not printed in scheduled task comments
+
 ### 1.3.2: 2024-11-20
 
 * Only schedule tasks for today if they have no specific time set
