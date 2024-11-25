@@ -1,3 +1,7 @@
+### 1.3.4: 2024-11-25
+
+* Make sync-google-calendar-to-todoist.sh standalone
+
 ### 1.3.3: 2024-11-23
 
 * Fix version number not printed in scheduled task comments

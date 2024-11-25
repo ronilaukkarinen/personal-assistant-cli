@@ -4,8 +4,9 @@ script_path=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 # Eliminate possible /tasks from the path
 script_path=${script_path%/tasks}
 
-# Get .env
+# Get .env and other required scripts
 source "$script_path/.env"
+source "$script_path/tasks/calculate-remaining-hours.sh"
 
 # If we're using macOS and homebrew not found, install it
 if [[ "$(uname)" == "Darwin" && ! -x "$(command -v brew)" ]]; then
@@ -114,7 +115,7 @@ sync_google_calendar_to_todoist() {
     echo -e "${CYAN}Debug: work_calendar = $work_calendar${RESET}"
     echo -e "${CYAN}Debug: personal_calendars = ${personal_calendars[*]}${RESET}"
     echo -e "${CYAN}Debug: days_to_process = $days_to_process${RESET}"
-    echo -e "${CYAN}Debug: start_day = $start_day${RESET}"
+    echo -e "${CYAN}Debug: start_date = $start_date${RESET}"
     echo -e "${CYAN}Debug: remaining_hours = $remaining_hours${RESET}"
   fi
 
@@ -122,11 +123,17 @@ sync_google_calendar_to_todoist() {
   for ((day=0; day<days_to_process; day++)); do
     # Calculate the date for each day being processed
     if [[ "$(uname)" == "Darwin" ]]; then
-      current_day=$(gdate -I -d "$start_day +$day day")
+      current_day=$(gdate -I -d "${start_date}")
       current_time=$(gdate +%H:%M:%SZ)
+      if [ "$day" -gt 0 ]; then
+        current_day=$(gdate -I -d "${start_date} +${day} days")
+      fi
     else
-      current_day=$(date -I -d "$start_day +$day day")
+      current_day=$(date -I -d "${start_date}")
       current_time=$(date +%H:%M:%SZ)
+      if [ "$day" -gt 0 ]; then
+        current_day=$(date -I -d "${start_date} +${day} days")
+      fi
     fi
 
     # Debug
@@ -134,14 +141,8 @@ sync_google_calendar_to_todoist() {
       echo -e "${CYAN}Debug: Processing day: $current_day${RESET}"
     fi
 
-    # Set current time as the minimum time if processing today
-    if [[ "$day" -eq 0 ]]; then
-      timeMin="${current_day}T00:00:00Z"
-    else
-      timeMin="${current_day}T00:00:00Z"
-    fi
-
-    # End of each day
+    # Set time range for the day
+    timeMin="${current_day}T00:00:00Z"
     timeMax="${current_day}T23:59:59Z"
 
     echo -e "${BOLD}${YELLOW}Fetching remaining events for $current_day...${RESET}"
@@ -398,6 +399,47 @@ sync_google_calendar_to_todoist() {
     done
   done
 }
+
+# Set default values
+days_to_process=1
+start_date=$(date +%Y-%m-%d)  # Default to today
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case $key in
+    --days)
+      if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
+        days_to_process="$2"
+        shift 2
+      else
+        echo "Error: --days requires a numeric value"
+        exit 1
+      fi
+      ;;
+    --start-date)
+      if [[ -n "$2" && "$2" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+        start_date="$2"
+        shift 2
+      else
+        echo "Error: --start-date requires a date in YYYY-MM-DD format"
+        exit 1
+      fi
+      ;;
+    *)
+      echo "Unknown option: $1"
+      echo "Usage: $0 [--days <number>] [--start-date YYYY-MM-DD]"
+      exit 1
+      ;;
+  esac
+done
+
+# Debug information
+if [ "$DEBUG" = true ]; then
+  echo "Using settings:"
+  echo "  days_to_process: $days_to_process"
+  echo "  start_date: $start_date"
+fi
 
 # Run the function to sync calendars
 sync_google_calendar_to_todoist "$days_to_process"
