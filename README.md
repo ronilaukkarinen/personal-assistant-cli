@@ -160,7 +160,7 @@ You need to set up your own hardcoded prompts in openai.sh. This is the most imp
 Metadata needs to be in the following format:
 
 ```bash
-(Metadata: "duration": 60, "datetime": "YYYY-MM-DDTHH:MM:SS") (12345678901, siirretty seuraavalle päivälle)
+(Metadata: id: "1234567890", priority: "1-4", duration: "0-999", datetime: "YYYY-MM-DDTHH:MM:SS", backlog: "true/false")
 ```
 
 ### Run the Script
