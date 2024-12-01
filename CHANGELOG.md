@@ -1,3 +1,7 @@
+### 1.3.5: 2024-12-01
+
+* Fix recurring tasks not being scheduled with due_string
+
 ### 1.3.4: 2024-11-25
 
 * Make sync-google-calendar-to-todoist.sh standalone

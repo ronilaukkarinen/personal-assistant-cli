@@ -27,6 +27,8 @@ schedule_task() {
   labels=$(echo "$task_data" | jq -r '.labels | join(", ")')
   due_date=$(echo "$task_data" | jq -r '.due.date // empty')
   due_datetime=$(echo "$task_data" | jq -r '.due.datetime // empty')
+  recurring=$(echo "$task_data" | jq -r '.due.is_recurring')
+  due_string=$(echo "$task_data" | jq -r '.due.string // empty')
 
   # Skip if task already has a specific time
   if [ ! -z "$due_datetime" ]; then
@@ -42,7 +44,12 @@ schedule_task() {
     # If datetime is explicitly null, remove the due date
     update_data+="\"due_string\": \"no due date\""
   elif [ ! -z "$datetime" ] && [ "$datetime" != "undefined" ]; then
-    update_data+="\"due_datetime\": \"$datetime\""
+    # Handle recurring tasks differently
+    if [ "$recurring" == "true" ] && [ ! -z "$due_string" ]; then
+      update_data+="\"due_datetime\": \"$datetime\", \"due_string\": \"$due_string\""
+    else
+      update_data+="\"due_datetime\": \"$datetime\""
+    fi
     should_add_comment=true
     if [ ! -z "$duration" ] && [ "$duration" != "0" ]; then
       update_data+=", \"duration\": \"$duration\", \"duration_unit\": \"minute\""
