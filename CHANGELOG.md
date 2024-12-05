@@ -1,3 +1,7 @@
+### 1.3.6: 2024-12-05
+
+* Change Obsidian note structure to yyyy/mm/dd.md
+
 ### 1.3.5: 2024-12-01
 
 * Fix recurring tasks not being scheduled with due_string

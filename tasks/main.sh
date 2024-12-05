@@ -41,6 +41,13 @@ main() {
   # Change back to Finnish
   export LC_TIME=fi_FI.UTF-8
 
+  # Determine the appropriate date command for macOS (Darwin) or other systems
+  if [[ "$(uname)" == "Darwin" ]]; then
+    date_cmd="gdate"
+  else
+    date_cmd="date"
+  fi
+
   # macOS and Linux compatible version of date
   if [[ "$(uname)" == "Darwin" ]]; then
     today=$(gdate -d "$start_day" "+%Y-%m-%d")
@@ -72,7 +79,7 @@ main() {
   fi
 
   # File path
-  file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
+  file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$($date_cmd "+%Y")/$month/$($date_cmd "+%d").md"
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
   if [ -n "$remaining_hours" ]; then
