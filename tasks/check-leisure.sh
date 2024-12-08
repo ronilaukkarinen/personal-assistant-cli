@@ -1,10 +1,14 @@
 # Function: Determine whether it's work time or leisure time
 is_leisure_time() {
-  local current_day
+  local input_date="$1"
   local current_hour
 
-  # Get the current day passed with: if is_leisure_time "$current_day"
-  current_day=$1
+  # Get the day of week (1-7, where 1 is Monday)
+  if [[ "$(uname)" == "Darwin" ]]; then
+    current_day=$(gdate -d "$input_date" +%u)
+  else
+    current_day=$(date -d "$input_date" +%u)
+  fi
 
   # Get the current hour (24-hour format)
   current_hour=$(date +%H)
@@ -15,29 +19,29 @@ is_leisure_time() {
   if ((current_day >= 1 && current_day <= 5 && current_hour >= 18)) || \
      ((current_day == 5 && current_hour >= 18)) || \
      ((current_day == 6)) || \
-     ((current_day == 7 && current_hour < 24)); then
-    # Zero in bash means true
-    return 0
+     ((current_day == 7)); then
+    return 0  # True
   else
-    # Non-zero in bash means false
-    return 1
+    return 1  # False
   fi
 }
 
 # Function: Check if it's weekend
 is_weekend() {
-  local current_day
+  local input_date="$1"
 
-  # Get the current day passed with: if is_weekend "$current_day"
-  current_day=$1
-
-  # If it's Saturday or Sunday, return true
-  if ((current_day == 6)) || ((current_day == 7)); then
-    # Zero in bash means true
-    return 0
+  # Get the day of week (1-7, where 1 is Monday)
+  if [[ "$(uname)" == "Darwin" ]]; then
+    current_day=$(gdate -d "$input_date" +%u)
   else
-    # Non-zero in bash means false
-    return 1
+    current_day=$(date -d "$input_date" +%u)
+  fi
+
+  # If it's Saturday (6) or Sunday (7), return true
+  if ((current_day == 6)) || ((current_day == 7)); then
+    return 0  # True
+  else
+    return 1  # False
   fi
 }
 
