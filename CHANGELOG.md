@@ -1,6 +1,7 @@
 ### 1.3.7: 2024-12-08
 
 * Fix leisure time check
+* Fix file paths for Obsidian
 
 ### 1.3.6: 2024-12-05
 

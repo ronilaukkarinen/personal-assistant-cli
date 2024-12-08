@@ -30,7 +30,8 @@ daily_log() {
 
   echo "Processing daily log for $today..."
 
-  # Lowercase month
+  # Get month as two digits and written name
+  month_num=$($date_cmd "+%m")
   month=$($date_cmd "+%B" | tr '[:upper:]' '[:lower:]')
 
   # Header for the note in Finnish (e.g. Tiistai, 15. lokakuuta 2024)
@@ -38,7 +39,10 @@ daily_log() {
   header="$weekday, $($date_cmd "+%-d"). ${month}ta $($date_cmd "+%Y")"
 
   # Log file path (use your preferred location), uses yyyy/mm/dd.md structure
-  log_file="$HOME/Documents/Brain dump/Päivittäinen reflektointi/$($date_cmd "+%Y")/$month/$($date_cmd "+%d").md"
+  log_file="$HOME/Documents/Brain dump/Päivittäinen reflektointi/$($date_cmd "+%Y")/$month_num/$($date_cmd "+%d").md"
+
+  # Create directory structure if it doesn't exist
+  mkdir -p "$(dirname "$log_file")"
 
   # Fetch completed tasks from Todoist API
   completed_tasks=$(curl -s --request GET \

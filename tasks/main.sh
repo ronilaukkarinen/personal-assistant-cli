@@ -78,8 +78,15 @@ main() {
     echo -e "${CYAN}Debug: Remaining hours: $remaining_hours${RESET}"
   fi
 
+  # Get month as two digits and written name
+  month_num=$($date_cmd "+%m")
+  month=$($date_cmd "+%B" | tr '[:upper:]' '[:lower:]')
+
   # File path
-  file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$($date_cmd "+%Y")/$month/$($date_cmd "+%d").md"
+  file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$($date_cmd "+%Y")/$month_num/$($date_cmd "+%d").md"
+
+  # Create directory structure if it doesn't exist
+  mkdir -p "$(dirname "$file_path")"
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
   if [ -n "$remaining_hours" ]; then
