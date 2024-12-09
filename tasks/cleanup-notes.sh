@@ -23,6 +23,17 @@ cleanup_notes() {
   echo "$cleaned_notes" > "$file"
 }
 
+# Determine the appropriate date command for macOS (Darwin) or other systems
+if [[ "$(uname)" == "Darwin" ]]; then
+  date_cmd="gdate"
+else
+  date_cmd="date"
+fi
+
+# Get month as two digits and written name
+month_num=$($date_cmd "+%m")
+month=$($date_cmd "+%B" | tr '[:upper:]' '[:lower:]')
+
 # Determine file paths based on the existence of start and end dates
 if [ -n "$start_day" ] && [ -n "$end_day" ]; then
   # Multi-day file format
@@ -35,6 +46,6 @@ else
   else
     filename=$(date -d "${start_day:-$(date "+%Y-%m-%d")}" "+%Y-%m-%d")
   fi
-  file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$filename.md"
+  file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$($date_cmd "+%Y")/$month_num/$($date_cmd "+%d").md"
   cleanup_notes "$file_path"
 fi

@@ -1,3 +1,7 @@
+### 1.3.8: 2024-12-09
+
+* Fix cleanup notes for Obsidian
+
 ### 1.3.7: 2024-12-08
 
 * Fix leisure time check
