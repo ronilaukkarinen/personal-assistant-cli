@@ -1,3 +1,8 @@
+### 1.3.9: 2024-12-10
+
+* Never remove scheduling of recurring tasks
+* Improve prompt to preserve recurring task schedules
+
 ### 1.3.8: 2024-12-09
 
 * Fix cleanup notes for Obsidian

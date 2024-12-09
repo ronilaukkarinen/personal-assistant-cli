@@ -60,9 +60,9 @@ get_priorities() {
     - Jos päivässä on paljon kokouksia, priorisoi lyhytkestoiset tehtävät kokousten väleihin\n
 
     Pyydän, että priorisoit ja aikataulutat tehtävät seuraavasti:\n
-    1. Kaikille aikataulutettaville tehtäville päivitetään \"duration\" ja \"datetime\" kentät. Mikäli tehtävään on merkitty \"Backlog\" tai \"low priority\", poista datetime vaihtamalla se nulliksi.\n
+    1. Kaikille aikataulutettaville tehtäville päivitetään \"duration\" ja \"datetime\" kentät. Mikäli tehtävään on merkitty \"Backlog\" tai \"low priority\" JA tehtävä EI ole toistuva (recurring), poista datetime vaihtamalla se nulliksi.\n
     2. Kunkin tehtävän muoto on: Tehtävän nimi (Kategoria 1, Kategoria 2) (Metadata: id: \"1234567890\", priority: \"1-4\", duration: \"0-999\", datetime: \"YYYY-MM-DDTHH:MM:SS\", backlog: \"true\"/false).\n
-    3. Laita mielestäsi ei-tärkeät tehtävät backlogille vaihtamalla backlog: true, poislukien tehtävät joissa on priority 1 tai 2.\n
+    3. Laita mielestäsi ei-tärkeät tehtävät backlogille vaihtamalla backlog: true, poislukien tehtävät joissa on priority 1 tai 2 tai jotka ovat toistuvia.\n
     4. Kaikki annetun tehtävälistan tehtävät tulee sisällyttää, vaikka aikataulua muokataan!!! Tämä on tärkeää.\n
 
     Lisää jokaiselle lyhyt perustelu miksi tehtävä on tärkeä tai vähemmän tärkeä tänään. Lisää lopuksi yhteenveto. Käytä vain pieniä kirjaimia paitsi otsikoissa, otsikon jälkeen tyhjä rivi. Käytä seuraavia otsikoita: \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\" ja \"Yhteenveto\"."
