@@ -2,6 +2,7 @@
 
 * Never remove scheduling of recurring tasks
 * Improve prompt to preserve recurring task schedules
+* Improve daily log prompt with completed tasks
 
 ### 1.3.8: 2024-12-09
 
