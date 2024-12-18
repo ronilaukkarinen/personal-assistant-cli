@@ -30,6 +30,12 @@ schedule_task() {
   recurring=$(echo "$task_data" | jq -r '.due.is_recurring')
   due_string=$(echo "$task_data" | jq -r '.due.string // empty')
 
+  # Skip if task is recurring
+  if [ "$recurring" = "true" ]; then
+    echo -e "${YELLOW}Skipping recurring task '$task_name'${RESET}"
+    return 0
+  fi
+
   # Skip if task already has a specific time
   if [ ! -z "$due_datetime" ]; then
     echo -e "${YELLOW}Skipping task '$task_name' as it already has a specific time set${RESET}"

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script version
-export SCRIPT_VERSION="1.3.9"
+export SCRIPT_VERSION="1.4.0"
 
 # Vars needed for this file to function globally
 SCRIPTS_LOCATION="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

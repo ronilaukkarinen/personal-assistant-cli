@@ -1,3 +1,7 @@
+### 1.4.0: 2024-12-18
+
+* Skip recurring tasks when scheduling
+
 ### 1.3.9: 2024-12-10
 
 * Never remove scheduling of recurring tasks
