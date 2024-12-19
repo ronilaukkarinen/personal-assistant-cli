@@ -4,19 +4,21 @@
 DEBUG=false
 KILLSWITCH=false
 FORCE=false
+NO_SCHEDULING=false
 mode=""
 start_day=""
 days_to_process=""
 
 # Usage function
 usage() {
-  echo "Usage: $0 [--days <number>] [--debug] [--killswitch] [--force] [--start-day YYYY-MM-DD] [--one-batch]"
+  echo "Usage: $0 [--days <number>] [--debug] [--killswitch] [--force] [--start-day YYYY-MM-DD] [--one-batch] [--no-scheduling]"
   echo "  --days <number>     Process the next <number> of days"
   echo "  --debug             Enable debug mode"
   echo "  --killswitch        Exit immediately in the defined position for debugging"
   echo "  --force             Force the script to run even if the schedule has already been made for the day"
   echo "  --start-day         Start processing tasks from a specific day (format: YYYY-MM-DD)"
   echo "  --one-batch         Process all days in one batch, requires --days and --start-day"
+  echo "  --no-scheduling     Skip task scheduling completely, only generate notes"
   exit 1
 }
 
@@ -74,6 +76,10 @@ while [[ "$#" -gt 0 ]]; do
         echo "Error: --days argument requires a valid number."
         exit 1
       fi
+      shift
+      ;;
+    --no-scheduling)
+      NO_SCHEDULING=true
       shift
       ;;
     *)

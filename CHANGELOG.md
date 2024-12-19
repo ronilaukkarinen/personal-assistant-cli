@@ -1,3 +1,7 @@
+### 1.4.1: 2024-12-19
+
+* Add --no-scheduling option to skip task scheduling completely
+
 ### 1.4.0: 2024-12-18
 
 * Skip recurring tasks when scheduling

@@ -1,4 +1,12 @@
 schedule_task() {
+  # Skip if no-scheduling is enabled
+  if [ "$NO_SCHEDULING" = true ]; then
+    if [ "$DEBUG" = true ]; then
+      echo -e "${YELLOW}Skipping scheduling due to --no-scheduling flag${RESET}"
+    fi
+    return 0
+  fi
+
   local task_id="$1"
   local duration="$2"
   local datetime="$3"
