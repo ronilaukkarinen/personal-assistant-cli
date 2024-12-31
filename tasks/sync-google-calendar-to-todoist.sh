@@ -101,7 +101,8 @@ sync_google_calendar_to_todoist() {
 
   # Define calendar IDs and their associated Todoist projects
   local work_calendar=${WORK_CALENDAR_ID}
-  local personal_calendars=("${FAMILY_CALENDAR_ID}" "${TRAINING_CALENDAR_ID}")
+  #local personal_calendars=("${FAMILY_CALENDAR_ID}" "${TRAINING_CALENDAR_ID}")
+  local personal_calendars=("${FAMILY_CALENDAR_ID}")
 
   # Automatically fetch Todoist project IDs by name
   local work_project_id=$(get_todoist_project_id "Todo")
