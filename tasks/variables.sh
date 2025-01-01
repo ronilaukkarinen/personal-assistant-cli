@@ -24,14 +24,26 @@ GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
 GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
 OURA_ACCESS_TOKEN=${OURA_ACCESS_TOKEN}
 
-# Define color codes for formatting
-BOLD=$(tput bold)
-RESET=$(tput sgr0)
-GREEN=$(tput setaf 2)
-YELLOW=$(tput setaf 3)
-RED=$(tput setaf 1)
-CYAN=$(tput setaf 6)
-PURPLE=$(tput setaf 5)
+# Define color codes for formatting, only if we have a terminal
+if [ -t 1 ]; then
+  export TERM=xterm-256color
+  BOLD=$(tput bold)
+  RESET=$(tput sgr0)
+  GREEN=$(tput setaf 2)
+  YELLOW=$(tput setaf 3)
+  RED=$(tput setaf 1)
+  CYAN=$(tput setaf 6)
+  PURPLE=$(tput setaf 5)
+else
+  # No terminal, no colors
+  BOLD=""
+  RESET=""
+  GREEN=""
+  YELLOW=""
+  RED=""
+  CYAN=""
+  PURPLE=""
+fi
 
 # Leave empty if all tasks should be fetched
 if is_leisure_time; then

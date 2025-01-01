@@ -1,3 +1,9 @@
+### 1.4.2: 2025-01-01
+
+* Fix Finnish locale not being installed
+* Fix task count not being displayed correctly
+* Fix jq not being installed
+
 ### 1.4.1: 2024-12-19
 
 * Add --no-scheduling option to skip task scheduling completely

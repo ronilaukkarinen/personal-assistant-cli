@@ -68,6 +68,8 @@ daily_log() {
 
   # Count the number of completed tasks
   task_count=$(echo "$completed_tasks" | jq --arg today "$today" '[.items[] | select(.completed_at | startswith($today))] | length')
+  task_count=${task_count:-0}  # Set to 0 if empty
+
   # If $task count is 1, print "tehtävä", otherwise print "tehtävää"
   if [ "$task_count" -eq 1 ]; then
     task_label="tehtävä"
