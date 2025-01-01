@@ -3,6 +3,7 @@
 * Fix Finnish locale not being installed
 * Fix task count not being displayed correctly
 * Fix jq not being installed
+* Use d.m.yyyy format for daily log and batch files
 
 ### 1.4.1: 2024-12-19
 

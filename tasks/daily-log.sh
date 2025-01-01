@@ -38,8 +38,8 @@ daily_log() {
   weekday=$($date_cmd "+%A" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
   header="$weekday, $($date_cmd "+%-d"). ${month}ta $($date_cmd "+%Y")"
 
-  # Log file path (use your preferred location), uses yyyy/mm/dd.md structure
-  log_file="$HOME/Documents/Brain dump/Päivittäinen reflektointi/$($date_cmd "+%Y")/$month_num/$($date_cmd "+%d").md"
+  # Log file path (use your preferred location), uses yyyy/mm/d.m.yyyy.md structure
+  log_file="$HOME/Documents/Brain dump/Päivittäinen reflektointi/$($date_cmd "+%Y")/$month_num/$($date_cmd "%-d.%-m.%Y").md"
 
   # Create directory structure if it doesn't exist
   mkdir -p "$(dirname "$log_file")"
