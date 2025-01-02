@@ -83,7 +83,7 @@ main() {
   month=$($date_cmd "+%B" | tr '[:upper:]' '[:lower:]')
 
   # File path
-  file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$($date_cmd "+%Y")/$month_num/$($date_cmd "+%d").md"
+  file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$($date_cmd "+%Y")/$month_num/$($date_cmd "%-d.%-m.%Y").md"
 
   # Create directory structure if it doesn't exist
   mkdir -p "$(dirname "$file_path")"
