@@ -15,7 +15,13 @@ todoist_backup_and_sync() {
   export LC_TIME=fi_FI.UTF-8
 
   # Date of today
-  today=$(date "+%d.%m.%Y")
+  if [[ "$(uname)" == "Darwin" ]]; then
+    today=$(date "%-d.%-m.%Y")
+  else
+    day=$(date "+%d" | sed 's/^0//')
+    month=$(date "+%m" | sed 's/^0//')
+    today="${day}.${month}.$(date "+%Y")"
+  fi
 
   # Check if macOS is used
   if [[ "$(uname)" == "Darwin" ]]; then

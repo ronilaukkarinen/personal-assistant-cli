@@ -113,8 +113,21 @@ function batch() {
   # Date header for notes
   date_header='Päivien '$start_day' - '$end_day' tehtävien priorisointi'
 
-  # Save output to Obsidian vault with the start and end date in the header
-  echo -e "# $date_header\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$(date -d "$start_day" "%-d.%-m.%Y").md"
+  # Create the directory structure first
+  month_num=$(date -d "$start_day" "+%m")
+  year=$(date -d "$start_day" "+%Y")
+  mkdir -p "$HOME/Documents/Brain dump/Päivän suunnittelu/$year/$month_num"
+
+  # Then save the file with proper date format
+  if [[ "$(uname)" == "Darwin" ]]; then
+    # macOS version
+    echo -e "# $date_header\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$year/$month_num/$($date_cmd "%-d.%-m.%Y").md"
+  else
+    # Linux version - remove leading zeros with sed
+    day=$($date_cmd -d "$start_day" "+%d" | sed 's/^0//')
+    month=$($date_cmd -d "$start_day" "+%m" | sed 's/^0//')
+    echo -e "# $date_header\n\n$priorities" > "$HOME/Documents/Brain dump/Päivän suunnittelu/$year/$month_num/${day}.${month}.$($date_cmd -d "$start_day" "+%Y").md"
+  fi
 
   echo -e "${BOLD}${GREEN}Prioritization is ready and saved to Obsidian.${RESET}"
 

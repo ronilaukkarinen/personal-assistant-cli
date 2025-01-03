@@ -82,11 +82,21 @@ main() {
   month_num=$($date_cmd "+%m")
   month=$($date_cmd "+%B" | tr '[:upper:]' '[:lower:]')
 
-  # File path
-  file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$($date_cmd "+%Y")/$month_num/$($date_cmd "%-d.%-m.%Y").md"
+  # Create directory structure
+  year=$($date_cmd "+%Y")
+  month_num=$($date_cmd "+%m")
+  mkdir -p "$HOME/Documents/Brain dump/Päivän suunnittelu/$year/$month_num"
 
-  # Create directory structure if it doesn't exist
-  mkdir -p "$(dirname "$file_path")"
+  # Set file path with proper date format
+  if [[ "$(uname)" == "Darwin" ]]; then
+    # macOS version
+    file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$year/$month_num/$($date_cmd "%-d.%-m.%Y").md"
+  else
+    # Linux version - remove leading zeros with sed
+    day=$($date_cmd -d "$start_day" "+%d" | sed 's/^0//')
+    month=$($date_cmd -d "$start_day" "+%m" | sed 's/^0//')
+    file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$year/$month_num/${day}.${month}.$($date_cmd -d "$start_day" "+%Y").md"
+  fi
 
   # Save output to Obsidian vault with the current time and remaining hours in the header
   if [ -n "$remaining_hours" ]; then

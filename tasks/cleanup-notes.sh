@@ -46,6 +46,20 @@ else
   else
     filename=$(date -d "${start_day:-$(date "+%Y-%m-%d")}" "+%Y-%m-%d")
   fi
-  file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$($date_cmd "+%Y")/$month_num/$($date_cmd "+%d").md"
+  # Create directory structure
+  year=$($date_cmd "+%Y")
+  month_num=$($date_cmd "+%m")
+  mkdir -p "$HOME/Documents/Brain dump/Päivän suunnittelu/$year/$month_num"
+
+  # Set file path with proper date format
+  if [[ "$(uname)" == "Darwin" ]]; then
+    # macOS version
+    file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$year/$month_num/$($date_cmd "%-d.%-m.%Y").md"
+  else
+    # Linux version - remove leading zeros with sed
+    day=$($date_cmd -d "$start_day" "+%d" | sed 's/^0//')
+    month=$($date_cmd -d "$start_day" "+%m" | sed 's/^0//')
+    file_path="$HOME/Documents/Brain dump/Päivän suunnittelu/$year/$month_num/${day}.${month}.$($date_cmd -d "$start_day" "+%Y").md"
+  fi
   cleanup_notes "$file_path"
 fi

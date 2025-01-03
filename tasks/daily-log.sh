@@ -39,7 +39,15 @@ daily_log() {
   header="$weekday, $($date_cmd "+%-d"). ${month}ta $($date_cmd "+%Y")"
 
   # Log file path (use your preferred location), uses yyyy/mm/d.m.yyyy.md structure
-  log_file="$HOME/Documents/Brain dump/Päivittäinen reflektointi/$($date_cmd "+%Y")/$month_num/$($date_cmd "%-d.%-m.%Y").md"
+  if [[ "$(uname)" == "Darwin" ]]; then
+    # macOS version
+    log_file="$HOME/Documents/Brain dump/Päivittäinen reflektointi/$($date_cmd "+%Y")/$month_num/$($date_cmd "%-d.%-m.%Y").md"
+  else
+    # Linux version - remove leading zeros with sed
+    day=$($date_cmd "+%d" | sed 's/^0//')
+    month=$($date_cmd "+%m" | sed 's/^0//')
+    log_file="$HOME/Documents/Brain dump/Päivittäinen reflektointi/$($date_cmd "+%Y")/$month_num/${day}.${month}.$($date_cmd "+%Y").md"
+  fi
 
   # Create directory structure if it doesn't exist
   mkdir -p "$(dirname "$log_file")"
