@@ -52,7 +52,6 @@ get_priorities() {
     1. Kalenteritapahtumat ovat AINA etusijalla - tarkista ne ensin!\n
     2. Älä KOSKAAN aikatauluta mitään päällekkäin kalenteritapahtumien kanssa\n
     3. Työaika on 10:00-18:00 - älä aikatauluta työtehtäviä tämän ulkopuolelle\n
-    4. Jätä 15 minuutin siirtymäaika kokousten väliin\n
 
     Esimerkkejä aikataulutuksesta:\n
     - Jos kalenterissa on kokous klo 14:00-15:00, tämä aika on kokonaan varattu\n
@@ -65,7 +64,7 @@ get_priorities() {
     3. Laita mielestäsi ei-tärkeät tehtävät backlogille vaihtamalla backlog: true, poislukien tehtävät joissa on priority 1 tai 2 tai jotka ovat toistuvia.\n
     4. Kaikki annetun tehtävälistan tehtävät tulee sisällyttää, vaikka aikataulua muokataan!!! Tämä on tärkeää.\n
 
-    Lisää jokaiselle lyhyt perustelu miksi tehtävä on tärkeä tai vähemmän tärkeä tänään. Lisää lopuksi yhteenveto. Käytä vain pieniä kirjaimia paitsi otsikoissa, otsikon jälkeen tyhjä rivi. Käytä seuraavia otsikoita: \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\" ja \"Yhteenveto\"."
+    Lisää jokaiselle lyhyt perustelu miksi tehtävä on tärkeä tai vähemmän tärkeä tänään. Lisää lopuksi yhteenveto. Älä käytä isoa alkukirjainta paitsi ensimmäisessä sanassa. Älä koskaan käytä boldauksia otsikoissa, vaan otsikkotageja. Otsikon jälkeen tyhjä rivi. Käytä seuraavia otsikoita: \"Tärkeimmät tehtävät tänään\", \"Lykätyt tehtävät\" ja \"Yhteenveto\"."
 
     # Check for weekend or holiday
     if is_weekend "$current_day"; then
