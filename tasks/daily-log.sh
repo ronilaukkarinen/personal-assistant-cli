@@ -24,7 +24,6 @@ daily_log() {
     date_cmd="date"
   fi
 
-
   today=$($date_cmd "+%Y-%m-%d")
   #today="2024-10-24"
 
@@ -55,28 +54,38 @@ daily_log() {
   # Fetch completed tasks
   completed_tasks=$(curl -s -H "Authorization: Bearer $TODOIST_API_KEY" "https://api.todoist.com/sync/v9/completed/get_all")
 
-  # Extract task names without labels, ensure the task is completed today
-  task_info=$(echo "$completed_tasks" | jq -r --arg today "$today" '
-    .items | map(select(.completed_at | startswith($today))) | sort_by(.completed_at) | .[] |
-    # Check if task has a parent based on content indentation
-    if (.content | startswith("  ")) then
-      "    - [x] \(.content | sub(" @.*"; "") | sub("^  "; "")) (valmis \(.completed_at | split("T")[1] | split(".")[0]))"
-    else
-      "- [x] \(.content | sub(" @.*"; "") ) (valmis \(.completed_at | split("T")[1] | split(".")[0]))"
-    end
-  ' | while IFS= read -r line; do
-    if [[ "$(uname)" == "Darwin" ]]; then
-      completed_time=$(echo "$line" | ggrep -oP '(?<=valmis )[0-9:]+')
-    else
-      completed_time=$(echo "$line" | grep -oP '(?<=valmis )[0-9:]+')
-    fi
-    local_time=$($date_cmd -d "$completed_time UTC" +'%H:%M')
-    echo "$line" | sed "s/$completed_time/$local_time/"
-  done)
+  # First, ensure we got a valid response
+  if [ -z "$completed_tasks" ] || [ "$completed_tasks" = "null" ]; then
+    echo "Error: Failed to fetch completed tasks or received empty response"
+    task_count=0
+  else
+    # Extract task names without labels, ensure the task is completed today
+    task_info=$(echo "$completed_tasks" | jq -r --arg today "$today" '
+      .items | map(select(.completed_at | startswith($today))) | sort_by(.completed_at) | .[] |
+      # Check if task has a parent based on content indentation
+      if (.content | startswith("  ")) then
+        "    - [x] \(.content | sub(" @.*"; "") | sub("^  "; "")) (valmis \(.completed_at | split("T")[1] | split(".")[0]))"
+      else
+        "- [x] \(.content | sub(" @.*"; "") ) (valmis \(.completed_at | split("T")[1] | split(".")[0]))"
+      end
+    ' | while IFS= read -r line; do
+      if [[ "$(uname)" == "Darwin" ]]; then
+        completed_time=$(echo "$line" | ggrep -oP '(?<=valmis )[0-9:]+')
+      else
+        completed_time=$(echo "$line" | grep -oP '(?<=valmis )[0-9:]+')
+      fi
+      if [ -n "$completed_time" ]; then
+        local_time=$($date_cmd -d "$completed_time UTC" +'%H:%M')
+        echo "$line" | sed "s/$completed_time/$local_time/"
+      else
+        echo "$line"
+      fi
+    done)
 
-  # Count the number of completed tasks
-  task_count=$(echo "$completed_tasks" | jq --arg today "$today" '[.items[] | select(.completed_at | startswith($today))] | length')
-  task_count=${task_count:-0}  # Set to 0 if empty
+    # Count the number of completed tasks more reliably
+    task_count=$(echo "$completed_tasks" | jq --arg today "$today" '[.items[] | select(.completed_at | startswith($today))] | length // 0')
+    task_count=${task_count:-0}  # Set to 0 if empty or null
+  fi
 
   # If $task count is 1, print "tehtävä", otherwise print "tehtävää"
   if [ "$task_count" -eq 1 ]; then
@@ -102,7 +111,7 @@ daily_log() {
   echo -e "Generating AI notes for the completed tasks..."
 
   # Optional: Generate AI notes on completed tasks
-  notes_instructions='Anna yhteenveto ja palaute päivän suoritetuista tehtävistä, pääotsikolla "Päivän yhteenveto". Kerro mitä tämän päivän tehtävistä opittiin. Anna palaute markdown-muodossa ja muista AINA tyhjä rivi otsikkojen jälkeen, älä käytä kaksoispisteitä otsikoissa. Otsikkotyyppisiin käytä aina otsikkoa boldauksen sijaan. Tehtävälista minulla on jo, joten sitä en erikseen tarvitse yhteenvetoon, ellet halua eritellä joistakin tehtävistä nostettuna jotain. Tässä on lista tänään suoritetuista tehtävistä:'
+  notes_instructions='Anna yhteenveto ja palaute päivän suoritetuista tehtävistä, pääotsikolla "Päivän yhteenveto". Kerro mitä tämän päivän tehtävistä opittiin. Anna palaute markdown-muodossa ja muista AINA tyhjä rivi otsikkojen jälkeen, älä käytä kaksoispisteitä otsikoissa. Älä käytä boldauksia otsikkoina, vaan käytä aina h2-otsikkotageja eli kaksi risuaitaa niissä. Tehtävälista minulla on jo, joten sitä en erikseen tarvitse yhteenvetoon, ellet halua eritellä joistakin tehtävistä nostettuna jotain. Tässä on lista tänään suoritetuista tehtävistä:'
   combined_message="${PROMPT_BGINFO}\n\n$notes_instructions\n\n$task_info"
 
   # Create a JSON payload for OpenAI API

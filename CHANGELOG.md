@@ -1,3 +1,8 @@
+### 1.4.3: 2025-01-06
+
+* Fix daily log not showing completed tasks
+* Fix AI not adding heading tags
+
 ### 1.4.2: 2025-01-01
 
 * Fix Finnish locale not being installed
