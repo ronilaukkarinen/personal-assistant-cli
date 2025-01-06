@@ -5,7 +5,7 @@
 ## Prioritize tasks for Todoist, save a note of the briefing to Obsidian, sync Google Calendar events to Todoist as tasks 🦾
 
 > [!NOTE] 
-> **Please note!** This project uses hardcoded Finnish language strings and is 100% meant for my personal usage. The prompt is in Finnish, the tasks are in Finnish, and the output is in Finnish. If you want to use this, you need to modify the script to your own language and needs.
+> **Please note!** This project uses hardcoded Finnish language strings and is 100% meant for my personal use. The prompt is in Finnish, the tasks are in Finnish, and the output is in Finnish. If you want to use this, you need to modify the script to your own language and needs.
 
 This is a Bash-based tool that prioritizes your daily tasks using [OpenAI's GPT-4o-mini model](https://openai.com/index/gpt-4o-mini-advancing-cost-efficient-intelligence/). It integrates tasks from Todoist and events from Google Calendar to create a comprehensive view of your day, allowing you to make informed decisions about what to prioritize.
 
