@@ -1,3 +1,7 @@
+### 1.4.4: 2025-01-11
+
+* Add update-changelog.sh script to update the public changelog
+
 ### 1.4.3: 2025-01-06
 
 * Fix daily log not showing completed tasks
