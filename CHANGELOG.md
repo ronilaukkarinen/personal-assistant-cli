@@ -1,3 +1,7 @@
+### 1.4.5: 2025-01-12
+
+* Prevent repetition, change word from note to day planning
+
 ### 1.4.4: 2025-01-11
 
 * Add update-changelog.sh script to update the public changelog
